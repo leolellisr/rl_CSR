@@ -24,7 +24,7 @@ import java.io.IOException;
  * 
  * @author L. L. Rossi (leolellisr)
  */
-public class CST_AttMod_App_ICDL2024 {
+public class CST_CSR_RL {
 
     /**
      * @param args the command line arguments

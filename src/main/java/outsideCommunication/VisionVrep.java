@@ -279,5 +279,10 @@ public class VisionVrep implements SensorI{
 		// TODO Auto-generated method stub
 		
 	}
+
+    @Override
+    public int getAux() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
     
 }

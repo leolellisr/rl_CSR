@@ -66,7 +66,7 @@ public class OutsideCommunication {
 		// System.out.println("Program started");
 		vrep = new remoteApi();
 		vrep.simxFinish(-1); // just in case, close all opened connections
-		clientID = vrep.simxStart("127.0.0.1", 25000, true, true, 5000, 5);
+		clientID = vrep.simxStart("127.0.0.1", 19997, true, true, 5000, 5);
 
 		if (clientID == -1) {
 			System.err.println("Connection failed");

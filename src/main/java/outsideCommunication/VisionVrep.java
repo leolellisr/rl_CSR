@@ -65,6 +65,44 @@ public class VisionVrep implements SensorI{
         }    
     }
     
+    private void setResizedColorData(char[] pixels_red, char[] pixels_green, char[] pixels_blue, int f){
+	float MeanValue_r = 0;
+        float MeanValue_g = 0;
+        float MeanValue_b = 0;
+        for(int n = 0;n<res/f;n++){
+            int ni = (int) (n*f);
+            int no = (int) (f+n*f);
+            for(int m = 0;m<res/f;m++){    
+                int mi = (int) (m*f);
+                int mo = (int) (f+m*f);
+                for (int y = ni; y < no; y++) {
+                    for (int x = mi; x < mo; x++) {
+                        float Fvalue_r = (float) pixels_red[y*res+x];     
+                        MeanValue_r += Fvalue_r;
+                        float Fvalue_g = (float) pixels_green[y*res+x];     
+                        MeanValue_g += Fvalue_g;
+                        float Fvalue_b = (float) pixels_blue[y*res+x];     
+                        MeanValue_b += Fvalue_b;
+                    }
+                }
+                float correct_mean_r = MeanValue_r/(f*f);
+                float correct_mean_g = MeanValue_g/(f*f);
+                float correct_mean_b = MeanValue_b/(f*f);
+                for (int y = ni; y < no; y++) {
+                    for (int x = mi; x < mo; x++) {
+                        vision_data.set(3*(y*res+x), correct_mean_r);
+                        vision_data.set(3*(y*res+x)+1, correct_mean_g);
+                        vision_data.set(3*(y*res+x)+2, correct_mean_b);
+                    }
+                }
+                        //System.out.println("Mean_r: "+ correct_mean_r + " Mean_g: "+ correct_mean_g +" Mean_b: "+ correct_mean_b +" ni: "+ni+" no: "+no+" mi: "+mi+" mo: "+mo);
+                MeanValue_r = 0;
+                MeanValue_g = 0;
+                MeanValue_b = 0;
+        }
+                        }         
+    }
+    
     @Override
     public int getExp() {
             return this.num_exp;    
@@ -101,15 +139,19 @@ public class VisionVrep implements SensorI{
         long startTime = System.currentTimeMillis();
         
         int ret_RGB = vrep.simxGetVisionSensorImage(clientID, vision_handles.getValue(), resolution, image_RGB, 0, vrep.simx_opmode_streaming); 
+        
         while (System.currentTimeMillis()-startTime < 2000)
         {
             ret_RGB = vrep.simxGetVisionSensorImage(clientID, vision_handles.getValue(), resolution, image_RGB, 0, remoteApi.simx_opmode_buffer);
             if (ret_RGB == remoteApi.simx_return_ok  || ret_RGB == remoteApi.simx_return_novalue_flag){
+                
                 int count_aux = 0; 
                 temp_RGB = image_RGB.getArray();
                 char[] pixels_red = new char[res*res];
                 char[] pixels_green = new char[res*res];
                 char[] pixels_blue = new char[res*res];
+                
+                
                 for(int y =0; y < res; y++){  
                     for(int x =0; x < res; x++){  
                         char pixel_red = temp_RGB[3*(y*res+x)];
@@ -133,82 +175,10 @@ public class VisionVrep implements SensorI{
                          
                     }
                 }
-                if(stage==2){
-                    float MeanValue_r = 0;
-                    float MeanValue_g = 0;
-                    float MeanValue_b = 0;
-                    for(int n = 0;n<res/2;n++){
-                        int ni = (int) (n*2);
-                        int no = (int) (2+n*2);
-                        for(int m = 0;m<res/2;m++){    
-                            int mi = (int) (m*2);
-                            int mo = (int) (2+m*2);
-                            for (int y = ni; y < no; y++) {
-                                for (int x = mi; x < mo; x++) {
-                                    float Fvalue_r = (float) pixels_red[y*res+x];                         
-                                    MeanValue_r += Fvalue_r;
-                                    float Fvalue_g = (float) pixels_green[y*res+x];                         
-                                    MeanValue_g += Fvalue_g;
-                                    float Fvalue_b = (float) pixels_blue[y*res+x];                         
-                                    MeanValue_b += Fvalue_b;
-                                }
-                            }
-                            float correct_mean_r = MeanValue_r/4;
-                            float correct_mean_g = MeanValue_g/4;
-                            float correct_mean_b = MeanValue_b/4;
-                            for (int y = ni; y < no; y++) {
-                                for (int x = mi; x < mo; x++) {
-                                    vision_data.set(3*(y*res+x), correct_mean_r);
-                                    vision_data.set(3*(y*res+x)+1, correct_mean_g);
-                                    vision_data.set(3*(y*res+x)+2, correct_mean_b);
-                                }
-                            }
-                //System.out.println("Stage 2 - Mean_r: "+ correct_mean_r + " Mean_g: "+ correct_mean_g +" Mean_b: "+ correct_mean_b +" ni: "+ni+" no: "+no+" mi: "+mi+" mo: "+mo);
-                            MeanValue_r = 0;
-                            MeanValue_g = 0;
-                            MeanValue_b = 0;
-                    }
-                }       
                 
-                }                        
-                if(stage==1){
-                    float MeanValue_r = 0;
-                    float MeanValue_g = 0;
-                    float MeanValue_b = 0;
-                    for(int n = 0;n<res/4;n++){
-                        int ni = (int) (n*4);
-                        int no = (int) (4+n*4);
-                        for(int m = 0;m<res/4;m++){    
-                            int mi = (int) (m*4);
-                            int mo = (int) (4+m*4);
-                            for (int y = ni; y < no; y++) {
-                                for (int x = mi; x < mo; x++) {
-                                    float Fvalue_r = (float) pixels_red[y*res+x];                         
-                                    MeanValue_r += Fvalue_r;
-                                    float Fvalue_g = (float) pixels_green[y*res+x];                         
-                                    MeanValue_g += Fvalue_g;
-                                    float Fvalue_b = (float) pixels_blue[y*res+x];                         
-                                    MeanValue_b += Fvalue_b;
-                                }
-                            }
-                            float correct_mean_r = MeanValue_r/16;
-                            float correct_mean_g = MeanValue_g/16;
-                            float correct_mean_b = MeanValue_b/16;
-                            for (int y = ni; y < no; y++) {
-                                for (int x = mi; x < mo; x++) {
-                                    vision_data.set(3*(y*res+x), correct_mean_r);
-                                    vision_data.set(3*(y*res+x)+1, correct_mean_g);
-                                    vision_data.set(3*(y*res+x)+2, correct_mean_b);
-                                }
-                            }
-                //System.out.println("Stage 1 - Mean_r: "+ correct_mean_r + " Mean_g: "+ correct_mean_g +" Mean_b: "+ correct_mean_b +" ni: "+ni+" no: "+no+" mi: "+mi+" mo: "+mo);
-                            MeanValue_r = 0;
-                            MeanValue_g = 0;
-                            MeanValue_b = 0;
-                    }
-                }       
+                if(stage==2) setResizedColorData(pixels_red, pixels_green, pixels_blue, 2);
+                if(stage==1) setResizedColorData(pixels_red, pixels_green, pixels_blue, 4);
                 
-                }      
             } else{
                 int count_aux = 0; 
                 for(int y =0; y < res; y++){  

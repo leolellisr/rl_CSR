@@ -34,12 +34,12 @@ import java.util.List;
 import outsideCommunication.OutsideCommunication;
 import codelets.learner.LearnerCodelet;
 import codelets.sensors.CFM;
-import codelets.sensors.Sensor_ColorRed;
+/*import codelets.sensors.Sensor_ColorRed;
 import codelets.sensors.Sensor_ColorGreen;
-import codelets.sensors.Sensor_ColorBlue;
-import codelets.sensors.BU_FM_ColorRed;
-import codelets.sensors.BU_FM_ColorGreen;
-import codelets.sensors.BU_FM_ColorBlue;
+import codelets.sensors.Sensor_ColorBlue;*/
+import codelets.sensors.BU_FM_Color;
+/*import codelets.sensors.BU_FM_ColorGreen;
+import codelets.sensors.BU_FM_ColorBlue;*/
 import codelets.sensors.BU_FM_Depth;
 import codelets.sensors.TD_FM_Color;
 import codelets.sensors.TD_FM_Depth;
@@ -99,6 +99,10 @@ public class AgentMind extends Mind {
         List vision_data = Collections.synchronizedList(new ArrayList<Float>(Visiondimension));
         MemoryObject vision_read = createMemoryObject("VISION", vision_data);
         
+        //Vision Sensor
+        List depth_data = Collections.synchronizedList(new ArrayList<Float>(Vision_image_dimension));
+        MemoryObject depth_read = createMemoryObject("DEPTH", depth_data);
+        
         //Sensor Buffers
         List battery_buffer_list = Collections.synchronizedList(new ArrayList<Memory>(Buffersize));
         MemoryObject battery_bufferMO = createMemoryObject("BATTERY_BUFFER",battery_buffer_list);
@@ -108,10 +112,7 @@ public class AgentMind extends Mind {
         List vision_buffer_list = Collections.synchronizedList(new ArrayList<Memory>(Buffersize));
         MemoryObject vision_bufferMO = createMemoryObject("VISION_BUFFER",vision_buffer_list);
         
-        //Vision Sensor
-        List depth_data = Collections.synchronizedList(new ArrayList<Float>(Vision_image_dimension));
-        MemoryObject depth_read = createMemoryObject("DEPTH", depth_data);
-        
+               
         //Sensor Buffers
         //Vision buffer
         List depth_buffer_list = Collections.synchronizedList(new ArrayList<Memory>(Buffersize));
@@ -126,7 +127,8 @@ public class AgentMind extends Mind {
         
       // Color data 
         
-        //Vision RED data
+ /* not used
+      //Vision RED data
         List visionRed = Collections.synchronizedList(new ArrayList<ArrayList<Float>>());
         MemoryObject vision_redMO = createMemoryObject("VISION_RED", visionRed);
         
@@ -138,22 +140,22 @@ public class AgentMind extends Mind {
         List visionBlue = Collections.synchronizedList(new ArrayList<ArrayList<Float>>());
         MemoryObject vision_blueMO = createMemoryObject("VISION_BLUE", visionBlue);
           
-        
+        */
         
         //Color bottom-up Feature Maps
 
-        //Vision RED FM
-        List visionRedFM = Collections.synchronizedList(new ArrayList<ArrayList<Float>>());
-        MemoryObject vision_red_fmMO = createMemoryObject("VISION_RED_FM", visionRedFM);
+        //Vision color FM
+        List visionColorFM = Collections.synchronizedList(new ArrayList<ArrayList<ArrayList<Float>>>());
+        MemoryObject vision_color_fmMO = createMemoryObject("VISION_COLOR_FM", visionColorFM);
         
-        //Vision GREEN FM
+/*        //Vision GREEN FM
         List visionGreenFM = Collections.synchronizedList(new ArrayList<ArrayList<Float>>());
         MemoryObject vision_green_fmMO = createMemoryObject("VISION_GREEN_FM", visionGreenFM);
         
         //Vision BLUE FM
         List visionBlueFM = Collections.synchronizedList(new ArrayList<ArrayList<Float>>());
         MemoryObject vision_blue_fmMO = createMemoryObject("VISION_BLUE_FM", visionBlueFM);
-        
+  */      
 
         //Top-down FMs
         //Depth FM
@@ -179,8 +181,6 @@ public class AgentMind extends Mind {
         // Weight list
         
         List weights = Collections.synchronizedList(new ArrayList<Float>(7));
-        weights.add(1.0f);
-        weights.add(1.0f);
         weights.add(1.0f);
         weights.add(1.0f);
         weights.add(1.0f);
@@ -287,7 +287,7 @@ public class AgentMind extends Mind {
         sensbuff_names_vision.add("BATTERY_BUFFER");
        
         
-        //Red buffer
+/*        //Red buffer
         Codelet vision_red_c = new Sensor_ColorRed(oc.vision, sensbuff_names_vision.size(), sensbuff_names_vision, "VISION_RED",Buffersize,Vision_image_dimension);
         vision_red_c.addInput(vision_bufferMO);
         vision_red_c.addOutput(vision_redMO);
@@ -304,15 +304,15 @@ public class AgentMind extends Mind {
         vision_blue_c.addInput(vision_bufferMO);
         vision_blue_c.addOutput(vision_blueMO);
         insertCodelet(vision_blue_c);
-        
+  */      
         //Feature Maps bottom-up
         //Red FM
-        Codelet vision_red_fm_c = new BU_FM_ColorRed(oc.vision, sensbuff_names_vision.size(),sensbuff_names_vision,"VISION_RED_FM",Buffersize,Sensor_dimension);
-        vision_red_fm_c.addInput(vision_bufferMO);
-        vision_red_fm_c.addOutput(vision_red_fmMO);
-        insertCodelet(vision_red_fm_c);
+        Codelet vision_color_fm_c = new BU_FM_Color(oc.vision, sensbuff_names_vision.size(),sensbuff_names_vision,"VISION_COLOR_FM",Buffersize,Sensor_dimension);
+        vision_color_fm_c.addInput(vision_bufferMO);
+        vision_color_fm_c.addOutput(vision_color_fmMO);
+        insertCodelet(vision_color_fm_c);
 
-        //Green FM
+/*        //Green FM
         Codelet vision_green_fm_c = new BU_FM_ColorGreen(oc.vision, sensbuff_names_vision.size(), sensbuff_names_vision, "VISION_GREEN_FM",Buffersize,Sensor_dimension);
         vision_green_fm_c.addInput(vision_bufferMO);
         vision_green_fm_c.addOutput(vision_green_fmMO);
@@ -323,7 +323,7 @@ public class AgentMind extends Mind {
         vision_blue_fm_c.addInput(vision_bufferMO);
         vision_blue_fm_c.addOutput(vision_blue_fmMO);
         insertCodelet(vision_blue_fm_c);
-        
+  */      
                 
         //Depth FM
         Codelet depth_fm_c = new BU_FM_Depth(oc.vision, sensbuff_names_vision.size(),sensbuff_names_vision,"DEPTH_FM",Buffersize,Sensor_dimension);
@@ -349,9 +349,9 @@ public class AgentMind extends Mind {
      
         
         ArrayList<String> FMnames = new ArrayList<>();
-        FMnames.add("VISION_RED_FM");
-        FMnames.add("VISION_GREEN_FM");
-        FMnames.add("VISION_BLUE_FM");
+        FMnames.add("VISION_COLOR_FM");
+//        FMnames.add("VISION_GREEN_FM");
+//        FMnames.add("VISION_BLUE_FM");
         FMnames.add("DEPTH_FM");
         FMnames.add("VISION_COLOR_TOP_FM");
         FMnames.add("DEPTH_TOP_FM");
@@ -359,9 +359,7 @@ public class AgentMind extends Mind {
         
         //CFM
         Codelet comb_fm_c = new CFM(oc.vision, FMnames.size(), FMnames,Buffersize,Sensor_dimension);
-        comb_fm_c.addInput(vision_red_fmMO);
-        comb_fm_c.addInput(vision_green_fmMO);
-        comb_fm_c.addInput(vision_blue_fmMO);
+        comb_fm_c.addInput(vision_color_fmMO);
         comb_fm_c.addInput(depth_fmMO);
         comb_fm_c.addInput(vision_color_top_fmMO);
         comb_fm_c.addInput(depth_top_fmMO);
@@ -390,9 +388,7 @@ public class AgentMind extends Mind {
         Codelet learner_cod = new LearnerCodelet(oc, Buffersize, Sensor_dimension, mode, motivation);
         learner_cod.addInput(salMapMO);
         learner_cod.addInput(winnersMO);
-        learner_cod.addInput(vision_red_fmMO);
-        learner_cod.addInput(vision_green_fmMO);
-        learner_cod.addInput(vision_blue_fmMO);
+        learner_cod.addInput(vision_color_fmMO);
         learner_cod.addInput(depth_fmMO);
         learner_cod.addInput(vision_color_top_fmMO);
         learner_cod.addInput(depth_top_fmMO);

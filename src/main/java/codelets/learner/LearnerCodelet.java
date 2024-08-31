@@ -47,7 +47,7 @@ public class LearnerCodelet extends Codelet
 	private QLearning ql;
     
 
-    private List winnersList, redReadings, greenReadings, blueReadings, distReadings, battReadings;
+    private List winnersList, colorReadings, redReadings, greenReadings, blueReadings, distReadings, battReadings;
     private List saliencyMap, curiosityMot, curiosityAct;
     private Idea motivationMO;
     private MemoryObject motorActionMO, reward_stringMO, action_stringMO;
@@ -179,12 +179,12 @@ public class LearnerCodelet extends Codelet
                 MO = (MemoryObject) this.getInput("WINNERS");
                 winnersList = (List) MO.getI();
                 
-                MO = (MemoryObject) this.getInput("VISION_RED_FM");
-                redReadings = (List) MO.getI();
-                MO = (MemoryObject) this.getInput("VISION_GREEN_FM");
+                MO = (MemoryObject) this.getInput("VISION_COLOR_FM");
+                colorReadings = (List) MO.getI();
+/*                MO = (MemoryObject) this.getInput("VISION_GREEN_FM");
                 greenReadings = (List) MO.getI();
                 MO = (MemoryObject) this.getInput("VISION_BLUE_FM");
-                blueReadings = (List) MO.getI();
+                blueReadings = (List) MO.getI();*/
                 MO = (MemoryObject) this.getInput("DEPTH_FM");
                 distReadings = (List) MO.getI();
                 
@@ -713,6 +713,10 @@ if(stringOutput!=null && action_stringMO != null)                action_stringMO
                         for(int i=0; i<16;i++){
                             mean_lastLine.add(0f);
                         }
+                        redReadings = (List) colorReadings.get(0);
+                        greenReadings = (List) colorReadings.get(1);
+                        blueReadings = (List) colorReadings.get(2);
+                        
 			// Getting just the last entry (current sal map)
 			lastLine = (ArrayList<Float>) saliencyMap.get(saliencyMap.size() -1);
                         lastRed = (ArrayList<Float>) redReadings.get(redReadings.size() -1);

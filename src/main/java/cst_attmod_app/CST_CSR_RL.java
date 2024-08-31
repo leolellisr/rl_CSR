@@ -39,7 +39,7 @@ public class CST_CSR_RL {
     	}
         OutsideCommunication oc = new OutsideCommunication();
         oc.start();
-        AgentMind am = new AgentMind(oc, "exploring", "impulses");
+        AgentMind am = new AgentMind(oc, "learning", "drives");
         MindViewer mv = new MindViewer(am,"mind",null);
         mv.setVisible(true);
     }

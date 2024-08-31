@@ -40,8 +40,7 @@ public class OutsideCommunication {
 	public SensorI vision;
         public VirtualBattery battery;
         public SensorI depth;
-	public SensorI marta_orientation;
-	public SensorI marta_position;
+
 	public ArrayList<SensorI> vision_orientations;
         public static final int Resolution = 256;
         public IntW[] obj_handle;
@@ -169,12 +168,7 @@ public class OutsideCommunication {
 			System.out.println("Error on initialing orientation ground truth: ");
 
 		FloatWA angles = new FloatWA(3);
-		//vrep.simxGetObjectOrientation(clientID, marta_handle.getValue(), -1, angles, remoteApi.simx_opmode_streaming);
-//		marta_orientation = new OrientationVrep(clientID, marta_handle, vrep);
-		marta_position = new PositionVrep(clientID, NeckYaw, vrep, vision.getStage(), vision);
-                FloatWA position = (FloatWA) marta_position.getData();
-                if(debug) System.out.println("Marta position - x: "+position.getArray()[0]+", y: "+position.getArray()[1]+", z: "+position.getArray()[2]);
-	}
+			}
 	
 	public void shuffle_positions(){
             Collections.shuffle(objsPositions);

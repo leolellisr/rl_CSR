@@ -54,12 +54,12 @@ public class CFM extends CombFeatMapCodelet {
         this.stage = sensor.getStage();
 //        ArrayList<Integer> sizes = new ArrayList<>();
         
-        for (int i = 0; i < num_feat_maps; i++) {
+        /*for (int i = 0; i < num_feat_maps; i++) {
             MemoryObject mo = (MemoryObject)feature_maps.get(i);
             //System.out.println("CFM"+i);
             List fm = (List) mo.getI();
             //sizes.add(fm.size());
-        }
+        }*/
         
        
         try {
@@ -112,18 +112,25 @@ public class CFM extends CombFeatMapCodelet {
                     return;
                 }
                 
-                List FMk_t;
-                FMk_t = (List) FMk.get(FMk.size()-1);
+                List FMk_t = null;
                 
+                if(k==0){
+                    for(int i = 0; i<FMk.size();i++){
+                        List FMk_i = (List) FMk.get(i);
+                        FMk_t = (List) FMk_i.get(FMk_i.size()-1);   
+                    }
+                } else{
+                    FMk_t = (List) FMk.get(FMk.size()-1);
+                }
                 Float weight_val, fmkt_val;
-                
-                fmkt_val = (Float) FMk_t.get(j); 
-                                
-                weight_val = (Float) weight_values.get(k);
-                ctj += weight_val*fmkt_val;
+
+                        fmkt_val = (Float) FMk_t.get(j); 
+
+                        weight_val = (Float) weight_values.get(k);
+                        ctj += weight_val*fmkt_val;
                 
                 if(stage==3) {
-                    if(k>=4) sum_top += weight_val*fmkt_val;
+                    if(k>=2) sum_top += weight_val*fmkt_val;
                     else sum_bottom += weight_val*fmkt_val;
                 }   
                 // TODO: Somar mapas bu e tp pra selecionar winner

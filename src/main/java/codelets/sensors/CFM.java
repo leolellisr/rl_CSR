@@ -39,7 +39,7 @@ public class CFM extends CombFeatMapCodelet {
     //private  int max_time_graph = 100;
     private SensorI sensor;
     private int stage;
-   
+   private boolean debug = false;
     public CFM(SensorI sensor, int numfeatmaps, ArrayList<String> featmapsnames, int timeWin, int CFMdim) {
         super(numfeatmaps, featmapsnames,timeWin,CFMdim);
         this.time_graph = 0;
@@ -99,7 +99,7 @@ public class CFM extends CombFeatMapCodelet {
             float ctj;
             float sum_top=0, sum_bottom=0;
             ctj = 0;
-            
+            if(debug) System.out.println("num_feat_maps: "+num_feat_maps);
             for (int k = 0; k < num_feat_maps; k++) {
                 MemoryObject FMkMO;
                 FMkMO = (MemoryObject) feature_maps.get(k);
@@ -111,16 +111,22 @@ public class CFM extends CombFeatMapCodelet {
                 if(FMk.size() < 1){
                     return;
                 }
-                
+                if(debug) System.out.println("k: "+k+" FMk: "+FMk.size());
                 List FMk_t = null;
                 
                 if(k==0){
+                    if(FMk.size() < 3){
+                    return;
+                    }
                     for(int i = 0; i<FMk.size();i++){
                         List FMk_i = (List) FMk.get(i);
-                        FMk_t = (List) FMk_i.get(FMk_i.size()-1);   
+                        if(debug) System.out.println("k: "+k+"i: "+i+"  FMk_i: "+FMk_i.size());
+                        FMk_t = (List) FMk_i.get(FMk_i.size()-1); 
+                        if(debug) System.out.println("k: "+k+"i: "+i+"t: "+t+" FMk_t if: "+FMk_t.size());
                     }
                 } else{
                     FMk_t = (List) FMk.get(FMk.size()-1);
+                    if(debug) System.out.println("k: "+k+"FMk_t else: "+FMk_t.size());
                 }
                 Float weight_val, fmkt_val;
 

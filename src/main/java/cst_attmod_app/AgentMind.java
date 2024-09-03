@@ -146,6 +146,12 @@ public class AgentMind extends Mind {
 
         //Vision color FM
         List visionColorFM = Collections.synchronizedList(new ArrayList<ArrayList<ArrayList<Float>>>());
+        ArrayList vision_redFM = new ArrayList<>(); //= (List) vision_FM.get(0); // Get red data
+        ArrayList vision_greenFM= new ArrayList<>(); // = (List) vision_FM.get(1); // Get green data
+        ArrayList vision_blueFM = new ArrayList<>(); // = (List) vision_FM.get(2); // Get blue data
+        visionColorFM.add(vision_redFM);
+        visionColorFM.add(vision_greenFM);
+        visionColorFM.add(vision_blueFM);
         MemoryObject vision_color_fmMO = createMemoryObject("VISION_COLOR_FM", visionColorFM);
         
 /*        //Vision GREEN FM

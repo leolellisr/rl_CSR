@@ -41,7 +41,7 @@ public class BU_FM_Color extends FeatMapCodelet {
     private ArrayList<Float> vision_redFM_t;
     private ArrayList<Float> vision_greenFM_t;
     private ArrayList<Float> vision_blueFM_t;
-    //private float max_value = 0;
+    private boolean debug = false;
     public BU_FM_Color(SensorI vision, int nsensors, ArrayList<String> sens_names, String featmapname,int timeWin, int mapDim) {
         super(nsensors, sens_names, featmapname,timeWin,mapDim);
         this.time_graph = 0;
@@ -104,7 +104,14 @@ public class BU_FM_Color extends FeatMapCodelet {
         
         List visionData_buffer;
         visionData_buffer = (List) vision_bufferMO.getI();
-        List vision_FM = (List) featureMap.getI();        
+        
+        List vision_FM = (List) featureMap.getI();  
+        if(debug) System.out.println("vision_FM begin: "+vision_FM.size());
+
+        /*if(vision_FM.size() == 3) {
+            vision_FM.clear();
+        }*/
+        
         List vision_redFM = (List) vision_FM.get(0); // Get red data
         List vision_greenFM = (List) vision_FM.get(1); // Get green data
         List vision_blueFM = (List) vision_FM.get(2); // Get blue data
@@ -209,11 +216,16 @@ public class BU_FM_Color extends FeatMapCodelet {
         }
         printToFile(vision_blueFM_t, "vision_blue_FM.txt");
        
-       vision_FM.add(vision_redFM_t);
-       vision_FM.add(vision_greenFM_t);
-       vision_FM.add(vision_blueFM_t);
+       vision_redFM.set(t, vision_redFM_t);
+       vision_greenFM.set(t, vision_greenFM_t);
+       vision_blueFM.set(t, vision_blueFM_t);
        
-        
+       vision_FM.set(0,vision_redFM);
+       vision_FM.set(1,vision_greenFM);
+       vision_FM.set(2,vision_blueFM);
+       
+        featureMap.setI(vision_FM);
+        if(debug) System.out.println("vision_FM end: "+vision_FM.size());
     }
     private void printToFile(ArrayList<Float> arr, String title){
         if(this.vision.getExp() == 1 || this.vision.getExp()%20 == 0){

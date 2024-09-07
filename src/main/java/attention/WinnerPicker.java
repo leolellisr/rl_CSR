@@ -31,7 +31,7 @@ import java.util.List;
  * @author L. M. Berto
  * @author L. L. Rossi (leolellisr)
  */
-public class DecisionMaking extends Codelet{
+public class WinnerPicker extends Codelet{
     
     private  int time_graph;
     
@@ -70,7 +70,7 @@ public class DecisionMaking extends Codelet{
     private static final double TM = 1000;
     private SensorI vision;
 
-    public DecisionMaking(SensorI vision, String winListName, String attMapName,String salMName, int tWindow, int sensDim){
+    public WinnerPicker(SensorI vision, String winListName, String attMapName,String salMName, int tWindow, int sensDim){
         super();
         this.time_graph = 0;
         winnersListName = winListName;

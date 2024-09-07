@@ -30,7 +30,7 @@ import outsideCommunication.OutsideCommunication;
  */
 public class AssimilationCodelet extends Codelet 
 {
-    private List states, rewards, actions, proceduralList;
+    private List states, crewards, srewards, actions, proceduralList;
     private MemoryContainer proceduralMemoryMO;
     private OutsideCommunication oc;
     private int stage, nActions;
@@ -47,8 +47,10 @@ public class AssimilationCodelet extends Codelet
 		MemoryObject MO;
                 MO = (MemoryObject) this.getInput("STATES");
                 states = (List) MO.getI();
-                MO = (MemoryObject) this.getInput("REWARDS");
-                rewards = (List) MO.getI();
+                MO = (MemoryObject) this.getInput("CUR_REWARDS");
+                crewards = (List) MO.getI();
+                MO = (MemoryObject) this.getInput("SUR_REWARDS");
+                srewards = (List) MO.getI();
                 MO = (MemoryObject) this.getInput("ACTIONS");
                 actions = (List) MO.getI();
                 
@@ -77,10 +79,10 @@ public class AssimilationCodelet extends Codelet
             Thread.currentThread().interrupt();
         }
                 
-                if (!states.isEmpty() && !actions.isEmpty() && !rewards.isEmpty()){
+                if (!states.isEmpty() && !actions.isEmpty() && !crewards.isEmpty() && !srewards.isEmpty()){
                 Object state = (Object) states.get(states.size() - 1);
                 int action = (int) actions.get(actions.size() - 1);
-                int reward = (int) rewards.get(rewards.size() - 1);
+                int reward = (int) crewards.get(crewards.size() - 1) + (int) srewards.get(srewards.size() - 1);
                 boolean verify_memory = verify_if_memory_exists(state.toString());
                     if(!verify_memory){
                         MemoryObject newProcedure = new MemoryObject();

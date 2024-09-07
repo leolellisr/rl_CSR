@@ -33,7 +33,7 @@ import java.util.logging.Logger;
  * Procedural Memory is represented by QTable.
  */
 
-public class LearnerCodelet extends Codelet 
+public class DecisionCodelet extends Codelet 
 
 {
 
@@ -47,19 +47,18 @@ public class LearnerCodelet extends Codelet
 	private QLearning ql;
     
 
-    private List winnersList, battReadings;
-    private List saliencyMap, curiosityMot, curiosityAct;
+
     private Idea motivationMO;
     private MemoryObject motorActionMO, reward_stringMO, action_stringMO;
     private MemoryObject neckMotorMO;
     private MemoryObject headMotorMO;
-    private List<String> actionsList;
-    private List<QLearning> qTableList;
-    private List<Double>  rewardsList;
+    private List<String> actionsList, allStatesList;
+    private List<QLearning> qTableSList, qTableCList;
+    private List<Double>  rewardSList, rewardCList;
     private OutsideCommunication oc;
     private final int timeWindow;
     private final int sensorDimension;
-    
+    private List saliencyMap;
     private float vel = 2f,angle_step;
     
     private double global_reward;
@@ -70,18 +69,7 @@ public class LearnerCodelet extends Codelet
     int fovea; 
     private String mode;
     private Random gerador = new Random();
-    private Integer winnerIndex;
-    private Integer winnerFovea = -1, winnerGreen = -1, winnerBlue = -1, winnerRed = -1, winnerDist = -1;
-    private int[] posLeft = {0, 4, 8, 12};
-    private int[] posRight = {3, 7, 11, 15};
-    private int[] posUp = {12, 13, 14, 15};
-    private int[] posDown = {0, 1, 2, 3};
-    private int[] posCenter = {5, 6, 9, 10};
-    
-    private int[] fovea0 = {0, 1, 4, 5};
-    private int[] fovea1 = {2, 3, 6, 7};
-    private int[] fovea2 = {8, 9, 12, 13};
-    private int[] fovea3 = {10, 11, 14, 15};
+
     
     private float yawPos = 0f, headPos = 0f;   
     private boolean crashed = false;
@@ -89,13 +77,10 @@ public class LearnerCodelet extends Codelet
     private int aux_crash = 0;
     private ArrayList<String> executedActions  = new ArrayList<>();
     private ArrayList<String> allActionsList;
-    private ArrayList<Integer> curiosity_motivationIntensity;
     private Map<String, ArrayList<Integer>> proceduralMemory = new HashMap<String, ArrayList<Integer>>();
-    private ArrayList<Float> lastLine, lastRed, lastGreen, lastBlue, lastDist;
-    private String output, motivation, nameMotivation, stringOutput = "", motivationType;
-    private float  mot_value=0, hug_drive=0, cur_drive=0, r_imp=0, g_imp=0, b_imp=0;
-    //private Idea ideaMotivation;
-	public LearnerCodelet (OutsideCommunication outc, int tWindow, int sensDim, String mode, String motivation,  String motivationType,  String output) {
+    private String output, motivation, stringOutput = "";
+    private ArrayList<Float> lastLine;
+	public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, String mode, String motivation) {
 		
 		super();
 		time_graph = 0;
@@ -104,59 +89,19 @@ public class LearnerCodelet extends Codelet
 		
 		experiment_number = 1;
                 
-                curiosity_lv = 0;
-                red_c = 0;
-                green_c = 0;
-                blue_c =0;
-                this.output = output;
-                this.motivationType = motivationType;
                 this.motivation = motivation;
                 // allActions: am0: focus; am1: neck left; am2: neck right; am3: head up; am4: head down; 
                 // am5: fovea 0; am6: fovea 1; am7: fovea 2; am8: fovea 3; am9: fovea 4; 
                 // am10: neck tofocus; am11: head tofocus; am12: neck awayfocus; am13: head awayfocus
                 // aa0: focus td color; aa1: focus td depth; aa2: focus td region.
 		allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
-                if(this.motivation.equals("drives")) curiosity_motivationIntensity  = new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 		// States are 0 1 2 ... 5^256-1
 		ArrayList<String> allStatesList = new ArrayList<>(Arrays.asList(IntStream.rangeClosed(0, (int)Math.pow(2, 16)-1).mapToObj(String::valueOf).toArray(String[]::new)));
 		
-                // QLearning initialization
-		ql = new QLearning();
-                ql.setAlpha((double) 0.9);
-		ql.setActionsList(allActionsList);
                 oc = outc;
-                yawPos = oc.NeckYaw_m.getSpeed();
-                headPos = oc.HeadPitch_m.getSpeed();                
+                         
                 this.stage = this.oc.vision.getStage();
                 
-		// learning mode ---> build Qtable from scratch
-		if (mode.equals("learning") && this.stage == 1) {
-		// Initialize QTable to 0
-			for (int i=0; i < allStatesList.size(); i ++) {
-                            for (int j=0; j < allActionsList.size(); j++) {
-                                    ql.setQ(0, allStatesList.get(i), allActionsList.get(j));
-                            }
-			}
-		} else if (mode.equals("learning") && this.stage > 1){
-                    try {
-                            ql.recoverQ();
-			}
-                    catch (Exception e) {
-                            System.out.println("ERROR LOADING QTABLE");
-                            System.exit(1);
-			}
-                }
-                
-		// exploring mode ---> reloads Qtable 
-		else {
-                    try {
-			ql.recoverQ();
-                    }
-                    catch (Exception e) {
-                        System.out.println("ERROR LOADING QTABLE");
-			System.exit(1);
-                    }
-		}
 		
 		angle_step = 0.1f;
 		
@@ -175,22 +120,27 @@ public class LearnerCodelet extends Codelet
 		MemoryObject MO;
                 MO = (MemoryObject) this.getInput("SALIENCY_MAP");
                 saliencyMap = (List) MO.getI();
-                
                 if(this.motivation.equals("drives")){
                     MemoryContainer MC = (MemoryContainer) this.getInput("MOTIVATION");
                     motivationMO = (Idea) MC.getI();
                 }               
                         
-                if(motivationType.equals("SURVIVAL")){
-                    MO = (MemoryObject) this.getInput("SUR_REWARDS");
-                    rewardsList = (List) MO.getI();
-                }else{
-                    MO = (MemoryObject) this.getInput("CUR_REWARDS");
-                    rewardsList = (List) MO.getI();
-                }
-                MO = (MemoryObject) this.getOutput(output);
-                qTableList = (List) MO.getI();
+                MO = (MemoryObject) this.getInput("SUR_REWARDS");
+                rewardSList = (List) MO.getI();
+                MO = (MemoryObject) this.getInput("QTABLES");
+                qTableSList = (List) MO.getI();
+                
+                MO = (MemoryObject) this.getInput("CUR_REWARDS");
+                rewardCList = (List) MO.getI();
+                MO = (MemoryObject) this.getInput("QTABLEC");
+                qTableCList = (List) MO.getI();
+                    
+                
+                MO = (MemoryObject) this.getOutput("STATES");
+                allStatesList = (List) MO.getI();
 
+                MO = (MemoryObject) this.getOutput("ACTIONS");
+                actionsList = (List) MO.getI();
 	}
 
 	// This abstract method must be implemented by the user. 
@@ -213,159 +163,57 @@ public class LearnerCodelet extends Codelet
 	// Main Codelet function, to be implemented in each subclass.
 	@Override
 	public void proc() {
-		crashed = false;
-                yawPos = oc.NeckYaw_m.getSpeed();
-                headPos = oc.HeadPitch_m.getSpeed(); 
                 //System.out.println("yawPos: "+yawPos+" headPos: "+headPos);
 		try {
             Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }       
-                if(!motivationType.equals(motivationMO.getName())){
+        QLearning ql;
+        
+        if(motivationMO.getName().equals("SURVIVAL")){
+            if(qTableSList.isEmpty()){
                 return;
             }
+            ql = qTableSList.get(qTableSList.size()-1);
 
-        if(qTableList.size() == timeWindow){
-                qTableList.remove(0);
+        }else{
+            if(qTableCList.isEmpty()){
+                return;
             }
-        qTableList.add(ql);
+            ql = qTableCList.get(qTableCList.size()-1);
+
+        }
         // Use the Random class to generate a random index
-        Random random = new Random();
-        
-        
-        MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
-        if(debug) System.out.println("battery_lv: "+battery_lv);
-        int battery_lvint = (int)battery_lv.getI();
+       
 
 
-
-        System.out.println("Exp: "+ experiment_number + " num action: "+action_number+ " Reward: "+global_reward+" Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
+        System.out.println("Exp: "+ experiment_number + " num action: "+action_number);
         String state = "-1";
-
-        if (!saliencyMap.isEmpty() && !winnersList.isEmpty()) {
-
-            Winner lastWinner = (Winner) winnersList.get(winnersList.size() - 1);
-            winnerIndex = lastWinner.featureJ;
-            state = getStateFromSalMap();
-
-            if (!actionsList.isEmpty() && mode.equals("learning")) {
-
-                // Find reward of the current state, given previous  winner 
-                check_stop_experiment(mode);
-                global_reward = (double) rewardsList.get(rewardsList.size() - 1);
-
-                // Gets last action taken
-                String lastAction = actionsList.get(actionsList.size() - 1);
-
-                // Gets last state that was in
-                String lastState = ql.getStatesList().get(ql.getStatesList().size()-1);
-
-                // Updates QLearning table // Adaptation
-                ql.update(lastState, lastAction, global_reward);
-                }
+        state = getStateFromSalMap();
+        String actionToTake = ql.getAction(state);
 
                 // Select best action to take
 
+        
+        if(actionsList.size() == timeWindow){
+                    actionsList.remove(0);
+        } 
+                
+        actionsList.add(actionToTake);
+        
+        if(allStatesList.size() == timeWindow){
+                    allStatesList.remove(0);
+        } 
+                
+        allStatesList.add(state);
 
-
-        }
-        check_stop_experiment(mode);
+        
 
 	}
 	
 	
-	
-	public void check_stop_experiment(String mode) {
 
-                if(yawPos>1.4f || yawPos<-1.4f || headPos>0.6f || headPos<-0.4f ){
-                    crashed = true;
-                }
-                
-                MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
-                int battery_lvint = (int)battery_lv.getI();
-                
-		if (mode.equals("learning") && ((action_number >= MAX_ACTION_NUMBER ) || crashed || battery_lvint==0) ){
-			System.out.println("Max number of actions or crashed");
-                        oc.shuffle_positions();
-                        oc.reset_positions();
-                        
-                        
-                        aux_crash = 0;
-			headMotorMO.setI(0f);
-                        neckMotorMO.setI(0f);
-                        yawPos = 0f;
-                        headPos = 0f;
-			experiment_number++;
-                        //experiment_number = printToFile(global_reward, "rewards.txt", experiment_number, false, action_number);
-//                        stringOutput.clear();
- //                       stringOutput.add("rewards.txt");
-                        if(mot_value==0) mot_value = 1;
-                        if(this.motivation.equals("drives")){  
-                            stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+" reward: "+global_reward+" mot_value: "+mot_value+" hug_drive: "+(float) (hug_drive/mot_value*100)+" cur_drive: "+(float) (cur_drive/mot_value*100);
-                        } else if(this.motivation.equals("impulses")){
-                            stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+" reward: "+global_reward+" mot_value: "+mot_value+" r_imp: "+(float) (r_imp/mot_value*100)+" g_imp: "+(float) (g_imp/mot_value*100)+" b_imp: "+(float) (b_imp/mot_value*100);
-                        }
-                        if(stringOutput!=null && reward_stringMO != null)   reward_stringMO.setI(stringOutput);
-                        oc.vision.setExp(experiment_number);
-                        action_number = 0;
-                        curiosity_lv = 0;
-                        oc.reset_battery();
-                        executedActions.clear();
-                        red_c = 0;
-                        green_c = 0;
-                        blue_c = 0;
-			if (experiment_number%50 ==0 ) { 
-				ql.storeQ();
-				
-			}
-                        if (experiment_number > MAX_EXPERIMENTS_NUMBER) {
-                            ql.storeQ();
-                            System.exit(0);
-                        }
-                        ql.setB(0.95-(0.95*experiment_number/MAX_EXPERIMENTS_NUMBER));
-			//oc.marta_position.resetData();
-			try {
-                            Thread.sleep(500);
-                        } catch (Exception e) {
-                            Thread.currentThread().interrupt();
-                        }
-		} else if (mode.equals("exploring") && (action_number >= MAX_ACTION_NUMBER ) || crashed || battery_lvint==0) {
-                    System.out.println("Max number of actions or crashed");
-                        aux_crash = 0;
-                        oc.shuffle_positions();
-                        oc.reset_positions();
-                        
-                        headMotorMO.setI(0f);
-                        neckMotorMO.setI(0f);
-                        yawPos = 0f;
-                        headPos = 0f;
-			//experiment_number = printToFile(global_reward, "rewards.txt", experiment_number, false, action_number);
-                        experiment_number++;
-                        //stringOutput.clear();
-                        //stringOutput.add("rewards.txt");
-                        if(mot_value==0) mot_value = 1;
-                        if(this.motivation.equals("drives")){  
-                            stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+" reward: "+global_reward+" mot_value: "+mot_value+" hug_drive: "+(float) (hug_drive/mot_value*100)+" cur_drive: "+(float) (cur_drive/mot_value*100);
-                        } else if(this.motivation.equals("impulses")){
-                            stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+" reward: "+global_reward+" mot_value: "+mot_value+" r_imp: "+(float) (r_imp/mot_value*100)+" g_imp: "+(float) (g_imp/mot_value*100)+" b_imp: "+(float) (b_imp/mot_value*100);
-                        }
-                      if(stringOutput!=null && reward_stringMO != null)    reward_stringMO.setI(stringOutput);
-                        oc.vision.setExp(experiment_number);
-                        oc.reset_battery();
-			curiosity_lv = 0;
-                        action_number = 0;
-                        global_reward = 0;
-                        executedActions.clear();
-                        red_c = 0;
-                        green_c = 0;
-                        blue_c = 0;
-                        if (experiment_number > MAX_EXPERIMENTS_NUMBER) {
-                            
-                            System.exit(0);
-                        }
-                }
-	}
 	
         // Discretization
 	// Normalize and transform a salience map into one state
@@ -438,7 +286,6 @@ public class LearnerCodelet extends Codelet
                                     if(i == indexGreen && indexGreen != -1) winnerGreen = n*4+m;
                                     if(i == indexBlue && indexBlue != -1) winnerBlue = n*4+m;
                                     if(i == indexDist && indexDist != -1) winnerDist = n*4+m;*/
-                                    if(i == winnerIndex) winnerFovea = n*4+m;
 
                                     float Fvalue_r = (float) lastLine.get(i);                         
                                     MeanValue.add(Fvalue_r);
@@ -502,13 +349,11 @@ public class LearnerCodelet extends Codelet
         LocalDateTime now = LocalDateTime.now();
         
         if (!check || experiment_number < MAX_EXPERIMENTS_NUMBER) {
-            MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
-            int battery_lvint = (int)battery_lv.getI();
 	        try(FileWriter fw = new FileWriter("profile/"+filename,true);
 	            BufferedWriter bw = new BufferedWriter(fw);
 	            PrintWriter out = new PrintWriter(bw))
 	        {
-	            out.println(dtf.format(now)+"_"+counter+" "+ object+" Exp number:"+experiment_number+" Action num: "+action_num+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
+	            out.println(dtf.format(now)+"_"+counter+" "+ object+" Exp number:"+experiment_number+" Action num: "+action_num);
 	            
 	            out.close();
 	            return ++counter;

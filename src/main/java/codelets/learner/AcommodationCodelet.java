@@ -30,7 +30,7 @@ import outsideCommunication.OutsideCommunication;
  */
 public class AcommodationCodelet extends Codelet 
 {
-    private List states, rewards, actions, proceduralList;
+    private List states, srewards, crewards, actions, proceduralList;
     private MemoryContainer proceduralMemoryMO;
     private OutsideCommunication oc;
     private int stage, nActions;
@@ -46,8 +46,10 @@ public class AcommodationCodelet extends Codelet
 		MemoryObject MO;
                 MO = (MemoryObject) this.getInput("STATES");
                 states = (List) MO.getI();
-                MO = (MemoryObject) this.getInput("REWARDS");
-                rewards = (List) MO.getI();
+                MO = (MemoryObject) this.getInput("CUR_REWARDS");
+                crewards = (List) MO.getI();
+                MO = (MemoryObject) this.getInput("SUR_REWARDS");
+                srewards = (List) MO.getI();
                 MO = (MemoryObject) this.getInput("ACTIONS");
                 actions = (List) MO.getI();
                 
@@ -76,10 +78,10 @@ public class AcommodationCodelet extends Codelet
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }
-                if (!states.isEmpty() && !actions.isEmpty() && !rewards.isEmpty() && !proceduralMemoryMO.getAllMemories().isEmpty()){
+                if (!states.isEmpty() && !actions.isEmpty() && !srewards.isEmpty() && !crewards.isEmpty() && !proceduralMemoryMO.getAllMemories().isEmpty()){
                 Object state = (Object) states.get(states.size() - 1);
                 int action = (int) actions.get(actions.size() - 1);
-                int reward = (int) rewards.get(rewards.size() - 1);
+                int reward = (int) crewards.get(crewards.size() - 1)+(int) srewards.get(srewards.size() - 1);
                 boolean verify_memory = verify_if_memory_exists(state.toString());
                     if(verify_memory){
                         ArrayList<Integer> info = null;

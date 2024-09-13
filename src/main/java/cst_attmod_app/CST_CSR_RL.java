@@ -33,13 +33,13 @@ public class CST_CSR_RL {
     	// removing previous .txt files expect QTable
     	File folder = new File(".");
     	for (File f : folder.listFiles()) {
-    		if(f.getName().endsWith(".txt") && !(f.getName().endsWith("QTable.txt"))) {
+    		if(f.getName().endsWith(".txt") && !(f.getName().endsWith("QTable.txt")) && !(f.getName().endsWith("QTable_CURIOSITY.txt")) && !(f.getName().endsWith("QTable_SURVIVAL.txt"))) {
     			f.delete();
     		}
     	}
         OutsideCommunication oc = new OutsideCommunication();
         oc.start();
-        AgentMind am = new AgentMind(oc, "learning", "drives");
+        AgentMind am = new AgentMind(oc, "learning", "drives", 1);
         /*MindViewer mv = new MindViewer(am,"mind",null);
         mv.setVisible(true);*/
     }

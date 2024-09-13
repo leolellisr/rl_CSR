@@ -38,7 +38,7 @@ public class BU_FM_Depth extends FeatMapCodelet {
     private  int time_graph;
     private final int slices = 16;                    //Slices in each coordinate (x & y) 
     private SensorI vision;
-
+private boolean debug = false;
     public BU_FM_Depth(SensorI vision, int nsensors, ArrayList<String> sens_names, String featmapname,int timeWin, int mapDim) {
         super(nsensors, sens_names, featmapname,timeWin,mapDim);
         this.time_graph = 0;
@@ -92,7 +92,11 @@ public class BU_FM_Depth extends FeatMapCodelet {
         List depthData;
 
         depthData = (List) depthDataMO.getI();
-        //System.out.println("depthData len: "+depthData.size());         
+        
+        if(depthData.size() < 1){
+            return;
+        }
+        if(debug)  System.out.println("FM_BU depthData len: "+depthData.size());         
         
         Float Fvalue;
         float MeanValue = 0;

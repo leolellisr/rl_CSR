@@ -57,7 +57,7 @@ public class CuriosityDrive_MotivationCodelet extends MotivationalCodelet
                 MO = (MemoryObject) this.getInput("ACTIONS");
                 actions = (List) MO.getI();
                 
-                MO = (MemoryObject) this.getInput("REWARDS");
+                MO = (MemoryObject) this.getInput("CUR_REWARDS");
                 rewards = (List) MO.getI();
                 
                 motivationMC = (MemoryContainer) this.getOutput("MOTIVATION");

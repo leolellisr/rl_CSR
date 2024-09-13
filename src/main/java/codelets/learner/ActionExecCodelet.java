@@ -16,7 +16,6 @@ import attention.Winner;
 import br.unicamp.cst.core.entities.Codelet;
 import br.unicamp.cst.core.entities.MemoryContainer;
 import br.unicamp.cst.core.entities.MemoryObject;
-import br.unicamp.cst.learning.QLearning;
 import br.unicamp.cst.representation.idea.Idea;
 import static codelets.learner.OldLearnerCodelet.calculateMean;
 import java.time.LocalDateTime;
@@ -45,7 +44,7 @@ public class ActionExecCodelet extends Codelet
 	
 	private static final int MAX_EXPERIMENTS_NUMBER = 100;
 	
-	private QLearning ql;
+	private QLearningL ql;
     
 
 
@@ -53,13 +52,14 @@ public class ActionExecCodelet extends Codelet
     private MemoryObject motorActionMO;
     private MemoryObject neckMotorMO;
     private MemoryObject headMotorMO;
+    private MemoryObject desFC, desFD, desFR;
     private List<String> actionsList;
   
     private OutsideCommunication oc;
     private final int timeWindow;
     private final int sensorDimension;
     
-    private float vel = 2f,angle_step;
+    private float vel = 2f,angle_step=0.1f;
     private Integer winnerIndex;
     private Integer winnerFovea = -1, winnerGreen = -1, winnerBlue = -1, winnerRed = -1, winnerDist = -1;
     private int[] posLeft = {0, 4, 8, 12};
@@ -90,13 +90,13 @@ public class ActionExecCodelet extends Codelet
     private ArrayList<Float> lastLine, lastRed, lastGreen, lastBlue, lastDist;
     private List winnersList, colorReadings, redReadings, greenReadings, blueReadings, distReadings, battReadings;
     private List saliencyMap;
-    
-	public ActionExecCodelet (OutsideCommunication outc, int tWindow, int sensDimn) {
+    private int curiosity_lv, red_c, green_c, blue_c;
+
+	public ActionExecCodelet (OutsideCommunication outc, String mode, int tWindow, int sensDimn) {
 		
 		super();
 		time_graph = 0;
 		sensorDimension = sensDimn;
-		action_number = 0;
 		
 		experiment_number = 1;
                 
@@ -112,10 +112,13 @@ public class ActionExecCodelet extends Codelet
                 headPos = oc.HeadPitch_m.getSpeed();                
                 this.stage = this.oc.vision.getStage();
                 
-		
+		this.mode = mode;
 		
 		timeWindow = tWindow;
-
+                curiosity_lv = 0;
+                red_c = 0;
+                green_c = 0;
+                blue_c =0;
 	}
 
 	// This method is used in every Codelet to capture input, broadcast 
@@ -130,6 +133,10 @@ public class ActionExecCodelet extends Codelet
                 saliencyMap = (List) MO.getI();
                 MO = (MemoryObject) this.getInput("WINNERS");
                 winnersList = (List) MO.getI();
+                MemoryContainer MC = (MemoryContainer) this.getInput("MOTIVATION");
+                    motivationMO = (Idea) MC.getI();
+                MO = (MemoryObject) this.getInput("BATTERY_BUFFER");
+                battReadings = (List) MO.getI();
                 
                 MO = (MemoryObject) this.getInput("VISION_COLOR_FM");
                 colorReadings = (List) MO.getI();
@@ -143,7 +150,13 @@ public class ActionExecCodelet extends Codelet
                 MO = (MemoryObject) this.getInput("ACTIONS");
                 actionsList = (List) MO.getI();
                 
+                motorActionMO = (MemoryObject) this.getOutput("MOTOR");
+                neckMotorMO = (MemoryObject) this.getOutput("NECK_YAW");
+                headMotorMO = (MemoryObject) this.getOutput("HEAD_PITCH");
                 
+                desFC = (MemoryObject) this.getOutput("DESFEAT_C");
+                desFD = (MemoryObject) this.getOutput("DESFEAT_D");
+                desFR = (MemoryObject) this.getOutput("DESFEAT_R");
 	}
 
 	// This abstract method must be implemented by the user. 
@@ -175,54 +188,84 @@ public class ActionExecCodelet extends Codelet
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }       
-
-        System.out.println("ActionExec - Exp: "+ experiment_number + " num action: "+action_number);
-        String actionToTake = actionsList.get(actionsList.size() - 1);
-        String state = getStateFromSalMap();
         
+        if(actionsList.size()<1 || winnersList.size()<1 || battReadings.size()<1){
+            if(debug){
+                System.out.println("ACT_EXEC----- actionsList.size():"+actionsList.size());
+            
+                System.out.println("ACT_EXEC----- winnersList.size():"+winnersList.size());
+                System.out.println("ACT_EXEC----- battReadings.size():"+battReadings.size());
+            }
+            return;
+        }
+        String actionToTake = actionsList.get(actionsList.size() - 1);
+        System.out.println("ACT_EXEC -----  Exp: "+ experiment_number +" ----- Act: "+ actionToTake+" ----- N_act: "+action_number+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
+        
+        Winner lastWinner = (Winner) winnersList.get(winnersList.size() - 1);
+        winnerIndex = lastWinner.featureJ;
+        String state = getStateFromSalMap();
+        action_number += 1;
         if(!executedActions.contains(actionToTake)) executedActions.add(actionToTake);
+            
+            // AM1 - Move neck to left
             if (actionToTake.equals("am1")) {
                     yawPos = yawPos-angle_step;
                     neckMotorMO.setI(yawPos);
 
             }
-
+            
+            // AM2 - Move neck to right
             else if (actionToTake.equals("am2")) {
                     yawPos = yawPos+angle_step;
                     neckMotorMO.setI(yawPos);
 
             }
+            
+            // AM3 - Move head up
             else if (actionToTake.equals("am3")) {
                     headPos = headPos-angle_step;
                     headMotorMO.setI(headPos);
 
             }
+            
+            // AM4 - Move head down
             else if (actionToTake.equals("am4")) {
                     headPos = headPos+angle_step;
                     headMotorMO.setI(headPos);
 
             }
+            
+            // AM5 - Fovea 0
             else if (actionToTake.equals("am5")) {
                 fovea = 0;
 
             }
+            
+            // AM6 - Fovea 1
             else if (actionToTake.equals("am6")) {
                 fovea = 1;
 
             }
+            
+            // AM7 - Fovea 2
             else if (actionToTake.equals("am7")) {
                 fovea = 2;
 
             }
+            
+            // AM8 - Fovea 3
             else if (actionToTake.equals("am8")) {
                 fovea = 3;
 
             }
+            
+            // AM9 - Fovea 4
             else if (actionToTake.equals("am9")) {
                 fovea = 4;
 
             }
-
+            
+            // AM10 - Neck to focus
             // just Stage 3
              else if (actionToTake.equals("am10") && this.stage == 3) {
                 if(fovea == 0 || fovea == 2){
@@ -234,6 +277,8 @@ public class ActionExecCodelet extends Codelet
                     neckMotorMO.setI(yawPos);
                 }
              }
+             
+             // AM11 - Head to focus
              else if (actionToTake.equals("am11") && this.stage == 3) {
                 if(fovea == 0 || fovea == 2){
                     yawPos = yawPos+angle_step;
@@ -244,6 +289,8 @@ public class ActionExecCodelet extends Codelet
                     neckMotorMO.setI(yawPos);
                 }
              }
+             
+             // AM12 - Neck away focus
              else if (actionToTake.equals("am12") && this.stage == 3) {
                 if(fovea == 3 || fovea == 2){
                     headPos = headPos-angle_step;
@@ -254,6 +301,8 @@ public class ActionExecCodelet extends Codelet
                     headMotorMO.setI(headPos);
                 }
              }
+             
+             // AM13 - Head away focus
              else if (actionToTake.equals("am13") && this.stage == 3) {
                 if(fovea == 3 || fovea == 2){
                     headPos = headPos+angle_step;
@@ -264,8 +313,13 @@ public class ActionExecCodelet extends Codelet
                     headMotorMO.setI(headPos);
                 }
              }
-
+             
+             // AM14 - Get red 
+             
              else if (actionToTake.equals("am14") && this.stage == 3) {
+                 if(calculateMean(lastRed)>0.005){
+                     red_c += 1;
+                     curiosity_lv += 2;
                     try {
                         oc.set_object_back(0);
                     } catch (InterruptedException ex) {
@@ -278,12 +332,16 @@ public class ActionExecCodelet extends Codelet
                         Thread.currentThread().interrupt();
                     }
                     oc.reset_positions();
+                 }
                 }
 
 
-
+             // Get green
              else if (actionToTake.equals("am15") && this.stage == 3) {
-                    try {
+                 if(calculateMean(lastGreen)>0.005){  
+                     green_c += 1;
+                     curiosity_lv += 1;
+                 try {
                         oc.set_object_back(1);
                     } catch (InterruptedException ex) {
                         Logger.getLogger(ActionExecCodelet.class.getName()).log(Level.SEVERE, null, ex);
@@ -298,11 +356,14 @@ public class ActionExecCodelet extends Codelet
                     }
                     oc.battery.setCharge(false);
                     oc.reset_positions();
-
+                 }
 
              }
-
+             
+             // get blue
              else if (actionToTake.equals("am16") && this.stage == 3) {
+                    if(calculateMean(lastBlue)>0.005){ 
+                    blue_c += 1;    
                     try {
                         oc.set_object_back(2);
                     } catch (InterruptedException ex) {
@@ -318,51 +379,61 @@ public class ActionExecCodelet extends Codelet
                     }
                     oc.battery.setCharge(false);
                     oc.reset_positions();
-
+                    }
              }
 
              // attentional actions
 
-             // aa0 move to color tod down
+            // AA0 - Define desired color
             else if (actionToTake.equals("aa0") && this.stage == 3) {
-                    // Moving neck to left yawPos > -1.4 && 
-                    if(winnerBlue !=-1 && IntStream.of(fovea0).anyMatch(x -> x == winnerBlue)) {
-                        fovea = 0; 
-                   }
-                    else if(winnerBlue !=-1 && IntStream.of(fovea1).anyMatch(x -> x == winnerBlue)) {
-                        fovea = 1; 
-                   }
-                    else if(winnerBlue !=-1 && IntStream.of(fovea2).anyMatch(x -> x == winnerBlue)) {
-                        fovea = 2; 
-                   }
-                    else if(winnerBlue !=-1 && IntStream.of(fovea3).anyMatch(x -> x == winnerBlue)) {
-                        fovea = 3; 
-                   } else fovea = 4;
+                List desired_feat_color = (List) desFC.getI();        
+                if(desired_feat_color.size() == timeWindow){
+                    desired_feat_color.remove(0);
+                }
+                desired_feat_color.add(new ArrayList<>());
+                ArrayList<Float> desired_feat_color_t = (ArrayList<Float>) desired_feat_color.get(desired_feat_color.size()-1);
+                if(calculateMean(lastRed)>calculateMean(lastBlue) && calculateMean(lastRed)>calculateMean(lastGreen)){
+                    desired_feat_color_t.add((float) 255.0);
+                    desired_feat_color_t.add((float) 0.0);
+                    desired_feat_color_t.add((float) 0.0);
+                }
+                if(calculateMean(lastGreen)>calculateMean(lastBlue) && calculateMean(lastGreen)>calculateMean(lastRed)){
+                    desired_feat_color_t.add((float) 0.0);
+                    desired_feat_color_t.add((float) 255.0);
+                    desired_feat_color_t.add((float) 0.0);
+                }    
+                if(calculateMean(lastBlue)>calculateMean(lastGreen) && calculateMean(lastBlue)>calculateMean(lastRed)){
+                    desired_feat_color_t.add((float) 0.0);
+                    desired_feat_color_t.add((float) 0.0);
+                    desired_feat_color_t.add((float) 255.0);
+                }
             } 
 
+            // AA1 - Define desired distance
             else if (actionToTake.equals("aa1") && this.stage == 3) {
-                    // Moving neck to left
-                    if(winnerDist !=-1 && IntStream.of(fovea0).anyMatch(x -> x == winnerDist)) {
-                        fovea = 0; 
-                   }
-                    else if(winnerDist !=-1 && IntStream.of(fovea1).anyMatch(x -> x == winnerDist)) {
-                        fovea = 1; 
-                   }
-                    else if(winnerDist !=-1 && IntStream.of(fovea2).anyMatch(x -> x == winnerDist)) {
-                        fovea = 2; 
-                   }
-                    else if(winnerDist !=-1 && IntStream.of(fovea3).anyMatch(x -> x == winnerDist)) {
-                        fovea = 3; 
-                   } else fovea = 4;
+                   List desired_feat_dist = (List) desFD.getI();        
+                if(desired_feat_dist.size() == timeWindow){
+                    desired_feat_dist.remove(0);
+                }
+                desired_feat_dist.add((float) 0.0);
               }
-
+            
+            // AA2 - Define desired region
             else if (actionToTake.equals("aa2") && this.stage == 3) {
-                    fovea = 4;
+                  List desired_feat_reg = (List) desFR.getI();        
+                if(desired_feat_reg.size() == timeWindow){
+                    desired_feat_reg.remove(0);
+                }
+                desired_feat_reg.add(new ArrayList<>());
+                ArrayList<Integer> desired_feat_reg_t = (ArrayList<Integer>) desired_feat_reg.get(desired_feat_reg.size()-1);
+                desired_feat_reg_t.add(8);
+                desired_feat_reg_t.add(8);
+                
             }
             
 
             check_stop_experiment();
-
+            printToFile("object_count.txt");
     } 
 
         // Discretization
@@ -411,6 +482,7 @@ public class ActionExecCodelet extends Codelet
                         }
                         
                         if(debug){
+                            System.out.println("~~~~~~ BEGIN ACTION EXEC ~~~~~");
                             System.out.println("lastRed: "+calculateMean(lastRed));
                             System.out.println("indexRed: "+indexRed);
                             System.out.println("lastGreen: "+calculateMean(lastGreen));
@@ -418,6 +490,7 @@ public class ActionExecCodelet extends Codelet
 
                             System.out.println("lastBlue: "+calculateMean(lastBlue));
                             System.out.println("indexBlue: "+indexBlue);
+                            System.out.println("~~~~~~ END ACTION EXEC ~~~~~");
                         }
                     if (Collections.max(lastLine) > 0){
                         ArrayList<Float> MeanValue = new ArrayList<>();
@@ -493,9 +566,15 @@ public class ActionExecCodelet extends Codelet
                 int battery_lvint = (int)battery_lv.getI();
                 
 		if (mode.equals("learning") && ((action_number >= MAX_ACTION_NUMBER ) || crashed || battery_lvint==0) ){
-			System.out.println("Max number of actions or crashed");
+			
                         oc.shuffle_positions();
                         oc.reset_positions();
+                        
+                        curiosity_lv = 0;
+                        red_c = 0;
+                        green_c = 0;
+                        blue_c = 0;
+                        System.out.println("Max number of actions or crashed.");
                         
                         
                         aux_crash = 0;
@@ -511,16 +590,8 @@ public class ActionExecCodelet extends Codelet
                         action_number = 0;
                         oc.reset_battery();
                         executedActions.clear();
-
-			if (experiment_number%50 ==0 ) { 
-				ql.storeQ();
-				
-			}
-                        if (experiment_number > MAX_EXPERIMENTS_NUMBER) {
-                            ql.storeQ();
-                            System.exit(0);
-                        }
-                        ql.setB(0.95-(0.95*experiment_number/MAX_EXPERIMENTS_NUMBER));
+                        
+                        
 			//oc.marta_position.resetData();
 			try {
                             Thread.sleep(500);
@@ -553,27 +624,25 @@ public class ActionExecCodelet extends Codelet
 	}
 	
             
-	private int printToFile(Object object,String filename, int counter, boolean check, int action_num){
+	private void printToFile(String filename){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();
         
-        if (!check || experiment_number < MAX_EXPERIMENTS_NUMBER) {
+        if ( experiment_number < MAX_EXPERIMENTS_NUMBER) {
             MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
             int battery_lvint = (int)battery_lv.getI();
 	        try(FileWriter fw = new FileWriter("profile/"+filename,true);
 	            BufferedWriter bw = new BufferedWriter(fw);
 	            PrintWriter out = new PrintWriter(bw))
 	        {
-	            out.println(dtf.format(now)+"_"+counter+" "+ object+" Exp number:"+experiment_number+" Action num: "+action_num);
+	            out.println(dtf.format(now)+" Exp: "+experiment_number+" Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
 	            
 	            out.close();
-	            return ++counter;
 	        } catch (IOException e) {
 	            e.printStackTrace();
 	        }
         }
       
-		return counter;
 
 	}
 		

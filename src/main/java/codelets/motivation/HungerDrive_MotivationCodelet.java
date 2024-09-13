@@ -24,7 +24,6 @@ import java.util.stream.IntStream;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
-
 import outsideCommunication.OutsideCommunication;
 
 /**
@@ -68,14 +67,16 @@ public class HungerDrive_MotivationCodelet extends MotivationalCodelet
            if(debug) System.out.println("before calc activation hunger: "+this.activation);
            if(!battReadings.isEmpty()){
                 MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
-                int battery_lvint = (int)battery_lv.getI();
-                if(debug) System.out.println("battery lv before calc activation hunger: "+battery_lvint);
-		
-                int inv_bat = 100-battery_lvint;
-                this.activation = (double)inv_bat/(double)max_lv;
+                if(debug) System.out.println("battery lv"+battery_lv.getI()+" type:"+battery_lv.getI().getClass().toString());
+                if("class java.lang.Integer".equals(battery_lv.getI().getClass().toString())){
+                    int battery_lvint = (int)battery_lv.getI();
+                    if(debug) System.out.println("battery lv before calc activation hunger: "+battery_lvint);
 
-                if(debug) System.out.println("inv_bat "+inv_bat+" act_bat "+this.activation);
+                    int inv_bat = 100-battery_lvint;
+                    this.activation = (double)inv_bat/(double)max_lv;
 
+                    if(debug) System.out.println("inv_bat "+inv_bat+" act_bat "+this.activation);
+                }
            }	
            if(debug) System.out.println("after calc activation hunger: "+this.activation);
            
@@ -104,7 +105,7 @@ public class HungerDrive_MotivationCodelet extends MotivationalCodelet
 
             if(!battReadings.isEmpty()) this.activation = getActivation();
 
-            hunger_motivation_idea = new Idea("HUNGER", this.activation);
+            hunger_motivation_idea = new Idea("SURVIVAL", this.activation);
 
             if(debug) System.out.println("Battery activation: "+this.activation);
             if(index == -1) index = motivationMC.setI(hunger_motivation_idea, activation);

@@ -196,8 +196,8 @@ public class VisionVrep implements SensorI{
         }
         
         // SYNC
- 	if (vrep.simxSynchronous(clientID, true) == remoteApi.simx_return_ok)
-            vrep.simxSynchronousTrigger(clientID);
+ 	/*if (vrep.simxSynchronous(clientID, true) == remoteApi.simx_return_ok)
+            vrep.simxSynchronousTrigger(clientID);*/
         printToFile(vision_data);        
         return  vision_data;
     }

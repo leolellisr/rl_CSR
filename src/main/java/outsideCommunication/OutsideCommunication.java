@@ -79,9 +79,9 @@ public class OutsideCommunication {
 		}
 
 		// SYNC
-		if (vrep.simxSynchronous(clientID, true) == remoteApi.simx_return_ok)
+		/*if (vrep.simxSynchronous(clientID, true) == remoteApi.simx_return_ok)
 			vrep.simxSynchronousTrigger(clientID);
-
+                        */
 		//////////////////////////////////////////////////////////////////
 		// Motor - Neck
 		//////////////////////////////////////////////////////////////////
@@ -92,7 +92,8 @@ public class OutsideCommunication {
 	
 		
 		NeckYaw_m = new MotorVrep(vrep, clientID, NeckYaw.getValue());
-
+                
+                System.out.println("NeckYaw_m Connected");
 
 		IntW HeadPitch = new IntW(-1);
            
@@ -100,7 +101,7 @@ public class OutsideCommunication {
 
                 HeadPitch_m = new MotorVrep(vrep, clientID, HeadPitch.getValue());
   
-
+                System.out.println("NeckYaw_m Connected");
 		//////////////////////////////////////////////////////////////////
 		// Sensors - Vision
 		//////////////////////////////////////////////////////////////////

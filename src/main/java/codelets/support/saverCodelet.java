@@ -45,13 +45,17 @@ public class saverCodelet extends Codelet
     	// Main Codelet function, to be implemented in each subclass.
 	@Override
 	public void proc() {
-            if(debug) System.out.println(" proc saver codelet. stringtoMap:"+stringtoMap+"MO.getTimestamp:"+MO.getTimestamp()+"last_timestep"+this.last_timestep);
+            //System.out.println(" proc saver codelet. stringtoMap:"+stringtoMap+"MO.getTimestamp:"+MO.getTimestamp()+"last_timestep"+this.last_timestep);
+            System.out.println("save"+filename+" : "+MapString.size()+"/"+this.buffer_size+" last_timestep: "+last_timestep+"MO.getTimestamp()"+MO.getTimestamp());
+            
             if(stringtoMap != null && MO.getTimestamp() != this.last_timestep){
+                System.out.println("added string to map");
                 MapString.add(stringtoMap);
                 this.last_timestep = MO.getTimestamp();
             }
             
             if(MapString.size() == this.buffer_size){
+                System.out.println("print to file");
                 printToFile(MapString, this.filename);
                 MapString.clear();
             }

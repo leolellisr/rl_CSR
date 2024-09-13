@@ -45,8 +45,9 @@ public class TD_FM_Depth extends FeatMapCodelet {
     private List regionTD;
     private Float depth_goal;
     private SensorI vision;
+    private MemoryObject desired_feature, desired_featureR;
     //private MemoryObject regionMO;
-  
+  private boolean debug = false;
     public TD_FM_Depth(SensorI vision, int nsensors, ArrayList<String> sens_names, String featmapname,int timeWin, int mapDim) {
         super(nsensors, sens_names, featmapname,timeWin,mapDim);
         this.time_graph = 0;
@@ -55,6 +56,19 @@ public class TD_FM_Depth extends FeatMapCodelet {
         this.vision = vision;
         this.stage = this.vision.getStage();
         //this.regionMO = (MemoryObject) this.getOutput("REGION_TOP_FM");
+    }
+    
+    @Override
+    public void accessMemoryObjects() {
+        for (int i = 0; i < num_sensors; i++) {
+            sensor_buffers.add((MemoryObject)this.getInput(sensorbuff_names.get(i)));
+        }
+        featureMap = (MemoryObject) this.getOutput(feat_map_name);
+        //winnersType = (MemoryObject) this.getOutput("TYPE");
+        winners = (MemoryObject) this.getInput("WINNERS");
+        desired_feature = (MemoryObject) this.getInput("DESFEAT_D");
+        desired_featureR = (MemoryObject) this.getInput("DESFEAT_R");
+        regionMO = (MemoryObject) this.getOutput("REGION_TOP_FM");
     }
     
     public Float getDepthGoal(){
@@ -97,6 +111,7 @@ public class TD_FM_Depth extends FeatMapCodelet {
             
         }
             
+        
         //System.out.println("sensor_buffers size:"+ sensor_buffers.size());
         MemoryObject depth_bufferMO = (MemoryObject) sensor_buffers.get(1);        //Gets Data
         
@@ -127,6 +142,22 @@ public class TD_FM_Depth extends FeatMapCodelet {
                 }   
             }
         }*/
+        
+        List desFeatList = (List) desired_feature.getI();
+        if( !desFeatList.isEmpty()){
+            Float desFeatD = (Float) desFeatList.get(desFeatList.size()-1);
+            setDepthGoal(desFeatD);
+        }
+        
+        List desFeatRList = (List) desired_featureR.getI();
+        if( !desFeatRList.isEmpty()){
+            ArrayList<Integer> desFeatR = (ArrayList<Integer>) desFeatRList.get(desFeatRList.size()-1);
+            setRegionGoal(desFeatR);
+        }
+        
+        
+            
+        
         if(depthFM.size() == timeWindow){
             depthFM.remove(0);
         }
@@ -157,7 +188,10 @@ public class TD_FM_Depth extends FeatMapCodelet {
             List depthData;
 
             depthData = (List) depthDataMO.getI();
-            //System.out.println("depthData len: "+depthData.size());         
+            if(depthData.size() < 1){
+            return;
+        }
+            if(debug) System.out.println("FM_BU depthData len: "+depthData.size());         
 
             Float Fvalue;
             float MeanValue = 0;

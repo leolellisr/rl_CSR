@@ -97,10 +97,19 @@ public class DepthVrep implements SensorI{
 		
 	printToFile(position.getArray()[2], "positions.txt");
         if(debug) System.out.println("Marta on exp "+this.vision.getExp()+" with z = "+position.getArray()[2]);        
-        if (this.vision.getExp() > 1 && position.getArray()[2] < 0.3) {
-                            vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot);
-                            System.out.println("Marta crashed on exp "+this.vision.getExp()+" with z = "+position.getArray()[2]);
-                            System.exit(0);
+        if (this.vision.getExp() > 1 && (position.getArray()[2] < 0.35 || position.getArray()[0] > 0.2)) {
+            vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot);
+            System.out.println("Marta crashed on exp "+this.vision.getExp()+" with z = "+position.getArray()[2]);
+                            
+            vrep.simxPauseCommunication(clientID, true);
+            vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot_wait);
+            try {
+			Thread.sleep(20);
+		} catch (Exception e) {
+			Thread.currentThread().interrupt();
+		}
+            vrep.simxPauseCommunication(clientID, false);
+            vrep.simxStartSimulation(clientID, remoteApi.simx_opmode_blocking);
                             
         }
         
@@ -207,8 +216,8 @@ public class DepthVrep implements SensorI{
        }
         
         // SYNC
- 	if (vrep.simxSynchronous(clientID, true) == remoteApi.simx_return_ok)
-            vrep.simxSynchronousTrigger(clientID);
+ 	/*if (vrep.simxSynchronous(clientID, true) == remoteApi.simx_return_ok)
+            vrep.simxSynchronousTrigger(clientID);*/
         printToFile(depth_data, "depth.txt");        
         //System.out.println(depth_data);
         return  depth_data;

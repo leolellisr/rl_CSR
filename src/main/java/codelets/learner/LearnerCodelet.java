@@ -7,12 +7,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
-import java.util.Dictionary;
-
-import attention.Winner;
 import br.unicamp.cst.core.entities.Codelet;
 import br.unicamp.cst.core.entities.MemoryContainer;
 import br.unicamp.cst.core.entities.MemoryObject;
@@ -20,12 +16,9 @@ import br.unicamp.cst.learning.QLearning;
 import br.unicamp.cst.representation.idea.Idea;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
 import outsideCommunication.OutsideCommunication;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 /**
  * @author L. L. Rossi (leolellisr)
  * Obs: This class represents the implementations present in the proposed scheme for: 
@@ -38,64 +31,34 @@ public class LearnerCodelet extends Codelet
 {
 
 	private int time_graph;
-	private static final float CRASH_TRESHOLD = 0.28f;
 	
-	private static final int MAX_ACTION_NUMBER = 500;
 	
 	private static final int MAX_EXPERIMENTS_NUMBER = 100;
 	
-	private QLearning ql;
+	private QLearningL ql;
     
 
-    private List winnersList, battReadings;
-    private List saliencyMap, curiosityMot, curiosityAct;
+    private List saliencyMap;
+    private List statesList;
     private Idea motivationMO;
-    private MemoryObject motorActionMO, reward_stringMO, action_stringMO;
-    private MemoryObject neckMotorMO;
-    private MemoryObject headMotorMO;
     private List<String> actionsList;
-    private List<QLearning> qTableList;
+    private List<QLearningL> qTableList;
     private List<Double>  rewardsList;
     private OutsideCommunication oc;
     private final int timeWindow;
-    private final int sensorDimension;
     
-    private float vel = 2f,angle_step;
     
     private double global_reward;
-    private int curiosity_lv, red_c, green_c, blue_c;
-    private int action_number, action_index;
+    private int action_number, num_tables;
     private int experiment_number;
     private int stage;
-    int fovea; 
     private String mode;
-    private Random gerador = new Random();
-    private Integer winnerIndex;
-    private Integer winnerFovea = -1, winnerGreen = -1, winnerBlue = -1, winnerRed = -1, winnerDist = -1;
-    private int[] posLeft = {0, 4, 8, 12};
-    private int[] posRight = {3, 7, 11, 15};
-    private int[] posUp = {12, 13, 14, 15};
-    private int[] posDown = {0, 1, 2, 3};
-    private int[] posCenter = {5, 6, 9, 10};
-    
-    private int[] fovea0 = {0, 1, 4, 5};
-    private int[] fovea1 = {2, 3, 6, 7};
-    private int[] fovea2 = {8, 9, 12, 13};
-    private int[] fovea3 = {10, 11, 14, 15};
-    
-    private float yawPos = 0f, headPos = 0f;   
-    private boolean crashed = false;
     private boolean debug = false;
-    private int aux_crash = 0;
-    private ArrayList<String> executedActions  = new ArrayList<>();
     private ArrayList<String> allActionsList;
-    private ArrayList<Integer> curiosity_motivationIntensity;
-    private Map<String, ArrayList<Integer>> proceduralMemory = new HashMap<String, ArrayList<Integer>>();
-    private ArrayList<Float> lastLine, lastRed, lastGreen, lastBlue, lastDist;
-    private String output, motivation, nameMotivation, stringOutput = "", motivationType;
-    private float  mot_value=0, hug_drive=0, cur_drive=0, r_imp=0, g_imp=0, b_imp=0;
+    private String output, motivation, nameMotivation, motivationType, lastAction = "am0";
+    //private int past_exp;
     //private Idea ideaMotivation;
-	public LearnerCodelet (OutsideCommunication outc, int tWindow, int sensDim, String mode, String motivation,  String motivationType,  String output) {
+	public LearnerCodelet (OutsideCommunication outc, int tWindow, String mode, String motivation,  String motivationType,  String output, int num_tables) {
 		
 		super();
 		time_graph = 0;
@@ -104,10 +67,7 @@ public class LearnerCodelet extends Codelet
 		
 		experiment_number = 1;
                 
-                curiosity_lv = 0;
-                red_c = 0;
-                green_c = 0;
-                blue_c =0;
+                this.num_tables = num_tables;
                 this.output = output;
                 this.motivationType = motivationType;
                 this.motivation = motivation;
@@ -116,17 +76,15 @@ public class LearnerCodelet extends Codelet
                 // am10: neck tofocus; am11: head tofocus; am12: neck awayfocus; am13: head awayfocus
                 // aa0: focus td color; aa1: focus td depth; aa2: focus td region.
 		allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
-                if(this.motivation.equals("drives")) curiosity_motivationIntensity  = new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 		// States are 0 1 2 ... 5^256-1
 		ArrayList<String> allStatesList = new ArrayList<>(Arrays.asList(IntStream.rangeClosed(0, (int)Math.pow(2, 16)-1).mapToObj(String::valueOf).toArray(String[]::new)));
 		
                 // QLearning initialization
-		ql = new QLearning();
+		ql = new QLearningL();
                 ql.setAlpha((double) 0.9);
 		ql.setActionsList(allActionsList);
-                oc = outc;
-                yawPos = oc.NeckYaw_m.getSpeed();
-                headPos = oc.HeadPitch_m.getSpeed();                
+                if(num_tables==2) ql.setFilename("QTable_"+motivationType+".txt");
+                oc = outc;               
                 this.stage = this.oc.vision.getStage();
                 
 		// learning mode ---> build Qtable from scratch
@@ -158,10 +116,8 @@ public class LearnerCodelet extends Codelet
                     }
 		}
 		
-		angle_step = 0.1f;
 		
 		timeWindow = tWindow;
-        sensorDimension = sensDim;
         this.mode = mode;
 	}
 
@@ -180,17 +136,29 @@ public class LearnerCodelet extends Codelet
                     MemoryContainer MC = (MemoryContainer) this.getInput("MOTIVATION");
                     motivationMO = (Idea) MC.getI();
                 }               
-                        
-                if(motivationType.equals("SURVIVAL")){
-                    MO = (MemoryObject) this.getInput("SUR_REWARDS");
-                    rewardsList = (List) MO.getI();
-                }else{
-                    MO = (MemoryObject) this.getInput("CUR_REWARDS");
-                    rewardsList = (List) MO.getI();
-                }
+                
+                if(num_tables==2){ 
+                    if(motivationType.equals("SURVIVAL")){
+                        MO = (MemoryObject) this.getInput("SUR_REWARDS");
+                        rewardsList = (List) MO.getI();
+                    }else{
+                        MO = (MemoryObject) this.getInput("CUR_REWARDS");
+                        rewardsList = (List) MO.getI();
+                    }
+                }else if(num_tables==1){
+                        MO = (MemoryObject) this.getInput("REWARDS");
+                        rewardsList = (List) MO.getI();
+                    }
+                MO = (MemoryObject) this.getInput("ACTIONS");
+                actionsList = (List) MO.getI();
+                
+                MO = (MemoryObject) this.getInput("STATES");
+                statesList = (List) MO.getI();
+                
                 MO = (MemoryObject) this.getOutput(output);
                 qTableList = (List) MO.getI();
 
+                
 	}
 
 	// This abstract method must be implemented by the user. 
@@ -213,19 +181,25 @@ public class LearnerCodelet extends Codelet
 	// Main Codelet function, to be implemented in each subclass.
 	@Override
 	public void proc() {
-		crashed = false;
-                yawPos = oc.NeckYaw_m.getSpeed();
-                headPos = oc.HeadPitch_m.getSpeed(); 
+
                 //System.out.println("yawPos: "+yawPos+" headPos: "+headPos);
 		try {
             Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }       
-                if(!motivationType.equals(motivationMO.getName())){
+                if(motivationMO == null){
+                     if(debug) System.out.println("Learner - motivationMO null");
+            
                 return;
             }
-
+                
+                if(!motivationType.equals(motivationMO.getName()) && num_tables==2){
+                     if(debug) System.out.println("Learner - motivationType diff from motivationMO");
+                return;
+            }
+                
+                
         if(qTableList.size() == timeWindow){
                 qTableList.remove(0);
             }
@@ -234,35 +208,33 @@ public class LearnerCodelet extends Codelet
         Random random = new Random();
         
         
-        MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
-        if(debug) System.out.println("battery_lv: "+battery_lv);
-        int battery_lvint = (int)battery_lv.getI();
+         
+         
+        
 
-
-
-        System.out.println("Exp: "+ experiment_number + " num action: "+action_number+ " Reward: "+global_reward+" Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
+        System.out.println("~Begin~ LEARNER ----- QTables:"+num_tables+" Exp: "+ experiment_number + " ----- Nact: "+action_number+ " ----- Rew: "+global_reward);
         String state = "-1";
 
-        if (!saliencyMap.isEmpty() && !winnersList.isEmpty()) {
+        if (!saliencyMap.isEmpty() ) {
 
-            Winner lastWinner = (Winner) winnersList.get(winnersList.size() - 1);
-            winnerIndex = lastWinner.featureJ;
-            state = getStateFromSalMap();
 
-            if (!actionsList.isEmpty() && mode.equals("learning")) {
+
+            if (!statesList.isEmpty() && !actionsList.isEmpty() && mode.equals("learning")) {
 
                 // Find reward of the current state, given previous  winner 
-                check_stop_experiment(mode);
                 global_reward = (double) rewardsList.get(rewardsList.size() - 1);
 
                 // Gets last action taken
-                String lastAction = actionsList.get(actionsList.size() - 1);
+                lastAction = actionsList.get(actionsList.size() - 1);
 
                 // Gets last state that was in
-                String lastState = ql.getStatesList().get(ql.getStatesList().size()-1);
+                String lastState = (String) statesList.get(statesList.size() - 1);
 
                 // Updates QLearning table // Adaptation
                 ql.update(lastState, lastAction, global_reward);
+                
+                action_number += 1;
+                
                 }
 
                 // Select best action to take
@@ -270,245 +242,38 @@ public class LearnerCodelet extends Codelet
 
 
         }
-        check_stop_experiment(mode);
-
-	}
-	
-	
-	
-	public void check_stop_experiment(String mode) {
-
-                if(yawPos>1.4f || yawPos<-1.4f || headPos>0.6f || headPos<-0.4f ){
-                    crashed = true;
-                }
-                
-                MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
-                int battery_lvint = (int)battery_lv.getI();
-                
-		if (mode.equals("learning") && ((action_number >= MAX_ACTION_NUMBER ) || crashed || battery_lvint==0) ){
-			System.out.println("Max number of actions or crashed");
-                        oc.shuffle_positions();
-                        oc.reset_positions();
-                        
-                        
-                        aux_crash = 0;
-			headMotorMO.setI(0f);
-                        neckMotorMO.setI(0f);
-                        yawPos = 0f;
-                        headPos = 0f;
-			experiment_number++;
-                        //experiment_number = printToFile(global_reward, "rewards.txt", experiment_number, false, action_number);
-//                        stringOutput.clear();
- //                       stringOutput.add("rewards.txt");
-                        if(mot_value==0) mot_value = 1;
-                        if(this.motivation.equals("drives")){  
-                            stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+" reward: "+global_reward+" mot_value: "+mot_value+" hug_drive: "+(float) (hug_drive/mot_value*100)+" cur_drive: "+(float) (cur_drive/mot_value*100);
-                        } else if(this.motivation.equals("impulses")){
-                            stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+" reward: "+global_reward+" mot_value: "+mot_value+" r_imp: "+(float) (r_imp/mot_value*100)+" g_imp: "+(float) (g_imp/mot_value*100)+" b_imp: "+(float) (b_imp/mot_value*100);
-                        }
-                        if(stringOutput!=null && reward_stringMO != null)   reward_stringMO.setI(stringOutput);
-                        oc.vision.setExp(experiment_number);
-                        action_number = 0;
-                        curiosity_lv = 0;
-                        oc.reset_battery();
-                        executedActions.clear();
-                        red_c = 0;
-                        green_c = 0;
-                        blue_c = 0;
-			if (experiment_number%50 ==0 ) { 
-				ql.storeQ();
-				
-			}
-                        if (experiment_number > MAX_EXPERIMENTS_NUMBER) {
-                            ql.storeQ();
-                            System.exit(0);
-                        }
-                        ql.setB(0.95-(0.95*experiment_number/MAX_EXPERIMENTS_NUMBER));
-			//oc.marta_position.resetData();
-			try {
-                            Thread.sleep(500);
-                        } catch (Exception e) {
-                            Thread.currentThread().interrupt();
-                        }
-		} else if (mode.equals("exploring") && (action_number >= MAX_ACTION_NUMBER ) || crashed || battery_lvint==0) {
-                    System.out.println("Max number of actions or crashed");
-                        aux_crash = 0;
-                        oc.shuffle_positions();
-                        oc.reset_positions();
-                        
-                        headMotorMO.setI(0f);
-                        neckMotorMO.setI(0f);
-                        yawPos = 0f;
-                        headPos = 0f;
-			//experiment_number = printToFile(global_reward, "rewards.txt", experiment_number, false, action_number);
-                        experiment_number++;
-                        //stringOutput.clear();
-                        //stringOutput.add("rewards.txt");
-                        if(mot_value==0) mot_value = 1;
-                        if(this.motivation.equals("drives")){  
-                            stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+" reward: "+global_reward+" mot_value: "+mot_value+" hug_drive: "+(float) (hug_drive/mot_value*100)+" cur_drive: "+(float) (cur_drive/mot_value*100);
-                        } else if(this.motivation.equals("impulses")){
-                            stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+" reward: "+global_reward+" mot_value: "+mot_value+" r_imp: "+(float) (r_imp/mot_value*100)+" g_imp: "+(float) (g_imp/mot_value*100)+" b_imp: "+(float) (b_imp/mot_value*100);
-                        }
-                      if(stringOutput!=null && reward_stringMO != null)    reward_stringMO.setI(stringOutput);
-                        oc.vision.setExp(experiment_number);
-                        oc.reset_battery();
-			curiosity_lv = 0;
-                        action_number = 0;
-                        global_reward = 0;
-                        executedActions.clear();
-                        red_c = 0;
-                        green_c = 0;
-                        blue_c = 0;
-                        if (experiment_number > MAX_EXPERIMENTS_NUMBER) {
-                            
-                            System.exit(0);
-                        }
-                }
-	}
-	
-        // Discretization
-	// Normalize and transform a salience map into one state
-		// Normalized values between 0 and 1 can be mapped into 0, 1, 2, 3 or 4
-		// Them this values are computed into one respective state
-		public String getStateFromSalMap() {
-			
-			
-                        ArrayList<Float> mean_lastLine = new ArrayList<>();
-                        for(int i=0; i<16;i++){
-                            mean_lastLine.add(0f);
-                        }
-/*                        redReadings = (List) colorReadings.get(0);
-                        greenReadings = (List) colorReadings.get(1);
-                        blueReadings = (List) colorReadings.get(2);
-                        */
-			// Getting just the last entry (current sal map)
-			lastLine = (ArrayList<Float>) saliencyMap.get(saliencyMap.size() -1);
-/*                        lastRed = (ArrayList<Float>) redReadings.get(redReadings.size() -1);
-                        lastGreen = (ArrayList<Float>) greenReadings.get(greenReadings.size() -1);
-                        lastBlue = (ArrayList<Float>) blueReadings.get(blueReadings.size() -1);
-
-                        lastDist = (ArrayList<Float>) distReadings.get(distReadings.size() -1);
-*/
-                        //if (calculateMean(lastRed)<0.01 && calculateMean(lastGreen)<0.01 && calculateMean(lastBlue)<0.01) aux_crash += 1;
-                        if (Collections.max(lastLine) == 0) aux_crash += 1;
-                        else aux_crash = 0; 
-                        
-                        if(action_number > 5 && aux_crash> 5 ){
-                            crashed = true;
-                        }
-                        
-                        /*int indexRed = -1;
-                        int indexGreen = -1;
-                        int indexBlue = -1;                        
-                        int indexDist = -1;
-*/
-                        if (this.stage == 3) {
-                            
-  /*                          if (lastRed.indexOf(Collections.max(lastRed))>-1) indexRed = lastRed.indexOf(Collections.max(lastRed));
-                            if (lastGreen.indexOf(Collections.max(lastGreen))>-1) indexGreen = lastGreen.indexOf(Collections.max(lastGreen));
-                            if (lastBlue.indexOf(Collections.max(lastBlue))>-1) indexBlue = lastBlue.indexOf(Collections.max(lastBlue));
-                                                        
-                            if (lastDist.indexOf(Collections.max(lastDist))>-1) indexDist = lastDist.indexOf(Collections.max(lastDist));   
-  */ 
-                            }
-                       
-                        if(debug){
-    /*                        System.out.println("lastRed: "+calculateMean(lastRed));
-                            System.out.println("indexRed: "+indexRed);
-                            System.out.println("lastGreen: "+calculateMean(lastGreen));
-                            System.out.println("indexGreen: "+indexGreen);
-
-                            System.out.println("lastBlue: "+calculateMean(lastBlue));
-                            System.out.println("indexBlue: "+indexBlue);*/
-                        }
-                    if (Collections.max(lastLine) > 0){
-                        ArrayList<Float> MeanValue = new ArrayList<>();
-                        for(int n = 0;n<4;n++){
-                        int ni = (int) (n*4);
-                        int no = (int) (4+n*4);
-                        for(int m = 0;m<4;m++){    
-                            int mi = (int) (m*4);
-                            int mo = (int) (4+m*4);
-                            for (int y = ni; y < no; y++) {
-
-                                for (int x = mi; x < mo; x++) {
-                                    int i = (y*16+x);
-                                    /*if(i == indexRed && indexRed != -1) winnerRed = n*4+m;
-                                    if(i == indexGreen && indexGreen != -1) winnerGreen = n*4+m;
-                                    if(i == indexBlue && indexBlue != -1) winnerBlue = n*4+m;
-                                    if(i == indexDist && indexDist != -1) winnerDist = n*4+m;*/
-                                    if(i == winnerIndex) winnerFovea = n*4+m;
-
-                                    float Fvalue_r = (float) lastLine.get(i);                         
-                                    MeanValue.add(Fvalue_r);
-
-                                }
-                            }
-                            float correct_mean_r = Collections.max(MeanValue);
-                            
-                            mean_lastLine.set(n*4+m, correct_mean_r);
-                            MeanValue.clear();
-                            
-                            }
-                        }
-                        if(debug){
-                            /*System.out.println("winnerRed: "+winnerRed);
-                            System.out.println("winnerGreen: "+winnerGreen);
-                            System.out.println("winnerBlue: "+winnerBlue);*/
-                        }
-                    }
-			// For normalizing readings between 0 and 1 before transforming to state 
-			Float max = Collections.max(mean_lastLine);
-			Float min = Collections.min(mean_lastLine);		
-			// System.out.println("mean_lastLine len: "+mean_lastLine.size()+" max: "+max+ " min: "+min);
-			Integer discreteVal = 0;
-			Integer stateVal = 0;
-			for (int i=0; i < 16; i++) {
-				// Normalizing value
-				Float normVal; 
-                                if(max>0) normVal = (mean_lastLine.get(i)-min)/(max-min);
-                                else normVal = 0f;
-				// Getting discrete value
-				if (normVal <= 0.5) {
-					discreteVal = 0;
-				}
-				else if (normVal > 0.5) {
-					discreteVal = 1;
-				}
-				
-				// Getting state from discrete value
-				stateVal += (int) Math.pow(2, i)*discreteVal;
-			}
-			return stateVal.toString();
-		}
-		
-	
-        public static float calculateMean(ArrayList<Float> list) {
-            if (list.isEmpty()) {
-                return 0; // Return 0 if the list is empty or handle it as required
-            }
-
-            float sum = 0;
-            for (float value : list) {
-                sum += value;
-            }
-
-            return sum / list.size();
-        }
+        
+        if(this.experiment_number != this.oc.vision.getExp()){
             
-	private int printToFile(Object object,String filename, int counter, boolean check, int action_num){
+            //past_exp = experiment_number+5;
+            this.experiment_number = this.oc.vision.getExp();
+            action_number=0;
+            
+            //if (experiment_number> past_exp) 
+            ql.storeQ();
+            if (experiment_number > MAX_EXPERIMENTS_NUMBER) {
+                ql.storeQ();
+                System.exit(0);
+            }
+            ql.setB(0.95-(0.95*experiment_number/MAX_EXPERIMENTS_NUMBER));
+        }
+        
+	}
+	
+	
+	
+	
+            
+    private int printToFile(Object object,String filename, int counter, boolean check, int action_num){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();
         
         if (!check || experiment_number < MAX_EXPERIMENTS_NUMBER) {
-            MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
-            int battery_lvint = (int)battery_lv.getI();
 	        try(FileWriter fw = new FileWriter("profile/"+filename,true);
 	            BufferedWriter bw = new BufferedWriter(fw);
 	            PrintWriter out = new PrintWriter(bw))
 	        {
-	            out.println(dtf.format(now)+"_"+counter+" "+ object+" Exp number:"+experiment_number+" Action num: "+action_num+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
+	            out.println(dtf.format(now)+"_"+counter+" "+ object+" Exp number:"+experiment_number+" Action num: "+action_num);
 	            
 	            out.close();
 	            return ++counter;
@@ -518,8 +283,6 @@ public class LearnerCodelet extends Codelet
         }
       
 		return counter;
-
-	}
+    }
 		
-
 }

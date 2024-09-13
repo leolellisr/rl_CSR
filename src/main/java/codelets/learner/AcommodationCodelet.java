@@ -108,6 +108,13 @@ public class AcommodationCodelet extends Codelet
                 } else if(this.num_tables == 1 && !rewards.isEmpty()){
                     reward = (double) rewards.get(rewards.size() - 1); 
                 }
+                double activation;
+                ArrayList<Double> activation_a;
+                if(motivationMO.getName().equals("CURIOSITY")) {
+                    activation_a = (ArrayList<Double>) motivationMO.getValue();
+                    activation  = calculateMean(activation_a);
+                }
+                else activation  = (double) motivationMO.getValue();
                 boolean verify_memory = verify_if_memory_exists(state.toString());
                     if(verify_memory){
                         ArrayList<Integer> info = null;
@@ -119,11 +126,13 @@ public class AcommodationCodelet extends Codelet
                                         info.add(0);
                                     }
                                 }
-                                info.set(action_n, (int) reward);
-                                break;
+                                if(info.size()>action_n){
+                                    info.set(action_n, (int) reward);
+                                    break;
+                                }   
                             }
                         }
-                        proceduralMemoryMO.setI(info, 0, state.toString());
+                        proceduralMemoryMO.setI(info, activation , state.toString());
                     }
                 }
         }
@@ -140,4 +149,18 @@ public class AcommodationCodelet extends Codelet
             //}
             return exists;
         }
+         
+    public static double calculateMean(ArrayList<Double> list) {
+        if (list.isEmpty()) {
+            return 0; // Return 0 if the list is empty or handle it as required
+        }
+
+        double sum = 0;
+        for (double value : list) {
+            sum += value;
+        }
+
+        return sum / list.size();
+    }
+
 }

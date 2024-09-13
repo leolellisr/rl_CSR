@@ -6,12 +6,8 @@ import cv2
 import statistics
 import pandas as pd
 debug = False
-# Impulses
-file1 = "../backup/2nd pack/Test/Impulses/txt/actions.txt"
-
-
-# Drives
-file2 = "../backup/2nd pack/Test/Drives/txt/actions.txt"
+file1 = "../results/1QTable/profile/actions.txt"
+file2 = "../results/2QTables/profile/actions.txt"
 output_folder = "../results/"
 
 ## Remove strings 
@@ -47,7 +43,8 @@ def remove_strings_from_file(file_name, strings_to_remove):
 strings_to_remove = [
     "[","]","Exp number:", "Action num: ", "Battery: ", "reward: ",
     "Curiosity_lv: ", "Red: ", "Green: ", "Blue: ","action:","mot_value: ",
-    "r_imp: ","g_imp: ","b_imp: ", "hug_drive: ", "cur_drive: "
+    "r_imp: ","g_imp: ","b_imp: ", "hug_drive: ", "cur_drive: ", "QTables:", 
+    "Exp:", "Nact:", "Type:"
 ]
 
 def replace(results):
@@ -64,14 +61,7 @@ def get_data_drives(file,exp):
     n_action = []
     exps = []
     actions = []
-    battery = []
-    curiosity = []
-    r_vl = []
-    g_vl = []
-    b_vl =[]
     mot = []
-    mot_hung = []
-    mot_cur = []
     am0 =  []
     am1 =  []
     am2 =  []
@@ -106,118 +96,106 @@ def get_data_drives(file,exp):
                 aux+=1
             else:     
                 col = line.split(' ') 
-                if(len(col)>12): col = col[1:]
+                if(len(col)>7): col = col[1:]
                 #print(col[1])
-                if(int(col[1])==exp):
+                if(int(col[2])==exp):
                     if m_i:
-                        n_action.append(col[8])
-                        actions.append(int(col[2])+250)
-                        battery.append(100-int(col[3]))
-                        curiosity.append(int(col[4]))
-                        r_vl.append(int(col[5]))
-                        g_vl.append(int(col[6]))
-                        b_vl.append(int(col[7]))
-                        mot.append(col[9])
-                        mot_hung.append(col[10])
-                        mot_cur.append(col[11])
+                        n_action.append(col[1])
+                        actions.append(int(col[3])+250)
+                        mot.append(col[4])
+                       
                     else: 
 
-                        n_action.append(col[8])
-                        actions.append(int(col[2]))
+                        n_action.append(col[1])
+                        actions.append(int(col[3]))
                         if debug: print(col)
-                        battery.append(100-int(col[3]))
-                        curiosity.append(int(col[4]))
-                        r_vl.append(int(col[5]))
-                        g_vl.append(int(col[6]))
-                        b_vl.append(int(col[7]))
-                        mot.append(col[9])
-                        mot_hung.append(col[10])
-                        mot_cur.append(col[11])
+                        mot.append(col[4])
+
                         
-                    if col[8] == "am0":
+                    if col[1] == "am0":
                         am0.append(1)
                     else: am0.append(0)  
 
-                    if col[8] == "am1":
+                    if col[1] == "am1":
                         am1.append(1)
                     else: am1.append(0)  
 
-                    if col[8] == "am2":
+                    if col[1] == "am2":
                         am2.append(1)
                     else: am2.append(0)  
 
-                    if col[8] == "am3":
+                    if col[1] == "am3":
                         am3.append(1)
                     else: am3.append(0)  
 
-                    if col[8] == "am4":
+                    if col[1] == "am4":
                         am4.append(1)
                     else: am4.append(0)  
 
-                    if col[8] == "am5":
+                    if col[1] == "am5":
                         am5.append(1)
                     else: am5.append(0)  
 
-                    if col[8] == "am6":
+                    if col[1] == "am6":
                         am6.append(1)
                     else: am6.append(0)  
 
-                    if col[8] == "am7":
+                    if col[1] == "am7":
                         am7.append(1)
                     else: am7.append(0)  
 
-                    if col[8] == "am8":
+                    if col[1] == "am8":
                         am8.append(1)
                     else: am8.append(0)  
 
-                    if col[8] == "am9":
+                    if col[1] == "am9":
                         am9.append(1)
                     else: am9.append(0)  
 
-                    if col[8] == "am10":
+                    if col[1] == "am10":
                         am10.append(1)
                     else: am10.append(0)  
 
-                    if col[8] == "am11":
+                    if col[1] == "am11":
                         am11.append(1)
                     else: am11.append(0)  
 
-                    if col[8] == "am12":
+                    if col[1] == "am12":
                         am12.append(1)
                     else: am12.append(0)  
 
-                    if col[8] == "am13":
+                    if col[1] == "am13":
                         am13.append(1)
                     else: am13.append(0)  
 
-                    if col[8] == "am14":
+                    if col[1] == "am14":
                         am14.append(1)
                     else: am14.append(0)  
 
-                    if col[8] == "am15":
+                    if col[1] == "am15":
                         am15.append(1)
                     else: am15.append(0)  
 
-                    if col[8] == "am16":
+                    if col[1] == "am16":
                         am16.append(1)
                     else: am16.append(0)    
 
-                    if col[8] == "aa0":
+                    if col[1] == "aa0":
                         aa0.append(1)
                     else: aa0.append(0)    
 
-                    if col[8] == "aa1":
+                    if col[1] == "aa1":
                         aa1.append(1)
                     else: aa1.append(0)    
 
-                    if col[8] == "aa2":
+                    if col[1] == "aa2":
                         aa2.append(1)
                     else: aa2.append(0) 
                     exps.append(i)
 
                     i+=1
     actions = [am0, am1, am2, am3, am4, am5, am6, am7, am8, am9, am10, am11, am12, am13, am14, am15, am16, aa0, aa1, aa2]                   
-    return [n_action, exps, actions, battery, curiosity, r_vl, g_vl, b_vl, mot, mot_hung, mot_cur, actions] # len 12
+    return [n_action, exps, actions, mot, actions] # len 12
 
 
 
@@ -245,15 +223,7 @@ def get_data_impulses(file, exp):
     n_action = []
     exps = []
     actions = []
-    battery = []
-    curiosity = []
-    r_vl = []
-    g_vl = []
-    b_vl =[]
     mot = []
-    mot_r=[]
-    mot_b=[]
-    mot_g=[]
     with open(file,"r") as f: # Open file
         #name = file.split('.')[0] 
         #last_name = name.split('/')[2] 
@@ -267,112 +237,96 @@ def get_data_impulses(file, exp):
                 col = line.split(' ') 
                 if(len(col)>13): col = col[1:]
                 #print(col[1])
-                if(int(col[1])==exp):
+                if(int(col[2])==exp):
                     if m_i:
-                        n_action.append(col[8])
-                        actions.append(int(col[2])+250)
-                        battery.append(100-int(col[3]))
-                        curiosity.append(int(col[4]))
-                        r_vl.append(int(col[5]))
-                        g_vl.append(int(col[6]))
-                        b_vl.append(int(col[7]))
-                        mot.append(col[9])
-                        mot_r.append(col[10])
-                        mot_g.append(col[11])
-                        mot_b.append(col[12])
-
+                        n_action.append(col[1])
+                        actions.append(int(col[3])+250)
+                        mot.append(col[4])
+                        
                     else: 
 
-                        n_action.append(col[8])
-                        actions.append(int(col[2]))
+                        n_action.append(col[1])
+                        actions.append(int(col[3]))
                         if debug: print(col)
-                        battery.append(100-int(col[3]))
-                        curiosity.append(int(col[4]))
-                        r_vl.append(int(col[5]))
-                        g_vl.append(int(col[6]))
-                        b_vl.append(int(col[7]))
-                        mot.append(col[9])
-                        mot_r.append(col[10])
-                        mot_g.append(col[11])
-                        mot_b.append(col[12])
+                        mot.append(col[4])
                         
-                    if col[8] == "am0":
+                    if col[1] == "am0":
                         am0.append(1)
                     else: am0.append(0)  
 
-                    if col[8] == "am1":
+                    if col[1] == "am1":
                         am1.append(1)
                     else: am1.append(0)  
 
-                    if col[8] == "am2":
+                    if col[1] == "am2":
                         am2.append(1)
                     else: am2.append(0)  
 
-                    if col[8] == "am3":
+                    if col[1] == "am3":
                         am3.append(1)
                     else: am3.append(0)  
 
-                    if col[8] == "am4":
+                    if col[1] == "am4":
                         am4.append(1)
                     else: am4.append(0)  
 
-                    if col[8] == "am5":
+                    if col[1] == "am5":
                         am5.append(1)
                     else: am5.append(0)  
 
-                    if col[8] == "am6":
+                    if col[1] == "am6":
                         am6.append(1)
                     else: am6.append(0)  
 
-                    if col[8] == "am7":
+                    if col[1] == "am7":
                         am7.append(1)
                     else: am7.append(0)  
 
-                    if col[8] == "am8":
+                    if col[1] == "am8":
                         am8.append(1)
                     else: am8.append(0)  
 
-                    if col[8] == "am9":
+                    if col[1] == "am9":
                         am9.append(1)
                     else: am9.append(0)  
 
-                    if col[8] == "am10":
+                    if col[1] == "am10":
                         am10.append(1)
                     else: am10.append(0)  
 
-                    if col[8] == "am11":
+                    if col[1] == "am11":
                         am11.append(1)
                     else: am11.append(0)  
 
-                    if col[8] == "am12":
+                    if col[1] == "am12":
                         am12.append(1)
                     else: am12.append(0)  
 
-                    if col[8] == "am13":
+                    if col[1] == "am13":
                         am13.append(1)
                     else: am13.append(0)  
 
-                    if col[8] == "am14":
+                    if col[1] == "am14":
                         am14.append(1)
                     else: am14.append(0)  
 
-                    if col[8] == "am15":
+                    if col[1] == "am15":
                         am15.append(1)
                     else: am15.append(0)  
 
-                    if col[8] == "am16":
+                    if col[1] == "am16":
                         am16.append(1)
                     else: am16.append(0)    
 
-                    if col[8] == "aa0":
+                    if col[1] == "aa0":
                         aa0.append(1)
                     else: aa0.append(0)    
 
-                    if col[8] == "aa1":
+                    if col[1] == "aa1":
                         aa1.append(1)
                     else: aa1.append(0)    
 
-                    if col[8] == "aa2":
+                    if col[1] == "aa2":
                         aa2.append(1)
                     else: aa2.append(0)     
                     
@@ -380,7 +334,7 @@ def get_data_impulses(file, exp):
 
                     i+=1
     actions = [am0, am1, am2, am3, am4, am5, am6, am7, am8, am9, am10, am11, am12, am13, am14, am15, am16, aa0, aa1, aa2] 
-    return [n_action, exps, actions, battery, curiosity, r_vl, g_vl, b_vl, mot, mot_r, mot_g, mot_b, actions] # len 13
+    return [n_action, exps, actions, mot, actions] # len 13
 
 
 remove_strings_from_file(file1, strings_to_remove)
@@ -480,28 +434,16 @@ def plot_gantt(n_action1, n_action2, exp1, exp2, mot1, mot2,max_ticks, step_tick
     colors = ['tab:blue', 'tab:red', 'tab:green', 'tab:orange']
     plt.figure(figsize=(25,15))
 
-    fig, ax1 = plt.subplots(nrows=3, ncols=2, figsize=(25, 15), sharex=True)
+    fig, ax1 = plt.subplots(nrows=1, ncols=2, figsize=(25, 15), sharex=True)
     plt.tight_layout()
 
-    plt.subplot(321)
+    #plt.subplot(321)
     
     ax1[0,0].set_yticks(Y_ticks)
     ax1[0,0].tick_params(axis='y') # , labelcolor=color
-    ax1[0,0].set_ylabel("Impulses")  # we already handled the x-label with ax1
-    
-    ax1[0,0].plot(exp1, mot1[0][0], '^r:', label="R - Impulses") #color=color
-    ax1[0,0].plot(exp1, mot1[1][0], '^g:', label="G - Impulses") #color=color
-    ax1[0,0].plot(exp1, mot1[2][0], '^b:', label="B - Impulses") #color=color
-    ax1[0,0].set_ylim([0, max_ticks])
-    ax1[0,0].set_xlim([0, max(exp1)])
-    ax1[0,0].set_xticks(exp1)
-    ax1[0,0].legend(loc="upper right")
-
-    plt.subplot(323)
-
-    ax1[1,0].set_xlabel('Step')
-    ax1[1,0].tick_params(axis='y') # , labelcolor=color
-    ax1[1,0].set_ylabel("Gantt_Chart_Actions_Impulses")  # we already handled the x-label with ax1    
+    ax1[0,0].set_xlabel('Step')
+    ax1[0,0].tick_params(axis='y') # , labelcolor=color
+    ax1[0,0].set_ylabel("Gantt_Chart_Actions_1_Q_Table")  # we already handled the x-label with ax1    
 
     # Agrupando ações iguais
     steps_agrupados = {}
@@ -517,34 +459,24 @@ def plot_gantt(n_action1, n_action2, exp1, exp2, mot1, mot2,max_ticks, step_tick
 # Plotando as barras horizontais
     for i, step_group in enumerate(steps_agrupados.values()):
         for step in step_group:
-            ax1[1,0].broken_barh([(int(step), 1)], (i - 0.4, 0.8), edgecolor='black', facecolors=colors[i%4])
+            ax1[0,0].broken_barh([(int(step), 1)], (i - 0.4, 0.8), edgecolor='black', cmap=mot1) #facecolors=colors[i%4]
 
     # Configurando o eixo y com as ações agrupadas
-    ax1[1,0].set_yticks(range(len(actions)))
-    ax1[1,0].set_yticklabels(actions)
+    ax1[0,0].set_yticks(range(len(actions)))
+    ax1[0,0].set_yticklabels(actions)
 
         # Configurando o eixo x2
-    ax1[1,0].set_xticks(exp1)
-    ax1[1,0].set_xticklabels(exp1)  
-    ax1[1,0].legend(loc="upper left")
+    ax1[0,0].set_xticks(exp1)
+    ax1[0,0].set_xticklabels(exp1)  
+    ax1[0,0].legend(loc="upper left")
     
-    plt.subplot(322)
 
     ### DRIVES ### 
 
     ax1[0,1].set_yticks(Y_ticks)
     ax1[0,1].tick_params(axis='y') # , labelcolor=color
-    ax1[0,1].set_ylabel("Drives")  # we already handled the x-label with ax1
     
-    ax1[0,1].plot(exp2, mot2[0][0], '^r:', label="Hunger - Drives") #color=color
-    ax1[0,1].plot(exp2, mot2[1][0], '^b:', label="Curiosity - Drives") #color=color
-    ax1[0,1].set_ylim([0, max_ticks])
-    ax1[0,1].set_xlim([0, max(exp2)])
-    ax1[0,1].set_xticks(exp2)
-    ax1[0,1].legend(loc="upper right")
-
-    plt.subplot(324)
-    ax1[1,1].set_ylabel("Gantt_Chart_Actions_Drives")  # we already handled the x-label with ax1    
+    ax1[0,1].set_ylabel("Gantt_Chart_Actions_2 Q-Tables")  # we already handled the x-label with ax1    
      # Agrupando ações iguais
     steps_agrupados = {}
     for acao in actions:
@@ -559,18 +491,17 @@ def plot_gantt(n_action1, n_action2, exp1, exp2, mot1, mot2,max_ticks, step_tick
 # Plotando as barras horizontais
     for i, step_group in enumerate(steps_agrupados.values()):
         for step in step_group:
-            ax1[1,1].broken_barh([(int(step), 1)], (i - 0.4, 0.8), edgecolor='black', facecolors=colors[i%4])
+            ax1[0,1].broken_barh([(int(step), 1)], (i - 0.4, 0.8), edgecolor='black', facecolors=colors[i%4])
 
     # Configurando o eixo y com as ações agrupadas
-    ax1[1,1].set_yticks(range(len(actions)))
-    ax1[1,1].set_yticklabels(actions)
+    ax1[0,1].set_yticks(range(len(actions)))
+    ax1[0,1].set_yticklabels(actions)
 
         # Configurando o eixo x
-    ax1[1,1].set_xticks(exp2)
-    ax1[1,1].set_xticklabels(exp2)        
-    ax1[1,1].legend(loc="upper left")
-    plt.subplot(325)
-    plt.savefig(output_folder+'Gantt_Chart_Actions_Drives.pdf')      
+    ax1[0,1].set_xticks(exp2)
+    ax1[0,1].set_xticklabels(exp2)        
+    ax1[0,1].legend(loc="upper left")
+    plt.savefig(output_folder+'Gantt_Chart_Actions.pdf')      
     plt.close()
        
    
@@ -578,88 +509,20 @@ def plot_gantt(n_action1, n_action2, exp1, exp2, mot1, mot2,max_ticks, step_tick
 ## Get data
 
 
-results1 = get_data_impulses(file1,93)
+results1 = get_data_drives(file1,93)
 results2 = get_data_drives(file2,1)
 
-results1 = replace(results1)
-results2 = replace(results2)
+#results1 = replace(results1)
+#results2 = replace(results2)
 
 if debug:
-    print(len(results1))
+    #print(len(results1))
     print(len(results2))
 
-plot_actions("Impulses", results1)
-plot_actions("Drives", results2)
+#plot_actions("Impulses", results1)
+plot_actions("1 Q-Table", results1)
 
-#print(results1[len(results1)-1])
-
-#print(results2[len(results2)-1])
-
-mot_y = 120
-mot_ticks=10
-
-#    actions = [am0, am1, am2, am3, am4, am5, am6, am7, am8, am9, am10, am11, am12, am13, am14, am15, am16, aa0, aa1, aa2] 
-#    return [n_action, exps, actions, battery, curiosity, r_vl, g_vl, b_vl, mot, mot_r, mot_g, mot_b, actions] # len 13
+plot_actions("2 Q-Tables", results2)
 
 
-def replace_m(element):
-    aux = []
-    for i in range(len(element)):
-        if(type(element[i])== str): element[i] = float(element[i].replace('\n', ''))
-    aux.append(element)
-    return aux
-
-
-results2[8] = replace_m(results2[8])
-results2[9] = replace_m(results2[9])
-results2[10] = replace_m(results2[10])
-
-if debug:
-    print("results2[9]")
-    print(results2[9])
-
-    print("results2[10]")
-    print(results2[10])
-
-results1[8] = replace_m(results1[8])
-results1[9] = replace_m(results1[9])
-results1[10] = replace_m(results1[10])
-results1[11] = replace_m(results1[11])
-
-#print(results1[12])
-i = 0
-for action in results1[12]:
-    action = replace_m(action)
-    results1[12][i] = action
-    i += 1    
-
-#print(results2[11])
-i = 0
-for action in results2[11]:
-    action = replace_m(action)
-    results2[11][i] = action
-    i += 1    
-
-plot_graphs_mot("Motivation", results2[8], results2[9], results2[10], results1[8], results1[9], results1[10], results1[11], results1[1], mot_y, mot_ticks)
-plot_gantt(results1[0], results2[0], results1[1], results2[1], [results1[9], results1[10], results1[11]], [results2[8], results2[9]], 110, 10)
-
-def not_used(file):
-    act_n = []
-    exps = []
-    actions = []
-
-    with open(file,"r") as f: # Open file
-        data = f.readlines()
-        fig, ax1 = plt.subplots()
-
-        color = 'tab:blue'
-        
-        for line in data: 
-            col = line.split(' ') 
-            actions.append(int(col[1]))
-            exps.append(int(col[2]))
-            act_n.append(int(col[3]))
-        
-        plt.scatter(exps, act_n, c=actions, cmap='gist_ncar', s=0.1, alpha=1)
-        plt.legend(actions, bbox_to_anchor = (3 , 6))
         

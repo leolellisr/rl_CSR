@@ -80,372 +80,372 @@ public class RewardComputerCodelet extends Codelet
     
     private float yawPos = 0f, headPos = 0f;   
     private boolean crashed = false;
-    private boolean debug = false;
+    private boolean debug = false, sdebug = false;
     private int num_tables, aux_crash = 0, battery_lvint;
     private ArrayList<String> allActionsList;
     private ArrayList<Float> lastLine, lastRed, lastGreen, lastBlue, lastDist;
     private String motivationType, motivation, nameMotivation, stringOutput = "", nameOutput;
     private float  mot_value=0, hug_drive=0, cur_drive=0, r_imp=0, g_imp=0, b_imp=0;
     //private Idea ideaMotivation;
-	public RewardComputerCodelet (OutsideCommunication outc, int tWindow, int sensDim, String mode, String motivation, String motivationType, String nameOutput, int num_tables) {
-		
-		super();
-		time_graph = 0;
-		
-		global_reward = 0;
-		
-		action_number = 0;
-		
-		experiment_number = 1;
-                this.num_tables = num_tables;
-                
-                this.motivationType = motivationType;
-                this.motivation = motivation;
-                // allActions: am0: focus; am1: neck left; am2: neck right; am3: head up; am4: head down; 
-                // am5: fovea 0; am6: fovea 1; am7: fovea 2; am8: fovea 3; am9: fovea 4; 
-                // am10: neck tofocus; am11: head tofocus; am12: neck awayfocus; am13: head awayfocus
-                // aa0: focus td color; aa1: focus td depth; aa2: focus td region.
-		allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
-		this.oc = outc;       
-               
-				timeWindow = tWindow;
-        sensorDimension = sensDim;
-        this.mode = mode;
-	}
+    public RewardComputerCodelet (OutsideCommunication outc, int tWindow, int sensDim, String mode, String motivation, String motivationType, String nameOutput, int num_tables) {
 
-	// This method is used in every Codelet to capture input, broadcast 
-	// and output MemoryObjects which shall be used in the proc() method. 
-	// This abstract method must be implemented by the user. 
-	// Here, the user must get the inputs and outputs it needs to perform proc.
-	@Override
-	public void accessMemoryObjects() {
-		
-		MemoryObject MO;
-                MO = (MemoryObject) this.getInput("SALIENCY_MAP");
-                saliencyMap = (List) MO.getI();
-                MO = (MemoryObject) this.getInput("WINNERS");
-                winnersList = (List) MO.getI();
-                
-              
-                
-                MO = (MemoryObject) this.getInput("BATTERY_BUFFER");
-                battReadings = (List) MO.getI();
-                
-                if(this.motivation.equals("drives")){
-                    MemoryContainer MC = (MemoryContainer) this.getInput("MOTIVATION");
-                    motivationMO = (Idea) MC.getI();
+            super();
+            time_graph = 0;
+
+            global_reward = 0;
+
+            action_number = 0;
+
+            experiment_number = 1;
+            this.num_tables = num_tables;
+
+            this.motivationType = motivationType;
+            this.motivation = motivation;
+            // allActions: am0: focus; am1: neck left; am2: neck right; am3: head up; am4: head down; 
+            // am5: fovea 0; am6: fovea 1; am7: fovea 2; am8: fovea 3; am9: fovea 4; 
+            // am10: neck tofocus; am11: head tofocus; am12: neck awayfocus; am13: head awayfocus
+            // aa0: focus td color; aa1: focus td depth; aa2: focus td region.
+            allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
+            this.oc = outc;       
+
+                            timeWindow = tWindow;
+    sensorDimension = sensDim;
+    this.mode = mode;
+    }
+
+    // This method is used in every Codelet to capture input, broadcast 
+    // and output MemoryObjects which shall be used in the proc() method. 
+    // This abstract method must be implemented by the user. 
+    // Here, the user must get the inputs and outputs it needs to perform proc.
+    @Override
+    public void accessMemoryObjects() {
+
+            MemoryObject MO;
+            MO = (MemoryObject) this.getInput("SALIENCY_MAP");
+            saliencyMap = (List) MO.getI();
+            MO = (MemoryObject) this.getInput("WINNERS");
+            winnersList = (List) MO.getI();
+
+
+
+            MO = (MemoryObject) this.getInput("BATTERY_BUFFER");
+            battReadings = (List) MO.getI();
+
+            if(this.motivation.equals("drives")){
+                MemoryContainer MC = (MemoryContainer) this.getInput("MOTIVATION");
+                motivationMO = (Idea) MC.getI();
+            }
+            if(num_tables==2){
+                if(motivationType.equals("SURVIVAL")) rewardMO = (MemoryObject) this.getOutput("SUR_REWARDS");
+                else rewardMO = (MemoryObject) this.getOutput("CUR_REWARDS");
+            } else if(num_tables==1){
+                rewardMO = (MemoryObject) this.getOutput("REWARDS");
+            }
+            //reward_stringMO = (MemoryObject) this.getOutput(this.nameOutput);
+            //action_stringMO = (MemoryObject) this.getOutput("ACTION_STRING_OUTPUT");
+
+
+            MO = (MemoryObject) this.getInput("ACTIONS");
+            actionsList = (List) MO.getI();
+
+
+
+    }
+
+    // This abstract method must be implemented by the user. 
+    // Here, the user must calculate the activation of the codelet
+    // before it does what it is supposed to do in proc();
+
+    @Override
+    public void calculateActivation() {
+            // TODO Auto-generated method stub
+
+    }
+
+    public static Object getLast(List list) {
+            if (list.isEmpty()) {
+                    return list.get(list.size()-1);
+            }
+            return null;
+    }
+
+    // Main Codelet function, to be implemented in each subclass.
+    @Override
+    public void proc() {
+        crashed = false;
+        try {
+            yawPos = oc.NeckYaw_m.getSpeed();
+            headPos = oc.HeadPitch_m.getSpeed(); 
+                //System.out.println("yawPos: "+yawPos+" headPos: "+headPos);
+        } catch (Exception e) {
+             if(debug) System.out.println("getSpeed null ");
+            return;
+        }
+        try {
+        Thread.sleep(50);
+        } catch (Exception e) {
+        Thread.currentThread().interrupt();
+        }       
+
+        if(debug) System.out.println("motivationType: "+motivationType+" motivationMO.getName(): "+motivationMO.getName());
+
+        if(motivationMO == null){
+              if(debug) System.out.println("Rewardcomputer motivationMO is null");
+            return;
+        }
+        if(!motivationType.equals(motivationMO.getName()) && num_tables==2){
+            if(sdebug) System.out.println("motivationType:"+motivationType+" motivationMO:"+motivationMO.getName());
+             if(debug) System.out.println("Rewardcomputer motivationType diff from motivationType");
+            return;
+        }
+
+        if(actionsList.isEmpty()){
+            System.out.println("actionsList.isEmpty()");
+            return;
+        }
+            // Use the Random class to generate a random index
+        Random random = new Random();
+        if(num_tables==1)       motivationType = motivationMO.getName();
+        MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
+        if(debug) System.out.println("battery_lv: "+battery_lv);
+            battery_lvint = (int)battery_lv.getI();
+            if(sdebug) System.out.println("~Begin~ REWARD ----- QTables:"+num_tables+" Exp: "+ experiment_number + " ----- N_act: "+action_number+ " ----- Reward: "+global_reward+" ----- Battery: "+battery_lvint+" ----- Type: "+motivationType);
+            if (!saliencyMap.isEmpty() && !winnersList.isEmpty()) {
+
+                Winner lastWinner = (Winner) winnersList.get(winnersList.size() - 1);
+                winnerIndex = lastWinner.featureJ;
+
+                            // Find reward of the current state, given previous  winner 
+
+                if(yawPos>1.4f || yawPos<-1.4f || headPos>0.6f || headPos<-0.4f ){
+                        crashed = true;
                 }
-                if(num_tables==2){
-                    if(motivationType.equals("SURVIVAL")) rewardMO = (MemoryObject) this.getOutput("SUR_REWARDS");
-                    else rewardMO = (MemoryObject) this.getOutput("CUR_REWARDS");
-                } else if(num_tables==1){
-                    rewardMO = (MemoryObject) this.getOutput("REWARDS");
+                if(crashed || battery_lvint == 0){
+                        global_reward -= 10;
                 }
-                //reward_stringMO = (MemoryObject) this.getOutput(this.nameOutput);
-                //action_stringMO = (MemoryObject) this.getOutput("ACTION_STRING_OUTPUT");
-                
-                        
-                MO = (MemoryObject) this.getInput("ACTIONS");
-                actionsList = (List) MO.getI();
 
 
+                Double reward = 1d;
+                global_reward += reward;
 
-	}
+                            // Gets last action taken
+                String lastAction = actionsList.get(actionsList.size() - 1);
+                action_number += 1;            
 
-	// This abstract method must be implemented by the user. 
-	// Here, the user must calculate the activation of the codelet
-	// before it does what it is supposed to do in proc();
+                        // Motivation
 
-	@Override
-	public void calculateActivation() {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	public static Object getLast(List list) {
-		if (list.isEmpty()) {
-			return list.get(list.size()-1);
-		}
-		return null;
-	}
+                int i = 0;
+                double max_action = 0.0;
+                ArrayList<Integer> max_list = new ArrayList<Integer>();
+                if(this.motivation.equals("drives")){                        
+                    nameMotivation = motivationMO.getName();
+                    if(nameMotivation.equals("CURIOSITY") && motivationType.equals("CURIOSITY")){
+                        ArrayList<Double> valueMotivation = (ArrayList<Double>) motivationMO.getValue();
 
-	// Main Codelet function, to be implemented in each subclass.
-	@Override
-	public void proc() {
-            crashed = false;
-            try {
-                yawPos = oc.NeckYaw_m.getSpeed();
-                headPos = oc.HeadPitch_m.getSpeed(); 
-                    //System.out.println("yawPos: "+yawPos+" headPos: "+headPos);
-            } catch (Exception e) {
-                 if(debug) System.out.println("getSpeed null ");
-                return;
-            }
-            try {
-            Thread.sleep(50);
-            } catch (Exception e) {
-            Thread.currentThread().interrupt();
-            }       
-            
-            if(debug) System.out.println("motivationType: "+motivationType+" motivationMO.getName(): "+motivationMO.getName());
-            
-            if(motivationMO == null){
-                  if(debug) System.out.println("Rewardcomputer motivationMO is null");
-                return;
-            }
-            if(!motivationType.equals(motivationMO.getName()) && num_tables==2){
-                System.out.println("motivationType:"+motivationType+" motivationMO:"+motivationMO.getName());
-                 if(debug) System.out.println("Rewardcomputer motivationType diff from motivationType");
-                return;
-            }
+                        for(double action : valueMotivation){
+                            if(action > max_action){
+                                max_action = action;
+                            } 
+                        }
 
-            if(actionsList.isEmpty()){
-                System.out.println("actionsList.isEmpty()");
-                return;
-            }
-                // Use the Random class to generate a random index
-            Random random = new Random();
-            if(num_tables==1)       motivationType = motivationMO.getName();
-            MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
-            if(debug) System.out.println("battery_lv: "+battery_lv);
-                battery_lvint = (int)battery_lv.getI();
-		System.out.println("~Begin~ REWARD ----- QTables:"+num_tables+" Exp: "+ experiment_number + " ----- N_act: "+action_number+ " ----- Reward: "+global_reward+" ----- Battery: "+battery_lvint+" ----- Type: "+motivationType);
-		if (!saliencyMap.isEmpty() && !winnersList.isEmpty()) {
-			
-                    Winner lastWinner = (Winner) winnersList.get(winnersList.size() - 1);
-                    winnerIndex = lastWinner.featureJ;
-                        
-				// Find reward of the current state, given previous  winner 
-                                
-                    if(yawPos>1.4f || yawPos<-1.4f || headPos>0.6f || headPos<-0.4f ){
-                            crashed = true;
-                    }
-                    if(crashed || battery_lvint == 0){
-                            global_reward -= 10;
-                    }
-
-
-                    Double reward = 1d;
-                    global_reward += reward;
-                                
-				// Gets last action taken
-                    String lastAction = actionsList.get(actionsList.size() - 1);
-                    action_number += 1;            
-		
-                            // Motivation
-
-                    int i = 0;
-                    double max_action = 0.0;
-                    ArrayList<Integer> max_list = new ArrayList<Integer>();
-                    if(this.motivation.equals("drives")){                        
-                        nameMotivation = motivationMO.getName();
-                        if(nameMotivation.equals("CURIOSITY") && motivationType.equals("CURIOSITY")){
-                            ArrayList<Double> valueMotivation = (ArrayList<Double>) motivationMO.getValue();
-
-                            for(double action : valueMotivation){
-                                if(action > max_action){
-                                    max_action = action;
-                                } 
+                        for(double action : valueMotivation){
+                            if(action == max_action){
+                                max_list.add(i);
                             }
-                                
-                            for(double action : valueMotivation){
-                                if(action == max_action){
-                                    max_list.add(i);
-                                }
-                                i += 1;
-                            }
-                                // Retrieve the random element from the ArrayList
-                            action_index = max_list.get(random.nextInt(max_list.size()));
-                            cur_drive = (float) max_action;
-                            global_reward += 100-100*cur_drive;
-                        } else if(motivationType.equals("SURVIVAL")) {
-                                double valueMotivation = (double) motivationMO.getValue();
-                                hug_drive = (float) valueMotivation;
-                                global_reward += 100-100*hug_drive;
-                        }                                
-                            
-                            
-                        mot_value = cur_drive + hug_drive;
-                           
+                            i += 1;
+                        }
+                            // Retrieve the random element from the ArrayList
+                        action_index = max_list.get(random.nextInt(max_list.size()));
+                        cur_drive = (float) max_action;
+                        global_reward += 100-100*cur_drive;
+                    } else if(motivationType.equals("SURVIVAL")) {
+                            double valueMotivation = (double) motivationMO.getValue();
+                            hug_drive = (float) valueMotivation;
+                            global_reward += 100-100*hug_drive;
+                    }                                
 
+
+                    mot_value = cur_drive + hug_drive;
+
+
+                }
+
+                 int winner =   getStateFromSalMap();
+
+
+                if(sdebug) System.out.println("~End~ REWARD -----  QTables:"+num_tables+" Exp: "+ experiment_number + " ----- Act: "+lastAction + " ----- N_act: "+action_number+ " ----- Winner: "+winnerIndex+ " ----- W_Fovea: "+winnerFovea);
+                if (lastAction.equals("am1")) {
+                    yawPos = yawPos-angle_step;
+                             //neckMotorMO.setI(yawPos);
+                    if(winnerFovea !=-1 && IntStream.of(posLeft).anyMatch(x -> x == winnerFovea) && stage > 1){
+                        global_reward += 1;
                     }
-                       
-                     int winner =   getStateFromSalMap();
-                        
-			
-                    System.out.println("~End~ REWARD -----  QTables:"+num_tables+" Exp: "+ experiment_number + " ----- Act: "+lastAction + " ----- N_act: "+action_number+ " ----- Winner: "+winnerIndex+ " ----- W_Fovea: "+winnerFovea);
-                    if (lastAction.equals("am1")) {
+                }
+
+                else if (lastAction.equals("am2")) {
+                    yawPos = yawPos+angle_step;
+                             //neckMotorMO.setI(yawPos);
+                    if(winnerFovea !=-1 && IntStream.of(posRight).anyMatch(x -> x == winnerFovea)){
+                        global_reward += 1;
+                        }
+                }
+                else if (lastAction.equals("am3")) {
+                        headPos = headPos-angle_step;
+                         // headMotorMO.setI(headPos);
+                        if(winnerFovea !=-1 && IntStream.of(posUp).anyMatch(x -> x == winnerFovea)) {
+                            global_reward += 1;
+                        } 
+                }
+                else if (lastAction.equals("am4")) {
+                        headPos = headPos+angle_step;
+                        //headMotorMO.setI(headPos);
+                        if(winnerFovea !=-1 && IntStream.of(posDown).anyMatch(x -> x == winnerFovea)){
+                            global_reward += 1;
+                        } 
+                }
+                else if (lastAction.equals("am5")) {
+                    fovea = 0;
+                    if(winnerFovea !=-1 && IntStream.of(fovea0).anyMatch(x -> x == winnerFovea)){
+                            global_reward += 1;
+                        } 
+                }
+                else if (lastAction.equals("am6")) {
+                    fovea = 1;
+                    if(winnerFovea !=-1 && IntStream.of(fovea1).anyMatch(x -> x == winnerFovea)){
+                            global_reward += 1;
+                        } 
+                }
+                else if (lastAction.equals("am7")) {
+                    fovea = 2;
+                    if(winnerFovea !=-1 && IntStream.of(fovea2).anyMatch(x -> x == winnerFovea)){
+                            global_reward += 1;
+                        } 
+                }
+                else if (lastAction.equals("am8")) {
+                    fovea = 3;
+                    if(winnerFovea !=-1 && IntStream.of(fovea3).anyMatch(x -> x == winnerFovea)){
+                            global_reward += 1;
+                        } 
+                }
+                else if (lastAction.equals("am9")) {
+                    fovea = 4;
+                    if(winnerFovea !=-1 && IntStream.of(posCenter).anyMatch(x -> x == winnerFovea)){
+                            global_reward += 1;
+                        } 
+                }
+
+                // just Stage 3
+                 else if (lastAction.equals("am10") && this.stage == 3) {
+                    if(fovea == 0 || fovea == 2){
                         yawPos = yawPos-angle_step;
-                                 //neckMotorMO.setI(yawPos);
-                        if(winnerFovea !=-1 && IntStream.of(posLeft).anyMatch(x -> x == winnerFovea) && stage > 1){
-                            global_reward += 1;
-                        }
+                       //  neckMotorMO.setI(yawPos);
                     }
-
-                    else if (lastAction.equals("am2")) {
+                    else if(fovea == 1 || fovea == 3){
                         yawPos = yawPos+angle_step;
-                                 //neckMotorMO.setI(yawPos);
-                        if(winnerFovea !=-1 && IntStream.of(posRight).anyMatch(x -> x == winnerFovea)){
-                            global_reward += 1;
-                            }
+                       //  neckMotorMO.setI(yawPos);
                     }
-                    else if (lastAction.equals("am3")) {
-                            headPos = headPos-angle_step;
-                             // headMotorMO.setI(headPos);
-                            if(winnerFovea !=-1 && IntStream.of(posUp).anyMatch(x -> x == winnerFovea)) {
-                                global_reward += 1;
-                            } 
+                 }
+                 else if (lastAction.equals("am11") && this.stage == 3) {
+                    if(fovea == 0 || fovea == 2){
+                        yawPos = yawPos+angle_step;
+                       //  neckMotorMO.setI(yawPos);
                     }
-                    else if (lastAction.equals("am4")) {
-                            headPos = headPos+angle_step;
-                            //headMotorMO.setI(headPos);
-                            if(winnerFovea !=-1 && IntStream.of(posDown).anyMatch(x -> x == winnerFovea)){
-                                global_reward += 1;
-                            } 
+                    else if(fovea == 1 || fovea == 3){
+                        yawPos = yawPos-angle_step;
+                       //  neckMotorMO.setI(yawPos);
                     }
-                    else if (lastAction.equals("am5")) {
-                        fovea = 0;
-                        if(winnerFovea !=-1 && IntStream.of(fovea0).anyMatch(x -> x == winnerFovea)){
-                                global_reward += 1;
-                            } 
+                 }
+                 else if (lastAction.equals("am12") && this.stage == 3) {
+                    if(fovea == 3 || fovea == 2){
+                        headPos = headPos-angle_step;
+                       //  headMotorMO.setI(headPos);
                     }
-                    else if (lastAction.equals("am6")) {
-                        fovea = 1;
-                        if(winnerFovea !=-1 && IntStream.of(fovea1).anyMatch(x -> x == winnerFovea)){
-                                global_reward += 1;
-                            } 
+                    else if(fovea == 1 || fovea == 0){
+                        headPos = headPos+angle_step;
+                       //  headMotorMO.setI(headPos);
                     }
-                    else if (lastAction.equals("am7")) {
-                        fovea = 2;
-                        if(winnerFovea !=-1 && IntStream.of(fovea2).anyMatch(x -> x == winnerFovea)){
-                                global_reward += 1;
-                            } 
+                 }
+                 else if (lastAction.equals("am13") && this.stage == 3) {
+                    if(fovea == 3 || fovea == 2){
+                        headPos = headPos+angle_step;
+                       //  headMotorMO.setI(headPos);
                     }
-                    else if (lastAction.equals("am8")) {
-                        fovea = 3;
-                        if(winnerFovea !=-1 && IntStream.of(fovea3).anyMatch(x -> x == winnerFovea)){
-                                global_reward += 1;
-                            } 
+                    else if(fovea == 1 || fovea == 0){
+                        headPos = headPos-angle_step;
+                       // headMotorMO.setI(headPos);
                     }
-                    else if (lastAction.equals("am9")) {
-                        fovea = 4;
-                        if(winnerFovea !=-1 && IntStream.of(posCenter).anyMatch(x -> x == winnerFovea)){
-                                global_reward += 1;
-                            } 
-                    }
+                 }
 
-                    // just Stage 3
-                     else if (lastAction.equals("am10") && this.stage == 3) {
-                        if(fovea == 0 || fovea == 2){
-                            yawPos = yawPos-angle_step;
-                           //  neckMotorMO.setI(yawPos);
-                        }
-                        else if(fovea == 1 || fovea == 3){
-                            yawPos = yawPos+angle_step;
-                           //  neckMotorMO.setI(yawPos);
-                        }
-                     }
-                     else if (lastAction.equals("am11") && this.stage == 3) {
-                        if(fovea == 0 || fovea == 2){
-                            yawPos = yawPos+angle_step;
-                           //  neckMotorMO.setI(yawPos);
-                        }
-                        else if(fovea == 1 || fovea == 3){
-                            yawPos = yawPos-angle_step;
-                           //  neckMotorMO.setI(yawPos);
-                        }
-                     }
-                     else if (lastAction.equals("am12") && this.stage == 3) {
-                        if(fovea == 3 || fovea == 2){
-                            headPos = headPos-angle_step;
-                           //  headMotorMO.setI(headPos);
-                        }
-                        else if(fovea == 1 || fovea == 0){
-                            headPos = headPos+angle_step;
-                           //  headMotorMO.setI(headPos);
-                        }
-                     }
-                     else if (lastAction.equals("am13") && this.stage == 3) {
-                        if(fovea == 3 || fovea == 2){
-                            headPos = headPos+angle_step;
-                           //  headMotorMO.setI(headPos);
-                        }
-                        else if(fovea == 1 || fovea == 0){
-                            headPos = headPos-angle_step;
-                           // headMotorMO.setI(headPos);
-                        }
-                     }
+                 else if (lastAction.equals("am14") && this.stage == 3) {
 
-                     else if (lastAction.equals("am14") && this.stage == 3) {
-                        
-                            global_reward += 1;
-                            
-                            
+                        global_reward += 1;
 
-                     }
 
-                     else if (lastAction.equals("am15") && this.stage == 3) {
-                        
-                            global_reward += 1;
-                            
 
-                        
-                     }
+                 }
 
-                     else if (lastAction.equals("am16") && this.stage == 3){ 
+                 else if (lastAction.equals("am15") && this.stage == 3) {
 
-                            global_reward += 1;
-                            
+                        global_reward += 1;
 
-                        
-                        
-                     }
 
-                     // attentional actions
 
-                    
-		}
-                List rewardsList = (List) rewardMO.getI();        
-        
-                if(rewardsList.size() == timeWindow){
-                    rewardsList.remove(0);
-                } 
-                
-                rewardsList.add(global_reward);
+                 }
+
+                 else if (lastAction.equals("am16") && this.stage == 3){ 
+
+                        global_reward += 1;
+
+
+
+
+                 }
+
+                 // attentional actions
+
+
+            }
+            List rewardsList = (List) rewardMO.getI();        
+
+            if(rewardsList.size() == timeWindow){
+                rewardsList.remove(0);
+            } 
+
+            rewardsList.add(global_reward);
 //		time_graph = printToFile(state, "states.txt", time_graph, true, action_number);
 //                printToFile(actionsList.get(actionsList.size() - 1), "actions.txt", time_graph, true, action_number);
-                //stringOutput.clear();
-                //stringOutput.add("actions.txt");
-                
-                /*
-                if(mot_value==0) mot_value = 1;
-                 if(this.motivation.equals("drives")){  
-                    stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+"action: "+actionsList.get(actionsList.size() - 1)+" mot_value: "+mot_value+" hug_drive: "+(float) (hug_drive/mot_value*100)+" cur_drive: "+(float) (cur_drive/mot_value*100)+motivationType;
-                } else if(this.motivation.equals("impulses")){
-                    stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+"action: "+actionsList.get(actionsList.size() - 1)+" mot_value: "+mot_value+" r_imp: "+(float) (r_imp/mot_value*100)+" g_imp: "+(float) (g_imp/mot_value*100)+" b_imp: "+(float) (b_imp/mot_value*100)+motivationType;
-                }
-                
-                 if(stringOutput==null) System.out.println(motivationType+" reward stringOutput==null");
-                 if(action_stringMO==null) System.out.println(motivationType+" reward action_stringMO==null");
-                 
-                 if(stringOutput!=null && action_stringMO != null)                action_stringMO.setI(stringOutput);
-		*/
-		
-	if(this.experiment_number != this.oc.vision.getExp()){
-            printToFile(global_reward, "rewards.txt", action_number);
-            this.experiment_number = this.oc.vision.getExp();
-            
-            //stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+"reward: "+global_reward+" mot_value: "+mot_value+" hug_drive: "+(float) (hug_drive/mot_value*100)+" cur_drive: "+(float) (cur_drive/mot_value*100)+motivationType;
-            //if(stringOutput!=null && reward_stringMO != null)                reward_stringMO.setI(stringOutput);
-            action_number = 0;
-            global_reward = 0;
-            
-            yawPos = 0f;
-            headPos = 0f;
-        }
-                
-        }
-        
+            //stringOutput.clear();
+            //stringOutput.add("actions.txt");
+
+            /*
+            if(mot_value==0) mot_value = 1;
+             if(this.motivation.equals("drives")){  
+                stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+"action: "+actionsList.get(actionsList.size() - 1)+" mot_value: "+mot_value+" hug_drive: "+(float) (hug_drive/mot_value*100)+" cur_drive: "+(float) (cur_drive/mot_value*100)+motivationType;
+            } else if(this.motivation.equals("impulses")){
+                stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+"action: "+actionsList.get(actionsList.size() - 1)+" mot_value: "+mot_value+" r_imp: "+(float) (r_imp/mot_value*100)+" g_imp: "+(float) (g_imp/mot_value*100)+" b_imp: "+(float) (b_imp/mot_value*100)+motivationType;
+            }
+
+             if(stringOutput==null) System.out.println(motivationType+" reward stringOutput==null");
+             if(action_stringMO==null) System.out.println(motivationType+" reward action_stringMO==null");
+
+             if(stringOutput!=null && action_stringMO != null)                action_stringMO.setI(stringOutput);
+            */
+
+    if(this.experiment_number != this.oc.vision.getExp()){
+        printToFile(global_reward, "rewards.txt", action_number);
+        this.experiment_number = this.oc.vision.getExp();
+
+        //stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+"reward: "+global_reward+" mot_value: "+mot_value+" hug_drive: "+(float) (hug_drive/mot_value*100)+" cur_drive: "+(float) (cur_drive/mot_value*100)+motivationType;
+        //if(stringOutput!=null && reward_stringMO != null)                reward_stringMO.setI(stringOutput);
+        action_number = 0;
+        global_reward = 0;
+
+        yawPos = 0f;
+        headPos = 0f;
+    }
+
+    }
+
 	
 	
         // Discretization
@@ -518,7 +518,7 @@ public Integer getStateFromSalMap() {
 	            BufferedWriter bw = new BufferedWriter(fw);
 	            PrintWriter out = new PrintWriter(bw))
 	        {
-	            out.println(dtf.format(now)+" "+ object+" QTables: "+num_tables+" Exp number:"+experiment_number+" Action num: "+action_num+ " Battery: "+battery_lvint+" type: "+motivationType);
+	            out.println(dtf.format(now)+" "+ object+" QTables:"+num_tables+" Exp:"+experiment_number+" Nact:"+action_num+ " Battery:"+battery_lvint+" Type:"+motivationType);
 	            
 	            out.close();
 	        } catch (IOException e) {

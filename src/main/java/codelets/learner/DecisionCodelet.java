@@ -34,20 +34,12 @@ import java.util.logging.Logger;
  */
 
 public class DecisionCodelet extends Codelet 
-
 {
-
-	private int time_graph;
-	private static final float CRASH_TRESHOLD = 0.28f;
-	
-	private static final int MAX_ACTION_NUMBER = 500;
-	
-	private static final int MAX_EXPERIMENTS_NUMBER = 100;
-	
-	private QLearningL ql;
-    
-
-
+    private int time_graph;
+    private static final float CRASH_TRESHOLD = 0.28f;
+    private static final int MAX_ACTION_NUMBER = 500;
+    private static final int MAX_EXPERIMENTS_NUMBER = 100;
+    private QLearningL ql;
     private Idea motivationMO;
     private MemoryObject motorActionMO, reward_stringMO, action_stringMO;
     private MemoryObject neckMotorMO;
@@ -72,37 +64,38 @@ public class DecisionCodelet extends Codelet
     
     private float yawPos = 0f, headPos = 0f;   
     private boolean crashed = false;
-    private boolean debug = false;
+    private boolean debug = false, sdebug = false;
     private int num_tables, aux_crash = 0;
     private ArrayList<String> executedActions  = new ArrayList<>();
     private ArrayList<String> allActionsList;
     private Map<String, ArrayList<Integer>> proceduralMemory = new HashMap<String, ArrayList<Integer>>();
     private String output, motivation, stringOutput = "";
     private ArrayList<Float> lastLine;
-	public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, String mode, String motivation, int num_tables) {
+    
+    public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, String mode, String motivation, int num_tables) {
 		
-		super();
-		time_graph = 0;
-				
-		experiment_number = 1;
-                this.num_tables = num_tables;
-                this.motivation = motivation;
-                // allActions: am0: focus; am1: neck left; am2: neck right; am3: head up; am4: head down; 
-                // am5: fovea 0; am6: fovea 1; am7: fovea 2; am8: fovea 3; am9: fovea 4; 
-                // am10: neck tofocus; am11: head tofocus; am12: neck awayfocus; am13: head awayfocus
-                // aa0: focus td color; aa1: focus td depth; aa2: focus td region.
-		allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
-		// States are 0 1 2 ... 5^256-1
-		ArrayList<String> allStatesList = new ArrayList<>(Arrays.asList(IntStream.rangeClosed(0, (int)Math.pow(2, 16)-1).mapToObj(String::valueOf).toArray(String[]::new)));
-		
-                oc = outc;
-                         
-                this.stage = this.oc.vision.getStage();
-                
-		
-		angle_step = 0.1f;
-		
-		timeWindow = tWindow;
+        super();
+        time_graph = 0;
+
+        experiment_number = 1;
+        this.num_tables = num_tables;
+        this.motivation = motivation;
+        // allActions: am0: focus; am1: neck left; am2: neck right; am3: head up; am4: head down; 
+        // am5: fovea 0; am6: fovea 1; am7: fovea 2; am8: fovea 3; am9: fovea 4; 
+        // am10: neck tofocus; am11: head tofocus; am12: neck awayfocus; am13: head awayfocus
+        // aa0: focus td color; aa1: focus td depth; aa2: focus td region.
+        allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
+        // States are 0 1 2 ... 5^256-1
+        ArrayList<String> allStatesList = new ArrayList<>(Arrays.asList(IntStream.rangeClosed(0, (int)Math.pow(2, 16)-1).mapToObj(String::valueOf).toArray(String[]::new)));
+
+        oc = outc;
+
+        this.stage = this.oc.vision.getStage();
+
+
+        angle_step = 0.1f;
+
+        timeWindow = tWindow;
         sensorDimension = sensDim;
         this.mode = mode;
 	}
@@ -114,37 +107,37 @@ public class DecisionCodelet extends Codelet
 	@Override
 	public void accessMemoryObjects() {
 		
-		MemoryObject MO;
-                MO = (MemoryObject) this.getInput("SALIENCY_MAP");
-                saliencyMap = (List) MO.getI();
-                if(this.motivation.equals("drives")){
-                    MemoryContainer MC = (MemoryContainer) this.getInput("MOTIVATION");
-                    motivationMO = (Idea) MC.getI();
-                }               
-                
-                if(num_tables==2){
-                        
-                    MO = (MemoryObject) this.getInput("SUR_REWARDS");
-                    rewardSList = (List) MO.getI();
-                    MO = (MemoryObject) this.getInput("QTABLES");
-                    qTableSList = (List) MO.getI();
+            MemoryObject MO;
+            MO = (MemoryObject) this.getInput("SALIENCY_MAP");
+            saliencyMap = (List) MO.getI();
+            if(this.motivation.equals("drives")){
+                MemoryContainer MC = (MemoryContainer) this.getInput("MOTIVATION");
+                motivationMO = (Idea) MC.getI();
+            }               
 
-                    MO = (MemoryObject) this.getInput("CUR_REWARDS");
-                    rewardCList = (List) MO.getI();
-                    MO = (MemoryObject) this.getInput("QTABLEC");
-                    qTableCList = (List) MO.getI();
-                }
-                else if(num_tables == 1){
-                    MO = (MemoryObject) this.getInput("REWARDS");
-                    rewardList = (List) MO.getI();
-                    MO = (MemoryObject) this.getInput("QTABLE");
-                    qTableList = (List) MO.getI();
-                }
-                MO = (MemoryObject) this.getOutput("STATES");
-                allStatesList = (List) MO.getI();
+            if(num_tables==2){
 
-                MO = (MemoryObject) this.getOutput("ACTIONS");
-                actionsList = (List) MO.getI();
+                MO = (MemoryObject) this.getInput("SUR_REWARDS");
+                rewardSList = (List) MO.getI();
+                MO = (MemoryObject) this.getInput("QTABLES");
+                qTableSList = (List) MO.getI();
+
+                MO = (MemoryObject) this.getInput("CUR_REWARDS");
+                rewardCList = (List) MO.getI();
+                MO = (MemoryObject) this.getInput("QTABLEC");
+                qTableCList = (List) MO.getI();
+            }
+            else if(num_tables == 1){
+                MO = (MemoryObject) this.getInput("REWARDS");
+                rewardList = (List) MO.getI();
+                MO = (MemoryObject) this.getInput("QTABLE");
+                qTableList = (List) MO.getI();
+            }
+            MO = (MemoryObject) this.getOutput("STATES");
+            allStatesList = (List) MO.getI();
+
+            MO = (MemoryObject) this.getOutput("ACTIONS");
+            actionsList = (List) MO.getI();
                 
 	}
 
@@ -169,7 +162,7 @@ public class DecisionCodelet extends Codelet
 	@Override
 	public void proc() {
                 //System.out.println("yawPos: "+yawPos+" headPos: "+headPos);
-		try {
+	try {
             Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
@@ -177,7 +170,7 @@ public class DecisionCodelet extends Codelet
         QLearningL ql = null;
         
         if(motivationMO == null){
-            System.out.println("DECISION -----  motivationMO is null");
+            if(sdebug) System.out.println("DECISION -----  motivationMO is null");
                 return;
             }
         
@@ -229,11 +222,13 @@ public class DecisionCodelet extends Codelet
         printToFile(actionToTake,"actions.txt", action_number);
         
         if(this.experiment_number != this.oc.vision.getExp()){
+            System.out.println("DECISION ----- Exp: "+ experiment_number + " ----- N act: "+action_number+" ----- Act: "+actionToTake+" ----- Type: "+motivationMO.getName());
+	
             this.experiment_number = this.oc.vision.getExp();
             action_number=0;
+            
         }
-        System.out.println("DECISION ----- Exp: "+ experiment_number + " ----- N act: "+action_number+" ----- Act: "+actionToTake+" ----- Type: "+motivationMO.getName());
-	}
+        }
 	
 	
 
@@ -379,7 +374,7 @@ public class DecisionCodelet extends Codelet
                 BufferedWriter bw = new BufferedWriter(fw);
                 PrintWriter out = new PrintWriter(bw))
             {
-                out.println(dtf.format(now)+" "+ object+" Exp:"+experiment_number+" Act num: "+action_num+" ----- Type: "+motivationMO.getName());
+                out.println(dtf.format(now)+" "+ object+" Exp:"+experiment_number+" Nact:"+action_num+" Type:"+motivationMO.getName());
 
                 out.close();
             } catch (IOException e) {

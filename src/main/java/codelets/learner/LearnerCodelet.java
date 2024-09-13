@@ -212,14 +212,13 @@ public class LearnerCodelet extends Codelet
          
         
 
-        System.out.println("~Begin~ LEARNER ----- QTables:"+num_tables+" Exp: "+ experiment_number + " ----- Nact: "+action_number+ " ----- Rew: "+global_reward);
         String state = "-1";
 
         if (!saliencyMap.isEmpty() ) {
 
 
 
-            if (!statesList.isEmpty() && !actionsList.isEmpty() && mode.equals("learning")) {
+            if (!statesList.isEmpty() && !rewardsList.isEmpty() && !actionsList.isEmpty() && mode.equals("learning")) {
 
                 // Find reward of the current state, given previous  winner 
                 global_reward = (double) rewardsList.get(rewardsList.size() - 1);
@@ -244,7 +243,8 @@ public class LearnerCodelet extends Codelet
         }
         
         if(this.experiment_number != this.oc.vision.getExp()){
-            
+            System.out.println(" LEARNER ----- QTables:"+num_tables+" Exp: "+ experiment_number + " ----- Nact: "+action_number+ " ----- Rew: "+global_reward);
+        
             //past_exp = experiment_number+5;
             this.experiment_number = this.oc.vision.getExp();
             action_number=0;

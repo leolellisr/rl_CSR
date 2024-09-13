@@ -83,7 +83,7 @@ public class ActionExecCodelet extends Codelet
     
     private float yawPos = 0f, headPos = 0f;   
     private boolean crashed = false;
-    private boolean debug = false;
+    private boolean debug = false, sdebug = false;
     private int aux_crash = 0;
     private ArrayList<String> executedActions  = new ArrayList<>();
     private ArrayList<String> allActionsList;
@@ -199,7 +199,7 @@ public class ActionExecCodelet extends Codelet
             return;
         }
         String actionToTake = actionsList.get(actionsList.size() - 1);
-        System.out.println("ACT_EXEC -----  Exp: "+ experiment_number +" ----- Act: "+ actionToTake+" ----- N_act: "+action_number+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
+        if(sdebug) System.out.println("ACT_EXEC -----  Exp: "+ experiment_number +" ----- Act: "+ actionToTake+" ----- N_act: "+action_number+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
         
         Winner lastWinner = (Winner) winnersList.get(winnersList.size() - 1);
         winnerIndex = lastWinner.featureJ;
@@ -558,69 +558,69 @@ public class ActionExecCodelet extends Codelet
 	
 	public void check_stop_experiment() {
 
-                if(yawPos>1.4f || yawPos<-1.4f || headPos>0.6f || headPos<-0.4f ){
-                    crashed = true;
-                }
-                
-                MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
-                int battery_lvint = (int)battery_lv.getI();
-                
-		if (mode.equals("learning") && ((action_number >= MAX_ACTION_NUMBER ) || crashed || battery_lvint==0) ){
-			
-                        oc.shuffle_positions();
-                        oc.reset_positions();
-                        
-                        curiosity_lv = 0;
-                        red_c = 0;
-                        green_c = 0;
-                        blue_c = 0;
-                        System.out.println("Max number of actions or crashed.");
-                        
-                        
-                        aux_crash = 0;
-			headMotorMO.setI(0f);
-                        neckMotorMO.setI(0f);
-                        yawPos = 0f;
-                        headPos = 0f;
-			experiment_number++;
-                        //experiment_number = printToFile(global_reward, "rewards.txt", experiment_number, false, action_number);
+            if(yawPos>1.4f || yawPos<-1.4f || headPos>0.6f || headPos<-0.4f ){
+                crashed = true;
+            }
+
+            MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
+            int battery_lvint = (int)battery_lv.getI();
+
+            if (mode.equals("learning") && ((action_number >= MAX_ACTION_NUMBER ) || crashed || battery_lvint==0) ){
+
+                oc.shuffle_positions();
+                oc.reset_positions();
+
+                curiosity_lv = 0;
+                red_c = 0;
+                green_c = 0;
+                blue_c = 0;
+                System.out.println("Max number of actions or crashed. Exp: "+ experiment_number +" ----- N_act: "+action_number+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
+
+
+                aux_crash = 0;
+                headMotorMO.setI(0f);
+                neckMotorMO.setI(0f);
+                yawPos = 0f;
+                headPos = 0f;
+                experiment_number++;
+                //experiment_number = printToFile(global_reward, "rewards.txt", experiment_number, false, action_number);
 //                        stringOutput.clear();
- //                       stringOutput.add("rewards.txt");
-                        oc.vision.setExp(experiment_number);
-                        action_number = 0;
-                        oc.reset_battery();
-                        executedActions.clear();
-                        
-                        
-			//oc.marta_position.resetData();
-			try {
-                            Thread.sleep(500);
-                        } catch (Exception e) {
-                            Thread.currentThread().interrupt();
-                        }
-		} else if (mode.equals("exploring") && (action_number >= MAX_ACTION_NUMBER ) || crashed || battery_lvint==0) {
-                    System.out.println("Max number of actions or crashed");
-                        aux_crash = 0;
-                        oc.shuffle_positions();
-                        oc.reset_positions();
-                        
-                        headMotorMO.setI(0f);
-                        neckMotorMO.setI(0f);
-                        yawPos = 0f;
-                        headPos = 0f;
-			//experiment_number = printToFile(global_reward, "rewards.txt", experiment_number, false, action_number);
-                        experiment_number++;
-                        //stringOutput.clear();
-                        //stringOutput.add("rewards.txt");
-                         oc.vision.setExp(experiment_number);
-                        oc.reset_battery();
-			action_number = 0;
-                        executedActions.clear();
-                        if (experiment_number > MAX_EXPERIMENTS_NUMBER) {
-                            
-                            System.exit(0);
-                        }
+//                       stringOutput.add("rewards.txt");
+                oc.vision.setExp(experiment_number);
+                action_number = 0;
+                oc.reset_battery();
+                executedActions.clear();
+
+
+                //oc.marta_position.resetData();
+                try {
+                    Thread.sleep(500);
+                } catch (Exception e) {
+                    Thread.currentThread().interrupt();
                 }
+            } else if (mode.equals("exploring") && (action_number >= MAX_ACTION_NUMBER ) || crashed || battery_lvint==0) {
+                System.out.println("Max number of actions or crashed. Exp: "+ experiment_number +" ----- N_act: "+action_number+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
+                aux_crash = 0;
+                oc.shuffle_positions();
+                oc.reset_positions();
+
+                headMotorMO.setI(0f);
+                neckMotorMO.setI(0f);
+                yawPos = 0f;
+                headPos = 0f;
+                //experiment_number = printToFile(global_reward, "rewards.txt", experiment_number, false, action_number);
+                experiment_number++;
+                //stringOutput.clear();
+                //stringOutput.add("rewards.txt");
+                oc.vision.setExp(experiment_number);
+                oc.reset_battery();
+                action_number = 0;
+                executedActions.clear();
+                if (experiment_number > MAX_EXPERIMENTS_NUMBER) {
+
+                    System.exit(0);
+                }
+            }
 	}
 	
             
@@ -635,7 +635,7 @@ public class ActionExecCodelet extends Codelet
 	            BufferedWriter bw = new BufferedWriter(fw);
 	            PrintWriter out = new PrintWriter(bw))
 	        {
-	            out.println(dtf.format(now)+" Exp: "+experiment_number+" Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
+	            out.println(dtf.format(now)+" Exp:"+experiment_number+" Nact:"+action_number+" Battery:"+battery_lvint+" Curiosity_lv:"+curiosity_lv+" Red:"+red_c+" Green:"+green_c+" Blue:"+blue_c);
 	            
 	            out.close();
 	        } catch (IOException e) {

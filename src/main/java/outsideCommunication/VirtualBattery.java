@@ -75,7 +75,7 @@ public class VirtualBattery implements SensorI{
             Thread.currentThread().interrupt();
         }
 
-        printToFile(battery_data);        
+        //printToFile(battery_data);        
         return  battery_data;
     }
 

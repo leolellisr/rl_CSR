@@ -49,7 +49,7 @@ import codelets.sensors.BU_FM_Depth;
 import codelets.sensors.TD_FM_Color;
 import codelets.sensors.TD_FM_Depth;
 import codelets.motivation.CuriosityDrive_MotivationCodelet;
-import codelets.motivation.HungerDrive_MotivationCodelet;
+import codelets.motivation.SurvivalDrive_MotivationCodelet;
 import codelets.sensors.Sensor_Battery;
 import java.io.IOException;
 import java.util.HashMap;
@@ -582,7 +582,7 @@ public class AgentMind extends Mind {
             curiosity_motivation_cod.addOutput(motivationMC);
             insertCodelet(curiosity_motivation_cod);
 
-            Codelet hunger_motivation_cod = new HungerDrive_MotivationCodelet("Hunger_Motivation", 0.0, 1.0, 0.0, oc);
+            Codelet hunger_motivation_cod = new SurvivalDrive_MotivationCodelet("Hunger_Motivation", 0.0, 1.0, 0.0, oc);
             hunger_motivation_cod.addInput(battery_bufferMO);
             hunger_motivation_cod.addOutput(motivationMC);
             insertCodelet(hunger_motivation_cod);

@@ -16,15 +16,16 @@ slices = 16
 new_res_1_2 = (res/slices)
 winner = -1
 
-# Impulses
-file1 = "../backup/2nd pack/Train/Impulses/txt/"
+# 1 Q-Table
+file1 = "../results/1QTable/profile/"
 
 
-# Drives
-file2 = "../backup/2nd pack/Train/Drives/txt/"
+# 2 Q-Tables
+file2 = "../results/2QTables/profile/"
 output_folder = "../results/"
 # Paths
-path_imgs = '../backup/2nd pack/Train/Impulses/data/'
+path_imgs1 = '../results/1QTable/data/'
+path_imgs2 = '../results/2QTables/data/'
 path_res = "../results/txt_last_exp/" 
 
 m_i = False
@@ -107,11 +108,11 @@ def map_data(mode, file, goal_time, goal_timeimg, img):
     fliped = cv2.flip(result, 0)            
 
     if mode == "sensor" and last_name != "depth":   
-        img_path_leg = "../results/helper_results/legend_vis.jpg"
+        img_path_leg = "../helper_results/legend_vis.jpg"
     elif mode == "sensor" and last_name == "depth": 
-        img_path_leg = "../results/helper_results/legend_dep.jpg"
+        img_path_leg = "../helper_results/legend_dep.jpg"
     elif mode == "fm": 
-        img_path_leg = "../results/helper_results/legend_fm.jpg"
+        img_path_leg = "../helper_results/legend_fm.jpg"
 
     img_leg = cv2.imread(img_path_leg)   
     final_img = np.concatenate((fliped, img_leg), axis=1)     
@@ -231,9 +232,9 @@ def map_winner(mode, file, fileType, goal_time, goal_time_w, img):
     fliped = cv2.flip(result, 0)            
 
     if mode == "fm" and col_sem_id_np_flType[winner] == 1:   
-        img_path_leg = "../results/helper_results/legend_top.jpg"
+        img_path_leg = "../helper_results/legend_top.jpg"
     elif mode == "fm": 
-        img_path_leg = "../results/helper_results/legend_fm.jpg"
+        img_path_leg = "../helper_results/legend_fm.jpg"
 
     img_leg = cv2.imread(img_path_leg)   
     final_img = np.concatenate((fliped, img_leg), axis=1)     
@@ -271,7 +272,8 @@ def remove_strings_from_file(file_name, strings_to_remove):
 strings_to_remove = [
     "[","]","Exp number:", "Action num: ", "Battery: ", "reward: ",
     "Curiosity_lv: ", "Red: ", "Green: ", "Blue: ","action:","mot_value: ",
-    "r_imp: ","g_imp: ","b_imp: ", "hug_drive: ", "cur_drive: "
+    "r_imp: ","g_imp: ","b_imp: ", "hug_drive: ", "cur_drive: ", "QTables:", 
+    "Exp:", "Nact:", "Type:"
 ]
 
 files = ["vision_red.txt", 
@@ -323,7 +325,7 @@ goal_time_winT =  "2024_03_24_12_49_57_40_63" # t = 3
 if debug: print("begin")
 # Open grayscaled img 
 aux_img = 0
-with os.scandir(path_imgs) as entries:
+with os.scandir(path_imgs1) as entries:
     for entry in entries:        
         id_array = entry.name.split('_')
         if debugmap: 
@@ -337,7 +339,7 @@ with os.scandir(path_imgs) as entries:
                 print(f"id_array: {id_array}")
                 
             if goal_array[0] == id_array[0] and goal_array[1] == id_array[1] and goal_array[2] == id_array[2] and goal_array[3] == id_array[3] and goal_array[4] == id_array[4] and goal_array[5] == id_array[5]:
-                img_path = path_imgs+entry.name
+                img_path = path_imgs1+entry.name
                 img = cv2.imread(img_path)
                 aux_img += 1
                 if debugmap: print(f"img shape: {img.shape}")

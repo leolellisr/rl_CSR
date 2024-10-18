@@ -14,10 +14,7 @@ package attention;
 
 import CommunicationInterface.SensorI;
 import br.unicamp.cst.core.entities.Codelet;
-//import br.unicamp.cst.core.entities.Memory;
 import br.unicamp.cst.core.entities.MemoryObject;
-//import codelets.motor.Lock;
-
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -34,7 +31,7 @@ import java.util.List;
  */
 public class SalMap extends Codelet {
     
-    private  int time_graph;
+    private  int time_graph, print_step;
     private final int max_time_graph=100;
 
     private List saliencyMap;
@@ -48,7 +45,8 @@ public class SalMap extends Codelet {
 
     private SensorI vision;
     
-    public SalMap(SensorI vision, String salMapName, String combFMName, String AttMName, int timeWin, int sensorDim){
+    public SalMap(SensorI vision, String salMapName, String combFMName, 
+            String AttMName, int timeWin, int sensorDim, int print_step){
         this.time_graph = 0;
         saliencyMapName = salMapName;
         combFeatMapName = combFMName;
@@ -56,7 +54,7 @@ public class SalMap extends Codelet {
         timeWindow = timeWin;
         sensordimension = sensorDim;
         this.vision = vision;
-
+        this.print_step=print_step;
     }
     
     @Override
@@ -104,7 +102,8 @@ public class SalMap extends Codelet {
             mostRecentCFMarray = (ArrayList<Float>) combFeatMap.get(combFeatMap.size()-1);
 
             for (int j = 0; j < sensordimension; j++) {
-                salMap_sizeMinus1.set(j, mostRecentAttMarray.get(j)*mostRecentCFMarray.get(j));
+                if(salMap_sizeMinus1.size()>j) salMap_sizeMinus1.set(j, mostRecentAttMarray.get(j)*mostRecentCFMarray.get(j));
+                else  salMap_sizeMinus1.set(j-1, mostRecentAttMarray.get(j-1)*mostRecentCFMarray.get(j-1));
                 //System.out.print(" j = "+j+ " SalMap = "+salMap_sizeMinus1.get(j)+" att map = "+ mostRecentAttMarray.get(j)+" CFM = "+ mostRecentCFMarray.get(j));
             }
             
@@ -113,8 +112,8 @@ public class SalMap extends Codelet {
         printToFile(salMap_sizeMinus1, "salMap.txt");
     }
     
-    private void printToFile(Object object,String filename){
-        if(this.vision.getExp() == 1 || this.vision.getExp()%20 == 0){
+    private void printToFile(Object object,String filename    ){
+        if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();
         //if(time_graph%2 == 0 ){
@@ -129,7 +128,6 @@ public class SalMap extends Codelet {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        //}else time_graph++; 
-    }
+        }
     }
 }

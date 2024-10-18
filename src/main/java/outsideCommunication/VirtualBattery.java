@@ -13,9 +13,7 @@
 package outsideCommunication;
 
 import CommunicationInterface.SensorI;
-//import coppelia.BoolW;
-//import coppelia.FloatWA;
-//import coppelia.FloatWAA;
+
 import coppelia.CharWA;
 import coppelia.IntWA;
 
@@ -60,6 +58,8 @@ public class VirtualBattery implements SensorI{
         return  charging;
     }
 
+    
+    
     public void setCharge(boolean data) {
         this.charging = data;
 
@@ -69,13 +69,11 @@ public class VirtualBattery implements SensorI{
         
     @Override
     public Object getData() {
-       try {
-            Thread.sleep(1000);
+       /*try {
+            Thread.sleep(100);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }
-
-        //printToFile(battery_data);        
+        }*/
         return  battery_data;
     }
 
@@ -86,21 +84,18 @@ public class VirtualBattery implements SensorI{
     }
     
     private void printToFile(Object object){
-        //if(this.num_exp == 1 || this.num_exp%10 == 0){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();  
         try(FileWriter fw = new FileWriter("profile/battery.txt", true);
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw)){
             out.println(dtf.format(now)+"_"+time_graph+" "+ object);
-                //if(time_graph == max_time_graph-1) System.out.println(dtf.format(now)+"vision: "+time_graph);
             time_graph++;
             out.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
         
-        //}
     }
 
 	@Override
@@ -131,6 +126,26 @@ public class VirtualBattery implements SensorI{
 
     @Override
     public int getAux() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public int getMaxActions() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public int getMaxExp() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public int getExp(String s) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void setExp(int exp, String s) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
     

@@ -19,10 +19,14 @@ package CommunicationInterface;
  */
 public interface SensorI {
     public void setExp(int exp);
+    public void setExp(int exp, String s);
     public int getExp();
+    public int getExp(String s);
     public Object getData();
     public void resetData();
-
+    public int getMaxActions();
+    public int getMaxExp();
+    
     public int getStage();
 public int getAux();
     public void setStage(int stage);

@@ -15,7 +15,6 @@ package codelets.sensors;
 import CommunicationInterface.SensorI;
 import br.unicamp.cst.core.entities.Codelet;
 import br.unicamp.cst.core.entities.MemoryObject;
-//import codelets.motor.Lock;
 
 /**
  *
@@ -55,10 +54,6 @@ public class Sensor_Vision extends Codelet {
     public void proc() {
 
         vision_read.setI(vision.getData());
-        /*System.out.println("Sensor vision:"+this.stage);
-        System.out.println("Sensor vision getStage:"+getStage());
-        System.out.println("Sensor vision.getStage:"+vision.getStage());
-        */
         this.stage = vision.getStage();
         
     }

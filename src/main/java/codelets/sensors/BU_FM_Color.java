@@ -36,17 +36,18 @@ public class BU_FM_Color extends FeatMapCodelet {
     private final int max_time_graph=100;
     private final int res = 256;                     //Resolution of VisionSensor
     private int time_graph;
-    private final int slices = 16;                    //Slices in each coordinate (x & y) 
+    private final int slices = 16, print_step;                    //Slices in each coordinate (x & y) 
     private SensorI vision;
     private ArrayList<Float> vision_redFM_t;
     private ArrayList<Float> vision_greenFM_t;
     private ArrayList<Float> vision_blueFM_t;
     private boolean debug = false;
-    public BU_FM_Color(SensorI vision, int nsensors, ArrayList<String> sens_names, String featmapname,int timeWin, int mapDim) {
+    public BU_FM_Color(SensorI vision, int nsensors, ArrayList<String> sens_names, String featmapname,
+            int timeWin, int mapDim, int print_step) {
         super(nsensors, sens_names, featmapname,timeWin,mapDim);
         this.time_graph = 0;
         this.vision = vision;
-
+        this.print_step=print_step;
     }
 
     private ArrayList<Float>  set_resize_Image(float mean_all, ArrayList<Float> visionData_Array){
@@ -72,14 +73,10 @@ public class BU_FM_Color extends FeatMapCodelet {
                     }
                 }
                 float correct_mean = MeanValue/new_res - mean_all;
-                //System.out.println("Mean: "+ correct_mean +" Count_mean: "+count_mean+" ni: "+ni+" no: "+no+" mi: "+mi+" mo: "+mo);
-                //if(correct_mean>this.max_value) this.max_value = correct_mean;
-                //System.out.println("max_value r: "+ max_value);
                 if(correct_mean/mr>1) vision_mean.add(new Float(1));
                 else if(correct_mean/mr<0.001) vision_mean.add(new Float(0));
                 else vision_mean.add(correct_mean/mr);     
                 
-                //vision_mean_red.add(correct_mean/mr);
                 MeanValue = 0;
                 
             }
@@ -108,9 +105,6 @@ public class BU_FM_Color extends FeatMapCodelet {
         List vision_FM = (List) featureMap.getI();  
         if(debug) System.out.println("vision_FM begin: "+vision_FM.size());
 
-        /*if(vision_FM.size() == 3) {
-            vision_FM.clear();
-        }*/
         
         List vision_redFM = (List) vision_FM.get(0); // Get red data
         List vision_greenFM = (List) vision_FM.get(1); // Get green data
@@ -148,7 +142,6 @@ public class BU_FM_Color extends FeatMapCodelet {
         List visionData;
 
         visionData = (List) visionDataMO.getI();
-        //ArrayList<Float> visionData_Array = (ArrayList<Float>) visionData.get(visionData.size()-1);   
         
         Float Fvalue;
         
@@ -228,22 +221,20 @@ public class BU_FM_Color extends FeatMapCodelet {
         if(debug) System.out.println("vision_FM end: "+vision_FM.size());
     }
     private void printToFile(ArrayList<Float> arr, String title){
-        if(this.vision.getExp() == 1 || this.vision.getExp()%20 == 0){
-         //if(time_graph%2 == 0 ){
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
-        LocalDateTime now = LocalDateTime.now(); 
-        try(FileWriter fw = new FileWriter("profile/"+title, true);
-            BufferedWriter bw = new BufferedWriter(fw);
-            PrintWriter out = new PrintWriter(bw))
-        {
-            out.println(dtf.format(now)+"_"+this.vision.getExp()+"_"+time_graph+" "+ arr);
-            //if(time_graph == max_time_graph-1) System.out.println("vision_red_FM: "+time_graph);
-            time_graph++;
-            out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // }else time_graph++; 
+        if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
+             //if(time_graph%2 == 0 ){
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
+            LocalDateTime now = LocalDateTime.now(); 
+            try(FileWriter fw = new FileWriter("profile/"+title, true);
+                BufferedWriter bw = new BufferedWriter(fw);
+                PrintWriter out = new PrintWriter(bw))
+            {
+                out.println(dtf.format(now)+"_"+this.vision.getExp()+"_"+time_graph+" "+ arr);
+                time_graph++;
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

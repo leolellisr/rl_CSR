@@ -19,15 +19,12 @@ package attention;
  */
 public class Winner {
     public int featureJ;
-//    public int timeIndex;
     public int origin;
     public long fireTime;
     
     public Winner(int featJ, 
-//            int timeInd, 
             int orig, long fireT){
         featureJ = featJ;
-//        timeIndex = timeInd;
         origin = orig;
         fireTime = fireT;
     }

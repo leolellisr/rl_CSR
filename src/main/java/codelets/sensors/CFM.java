@@ -15,7 +15,6 @@ package codelets.sensors;
 import CommunicationInterface.SensorI;
 import br.unicamp.cst.core.entities.MemoryObject;
 import sensory.CombFeatMapCodelet;
-//import cst_attmod_app.AgentMind;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -23,7 +22,6 @@ import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-//import java.util.Collections;
 import java.util.List;
 
 
@@ -32,35 +30,28 @@ import java.util.List;
  * @author leolellisr
  */
 public class CFM extends CombFeatMapCodelet {
-    private static final int BOTTOM_UP = 0;
-    private static final int TOP_DOWN = 1;
-    private  int time_graph;
+private static final int BOTTOM_UP = 0;
+private static final int TOP_DOWN = 1;
+private  int time_graph;
 
-    //private  int max_time_graph = 100;
-    private SensorI sensor;
-    private int stage;
-   private boolean debug = false;
-    public CFM(SensorI sensor, int numfeatmaps, ArrayList<String> featmapsnames, int timeWin, int CFMdim) {
+//private  int max_time_graph = 100;
+private SensorI sensor;
+private int stage, print_step;
+private boolean debug = false;
+    public CFM(SensorI sensor, int numfeatmaps, ArrayList<String> featmapsnames, 
+            int timeWin, int CFMdim, int print_step) {
         super(numfeatmaps, featmapsnames,timeWin,CFMdim);
         this.time_graph = 0;
         this.sensor = sensor;
         this.stage = sensor.getStage();
-        
+        this.print_step = print_step;
     }
 
      
     @Override
     public void calculateCombFeatMap() {
         this.stage = sensor.getStage();
-//        ArrayList<Integer> sizes = new ArrayList<>();
-        
-        /*for (int i = 0; i < num_feat_maps; i++) {
-            MemoryObject mo = (MemoryObject)feature_maps.get(i);
-            //System.out.println("CFM"+i);
-            List fm = (List) mo.getI();
-            //sizes.add(fm.size());
-        }*/
-        
+   
        
         try {
             Thread.sleep(50);
@@ -130,20 +121,16 @@ public class CFM extends CombFeatMapCodelet {
                 }
                 Float weight_val, fmkt_val;
 
-                        fmkt_val = (Float) FMk_t.get(j); 
-
-                        weight_val = (Float) weight_values.get(k);
-                        ctj += weight_val*fmkt_val;
+                if(FMk_t.size()>j) fmkt_val = (Float) FMk_t.get(j); 
+                else fmkt_val = fmkt_val = (Float) FMk_t.get(j-1);
+                weight_val = (Float) weight_values.get(k);
+                ctj += weight_val*fmkt_val;
                 
                 if(stage==3) {
                     if(k>=2) sum_top += weight_val*fmkt_val;
                     else sum_bottom += weight_val*fmkt_val;
                 }   
-                // TODO: Somar mapas bu e tp pra selecionar winner
-               //System.out.println("sum_top: "+sum_top);
-        //System.out.println("sum_bottom: "+sum_bottom);
-        //System.out.println("sum_top/3: "+sum_top/3);
-        //System.out.println("sum_bottom/4: "+sum_bottom/4); 
+                
             }   
             
             CFMrow.set(j, ctj);
@@ -152,7 +139,6 @@ public class CFM extends CombFeatMapCodelet {
             else winners_row.set(j, BOTTOM_UP);
             
         }
-        //if(sum_top > sum_bottom) this.winner = TOP_DOWN;
         
         
         printToFile((ArrayList<Float>) CFMrow, "CFM.txt");
@@ -161,7 +147,7 @@ public class CFM extends CombFeatMapCodelet {
     
       
     private void printToFile(Object object,String filename){
-        if(this.sensor.getExp() == 1 || this.sensor.getExp()%20 == 0){
+        if(this.sensor.getExp() == 1 || this.sensor.getExp()%print_step == 0){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();
         //if(time_graph%2 == 0 ){
@@ -176,7 +162,6 @@ public class CFM extends CombFeatMapCodelet {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        //}else time_graph++;  
-    }
+        }
     }
 }

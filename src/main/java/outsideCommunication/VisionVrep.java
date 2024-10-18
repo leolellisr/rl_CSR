@@ -13,9 +13,6 @@
 package outsideCommunication;
 
 import CommunicationInterface.SensorI;
-//import coppelia.BoolW;
-//import coppelia.FloatWA;
-//import coppelia.FloatWAA;
 import coppelia.CharWA;
 import coppelia.IntWA;
 
@@ -31,7 +28,6 @@ import java.util.Collections;
 
 import java.io.*;
 import java.awt.image.BufferedImage;
-//import java.util.Arrays;
 import javax.imageio.ImageIO;   
 
 import java.time.format.DateTimeFormatter;  
@@ -48,16 +44,20 @@ public class VisionVrep implements SensorI{
     private final int clientID; 
     private  int time_graph;
     private List<Float> vision_data;   
-    private int stage, num_exp;    
+    private int stage, num_exp, num_exp_s, num_exp_c;    
     private final int res = 256;
     private final int max_time_graph=100;
-
+    private static final int MAX_ACTION_NUMBER = 500;
+	
+    private static final int MAX_EXPERIMENTS_NUMBER = 50;
     public VisionVrep(remoteApi vrep, int clientid, IntW vision_handles) {
         this.time_graph = 0;
         vision_data = Collections.synchronizedList(new ArrayList<>(res*res*3));
         this.vrep = vrep;
         this.stage =3;
         this.num_exp = 1;
+        this.num_exp_c = 1;
+        this.num_exp_s = 1;
         this.vision_handles = vision_handles;
         clientID = clientid;
         for (int i = 0; i < res*res*3; i++) {
@@ -99,34 +99,58 @@ public class VisionVrep implements SensorI{
                 MeanValue_r = 0;
                 MeanValue_g = 0;
                 MeanValue_b = 0;
-        }
-                        }         
+            }
+        }         
+    }
+    
+    @Override
+    public int getMaxActions() {
+            
+        return  MAX_ACTION_NUMBER;
+    }
+    
+    @Override
+    public int getMaxExp() {
+            
+        return  MAX_EXPERIMENTS_NUMBER;
     }
     
     @Override
     public int getExp() {
-            return this.num_exp;    
+        return this.num_exp;    
+    }
+    
+    public int getExp(String s) {
+        if(s.equals("C"))  return this.num_exp_c;    
+        else if(s.equals("S")) return this.num_exp_s;
+        return 0;
     }
     
     @Override
     public void setExp(int newExp) {
-           this.num_exp = newExp;    
+       this.num_exp = newExp;    
     }
+    
+    public void setExp(int newExp, String s) {
+       if(s.equals("C")) this.num_exp_c = newExp;
+       else if(s.equals("S")) this.num_exp_s = newExp;
+    }
+    
     
     @Override
     public int getStage() {
-            return this.stage;    
+        return this.stage;    
     }
     
     @Override
     public void setStage(int newstage) {
-           this.stage = newstage;    
+       this.stage = newstage;    
     }
     
     @Override
     public Object getData() {
        try {
-            Thread.sleep(1000);
+            Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }
@@ -171,7 +195,6 @@ public class VisionVrep implements SensorI{
                         vision_data.set(cont_pix+1, (float)pixels_green[i]);
                         vision_data.set(cont_pix+2, (float)pixels_blue[i]);
                         cont_pix += pixel_len;
-                        //System.out.println("Stage 3 - i: "+i+" r: "+ (float)pixels_red[i] + " g: "+ (float)pixels_green[i] +" b: "+ (float)pixels_blue[i]);
                          
                     }
                 }
@@ -196,21 +219,18 @@ public class VisionVrep implements SensorI{
         }
         
         // SYNC
- 	/*if (vrep.simxSynchronous(clientID, true) == remoteApi.simx_return_ok)
-            vrep.simxSynchronousTrigger(clientID);*/
+
         printToFile(vision_data);        
         return  vision_data;
     }
     
     private void printToFile(Object object){
-        //if(this.num_exp == 1 || this.num_exp%10 == 0){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();  
         try(FileWriter fw = new FileWriter("profile/vision.txt", true);
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw)){
             out.println(dtf.format(now)+"_"+time_graph+" "+ object);
-                //if(time_graph == max_time_graph-1) System.out.println(dtf.format(now)+"vision: "+time_graph);
             time_graph++;
             out.close();
         } catch (IOException e) {
@@ -241,7 +261,6 @@ public class VisionVrep implements SensorI{
                 System.out.println(erro);
             }
         }
-        //}
     }
 
 	@Override

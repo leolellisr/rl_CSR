@@ -18,6 +18,7 @@ import br.unicamp.cst.core.entities.MemoryContainer;
 import br.unicamp.cst.core.entities.MemoryObject;
 import br.unicamp.cst.learning.QLearning;
 import br.unicamp.cst.representation.idea.Idea;
+import codelets.motivation.DriverArray;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -33,137 +34,143 @@ import java.util.logging.Logger;
  * Procedural Memory is represented by QTable.
  */
 
-public class DecisionCodelet extends Codelet 
-{
-    private int time_graph;
-    private static final float CRASH_TRESHOLD = 0.28f;
-    private static final int MAX_ACTION_NUMBER = 500;
-    private static final int MAX_EXPERIMENTS_NUMBER = 100;
-    private QLearningL ql;
-    private Idea motivationMO;
-    private MemoryObject motorActionMO, reward_stringMO, action_stringMO;
-    private MemoryObject neckMotorMO;
-    private MemoryObject headMotorMO;
-    private List<String> actionsList, allStatesList;
-    private List<QLearningL> qTableList, qTableSList, qTableCList;
-    private List<Double>  rewardList, rewardSList, rewardCList;
-    private OutsideCommunication oc;
-    private final int timeWindow;
-    private final int sensorDimension;
-    private List saliencyMap;
-    private float vel = 2f,angle_step;
+public class DecisionCodelet extends Codelet {
     
-    private int curiosity_lv, red_c, green_c, blue_c;
-    private int action_index;
-    private int experiment_number;
-    private int stage, action_number=0;
-    int fovea; 
-    private String mode;
-    private Random gerador = new Random();
+private int time_graph;
+private static final float CRASH_TRESHOLD = 0.28f;
+private static int MAX_ACTION_NUMBER;
 
-    
-    private float yawPos = 0f, headPos = 0f;   
-    private boolean crashed = false;
-    private boolean debug = false, sdebug = false;
-    private int num_tables, aux_crash = 0;
-    private ArrayList<String> executedActions  = new ArrayList<>();
-    private ArrayList<String> allActionsList;
-    private Map<String, ArrayList<Integer>> proceduralMemory = new HashMap<String, ArrayList<Integer>>();
-    private String output, motivation, stringOutput = "";
-    private ArrayList<Float> lastLine;
-    
-    public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, String mode, String motivation, int num_tables) {
-		
-        super();
-        time_graph = 0;
+private static int MAX_EXPERIMENTS_NUMBER;
+private QLearningL ql;
+private ArrayList<Object> motivationMO;
+private MemoryObject motorActionMO, reward_stringMO, action_stringMO;
+private MemoryObject neckMotorMO;
+private MemoryObject headMotorMO;
+private List<String> actionsList, allStatesList;
+private List<QLearningL> qTableList, qTableSList, qTableCList;
+private List<Double>  rewardList, rewardSList, rewardCList;
+private OutsideCommunication oc;
+private final int timeWindow;
+private final int sensorDimension;
+private List saliencyMap;
+private float vel = 2f,angle_step;
 
-        experiment_number = 1;
-        this.num_tables = num_tables;
-        this.motivation = motivation;
-        // allActions: am0: focus; am1: neck left; am2: neck right; am3: head up; am4: head down; 
-        // am5: fovea 0; am6: fovea 1; am7: fovea 2; am8: fovea 3; am9: fovea 4; 
-        // am10: neck tofocus; am11: head tofocus; am12: neck awayfocus; am13: head awayfocus
-        // aa0: focus td color; aa1: focus td depth; aa2: focus td region.
-        allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
-        // States are 0 1 2 ... 5^256-1
-        ArrayList<String> allStatesList = new ArrayList<>(Arrays.asList(IntStream.rangeClosed(0, (int)Math.pow(2, 16)-1).mapToObj(String::valueOf).toArray(String[]::new)));
-
-        oc = outc;
-
-        this.stage = this.oc.vision.getStage();
+private int curiosity_lv, red_c, green_c, blue_c;
+private int action_index;
+private int experiment_number, exp_s, exp_c;
+private int stage, action_number=0;
+int fovea; 
+private String mode;
+private Random gerador = new Random();
 
 
-        angle_step = 0.1f;
+private float yawPos = 0f, headPos = 0f;   
+private boolean crashed = false;
+private boolean debug = false, sdebug = false;
+private int num_tables, aux_crash = 0;
+private ArrayList<String> executedActions  = new ArrayList<>();
+private ArrayList<String> allActionsList;
+private Map<String, ArrayList<Integer>> proceduralMemory = new HashMap<String, ArrayList<Integer>>();
+private String output, motivation, stringOutput = "";
+private ArrayList<Float> lastLine;
+private String motivationName;
+public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, String mode, String motivation, int num_tables) {
 
-        timeWindow = tWindow;
-        sensorDimension = sensDim;
-        this.mode = mode;
-	}
+    super();
+    time_graph = 0;
 
-	// This method is used in every Codelet to capture input, broadcast 
-	// and output MemoryObjects which shall be used in the proc() method. 
-	// This abstract method must be implemented by the user. 
-	// Here, the user must get the inputs and outputs it needs to perform proc.
-	@Override
-	public void accessMemoryObjects() {
-		
-            MemoryObject MO;
-            MO = (MemoryObject) this.getInput("SALIENCY_MAP");
-            saliencyMap = (List) MO.getI();
-            if(this.motivation.equals("drives")){
-                MemoryContainer MC = (MemoryContainer) this.getInput("MOTIVATION");
-                motivationMO = (Idea) MC.getI();
-            }               
+    this.num_tables = num_tables;
+    this.motivation = motivation;
+    // allActions: am0: focus; am1: neck left; am2: neck right; am3: head up; am4: head down; 
+    // am5: fovea 0; am6: fovea 1; am7: fovea 2; am8: fovea 3; am9: fovea 4; 
+    // am10: neck tofocus; am11: head tofocus; am12: neck awayfocus; am13: head awayfocus
+    // aa0: focus td color; aa1: focus td depth; aa2: focus td region.
+    allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
+    // States are 0 1 2 ... 5^256-1
+    ArrayList<String> allStatesList = new ArrayList<>(Arrays.asList(IntStream.rangeClosed(0, (int)Math.pow(2, 16)-1).mapToObj(String::valueOf).toArray(String[]::new)));
 
-            if(num_tables==2){
+    oc = outc;
 
-                MO = (MemoryObject) this.getInput("SUR_REWARDS");
-                rewardSList = (List) MO.getI();
-                MO = (MemoryObject) this.getInput("QTABLES");
-                qTableSList = (List) MO.getI();
+    this.stage = this.oc.vision.getStage();
 
-                MO = (MemoryObject) this.getInput("CUR_REWARDS");
-                rewardCList = (List) MO.getI();
-                MO = (MemoryObject) this.getInput("QTABLEC");
-                qTableCList = (List) MO.getI();
+
+    angle_step = 0.1f;
+    experiment_number = oc.vision.getExp();
+
+    timeWindow = tWindow;
+    sensorDimension = sensDim;
+    this.mode = mode;
+    MAX_ACTION_NUMBER = oc.vision.getMaxActions();
+    MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxExp();
+    exp_s = oc.vision.getExp();
+        exp_c = oc.vision.getExp();
+        
+    }
+
+    // This method is used in every Codelet to capture input, broadcast 
+    // and output MemoryObjects which shall be used in the proc() method. 
+    // This abstract method must be implemented by the user. 
+    // Here, the user must get the inputs and outputs it needs to perform proc.
+    @Override
+    public void accessMemoryObjects() {
+
+        MemoryObject MO;
+        MO = (MemoryObject) this.getInput("SALIENCY_MAP");
+        saliencyMap = (List) MO.getI();
+        if(this.motivation.equals("drives")){
+             DriverArray MC = (DriverArray) this.getInput("MOTIVATION");
+            motivationMO = (ArrayList<Object>) MC.getI();
+        }               
+
+        if(num_tables==2){
+
+            MO = (MemoryObject) this.getInput("SUR_REWARDS");
+            rewardSList = (List) MO.getI();
+            MO = (MemoryObject) this.getInput("QTABLES");
+            qTableSList = (List) MO.getI();
+
+            MO = (MemoryObject) this.getInput("CUR_REWARDS");
+            rewardCList = (List) MO.getI();
+            MO = (MemoryObject) this.getInput("QTABLEC");
+            qTableCList = (List) MO.getI();
+        }
+        else if(num_tables == 1){
+            MO = (MemoryObject) this.getInput("REWARDS");
+            rewardList = (List) MO.getI();
+            MO = (MemoryObject) this.getInput("QTABLE");
+            qTableList = (List) MO.getI();
+        }
+        MO = (MemoryObject) this.getOutput("STATES");
+        allStatesList = (List) MO.getI();
+
+        MO = (MemoryObject) this.getOutput("ACTIONS");
+        actionsList = (List) MO.getI();
+
+    }
+
+    // This abstract method must be implemented by the user. 
+    // Here, the user must calculate the activation of the codelet
+    // before it does what it is supposed to do in proc();
+
+    @Override
+    public void calculateActivation() {
+            // TODO Auto-generated method stub
+
+    }
+
+    public static Object getLast(List list) {
+            if (list.isEmpty()) {
+                    return list.get(list.size()-1);
             }
-            else if(num_tables == 1){
-                MO = (MemoryObject) this.getInput("REWARDS");
-                rewardList = (List) MO.getI();
-                MO = (MemoryObject) this.getInput("QTABLE");
-                qTableList = (List) MO.getI();
-            }
-            MO = (MemoryObject) this.getOutput("STATES");
-            allStatesList = (List) MO.getI();
+            return null;
+    }
 
-            MO = (MemoryObject) this.getOutput("ACTIONS");
-            actionsList = (List) MO.getI();
-                
-	}
-
-	// This abstract method must be implemented by the user. 
-	// Here, the user must calculate the activation of the codelet
-	// before it does what it is supposed to do in proc();
-
-	@Override
-	public void calculateActivation() {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	public static Object getLast(List list) {
-		if (list.isEmpty()) {
-			return list.get(list.size()-1);
-		}
-		return null;
-	}
-
-	// Main Codelet function, to be implemented in each subclass.
-	@Override
-	public void proc() {
+    // Main Codelet function, to be implemented in each subclass.
+    @Override
+    public void proc() {
                 //System.out.println("yawPos: "+yawPos+" headPos: "+headPos);
 	try {
-            Thread.sleep(50);
+            Thread.sleep(80);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }       
@@ -174,7 +181,19 @@ public class DecisionCodelet extends Codelet
                 return;
             }
         
-        if(this.num_tables == 2 && motivationMO.getName().equals("SURVIVAL")){
+        Idea curI = (Idea) motivationMO.get(0);
+        Idea surI = (Idea) motivationMO.get(1);
+        boolean curB = (double) Collections.max((List) curI.getValue()) > (double) surI.getValue();
+        
+        
+        if(curB){
+            motivationName = "CURIOSITY";
+        }
+        else{
+            motivationName = "SURVIVAL";
+        }
+        
+        if(this.num_tables == 2 && motivationName.equals("SURVIVAL")){
             if(qTableSList.isEmpty()){
                 return;
             }
@@ -221,14 +240,30 @@ public class DecisionCodelet extends Codelet
         action_number += 1;
         printToFile(actionToTake,"actions.txt", action_number);
         
-        if(this.experiment_number != this.oc.vision.getExp()){
-            System.out.println("DECISION ----- Exp: "+ experiment_number + " ----- N act: "+action_number+" ----- Act: "+actionToTake+" ----- Type: "+motivationMO.getName());
+        boolean surB = ((double) surI.getValue() > (double) Collections.max((List) curI.getValue())  && exp_s<MAX_EXPERIMENTS_NUMBER) || exp_c>MAX_EXPERIMENTS_NUMBER;
+        
+        boolean exp_b = false;
+        if(num_tables == 1) exp_b = this.experiment_number != this.oc.vision.getExp();
+        else if(!surB) exp_b = this.exp_c != this.oc.vision.getExp("C");
+        else exp_b = this.exp_s != this.oc.vision.getExp("S");
+        
+        if(exp_b){
+            System.out.println("DECISION ----- Exp: "+ experiment_number + 
+                    " ----- N act: "+action_number+" ----- Act: "+actionToTake+
+                    " ----- Type: "+motivationName);
 	
-            this.experiment_number = this.oc.vision.getExp();
+            if(num_tables == 1) this.experiment_number = this.oc.vision.getExp();
+            else if(!surB) this.exp_c = this.oc.vision.getExp("C");
+            else this.exp_s = this.oc.vision.getExp("S");
             action_number=0;
+            try {
+            Thread.sleep(200);
+        } catch (Exception e) {
+            Thread.currentThread().interrupt();
+        }
             
         }
-        }
+    }
 	
 	
 
@@ -241,25 +276,16 @@ public class DecisionCodelet extends Codelet
         ArrayList<Float> mean_lastLine = new ArrayList<>();
         for(int i=0; i<16;i++) mean_lastLine.add(0f);
         
-/*                        redReadings = (List) colorReadings.get(0);
-                        greenReadings = (List) colorReadings.get(1);
-                        blueReadings = (List) colorReadings.get(2);
-                        */
+
 			// Getting just the last entry (current sal map)
 			lastLine = (ArrayList<Float>) saliencyMap.get(saliencyMap.size() -1);
-/*                        lastRed = (ArrayList<Float>) redReadings.get(redReadings.size() -1);
-                        lastGreen = (ArrayList<Float>) greenReadings.get(greenReadings.size() -1);
-                        lastBlue = (ArrayList<Float>) blueReadings.get(blueReadings.size() -1);
 
-                        lastDist = (ArrayList<Float>) distReadings.get(distReadings.size() -1);
-*/
         try {
             Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         } 
                         
-        //if (calculateMean(lastRed)<0.01 && calculateMean(lastGreen)<0.01 && calculateMean(lastBlue)<0.01) aux_crash += 1;
         if (Collections.max(lastLine) == 0) aux_crash += 1;
         else aux_crash = 0; 
 
@@ -267,30 +293,6 @@ public class DecisionCodelet extends Codelet
             crashed = true;
         }
 
-        /*int indexRed = -1;
-        int indexGreen = -1;
-        int indexBlue = -1;                        
-        int indexDist = -1;
-*/
-        if (this.stage == 3) {
-
-/*                          if (lastRed.indexOf(Collections.max(lastRed))>-1) indexRed = lastRed.indexOf(Collections.max(lastRed));
-            if (lastGreen.indexOf(Collections.max(lastGreen))>-1) indexGreen = lastGreen.indexOf(Collections.max(lastGreen));
-            if (lastBlue.indexOf(Collections.max(lastBlue))>-1) indexBlue = lastBlue.indexOf(Collections.max(lastBlue));
-
-            if (lastDist.indexOf(Collections.max(lastDist))>-1) indexDist = lastDist.indexOf(Collections.max(lastDist));   
-*/ 
-            }
-
-        if(debug){
-/*                        System.out.println("lastRed: "+calculateMean(lastRed));
-            System.out.println("indexRed: "+indexRed);
-            System.out.println("lastGreen: "+calculateMean(lastGreen));
-            System.out.println("indexGreen: "+indexGreen);
-
-            System.out.println("lastBlue: "+calculateMean(lastBlue));
-            System.out.println("indexBlue: "+indexBlue);*/
-        }
         if (Collections.max(lastLine) > 0){
             ArrayList<Float> MeanValue = new ArrayList<>();
             for(int n = 0;n<4;n++){
@@ -303,10 +305,6 @@ public class DecisionCodelet extends Codelet
 
                     for (int x = mi; x < mo; x++) {
                         int i = (y*16+x);
-                        /*if(i == indexRed && indexRed != -1) winnerRed = n*4+m;
-                        if(i == indexGreen && indexGreen != -1) winnerGreen = n*4+m;
-                        if(i == indexBlue && indexBlue != -1) winnerBlue = n*4+m;
-                        if(i == indexDist && indexDist != -1) winnerDist = n*4+m;*/
 
                         float Fvalue_r = (float) lastLine.get(i);                         
                         MeanValue.add(Fvalue_r);
@@ -320,16 +318,11 @@ public class DecisionCodelet extends Codelet
 
                 }
             }
-            if(debug){
-                /*System.out.println("winnerRed: "+winnerRed);
-                System.out.println("winnerGreen: "+winnerGreen);
-                System.out.println("winnerBlue: "+winnerBlue);*/
-            }
+
         }
         // For normalizing readings between 0 and 1 before transforming to state 
         Float max = Collections.max(mean_lastLine);
         Float min = Collections.min(mean_lastLine);		
-        // System.out.println("mean_lastLine len: "+mean_lastLine.size()+" max: "+max+ " min: "+min);
         Integer discreteVal = 0;
         Integer stateVal = 0;
         for (int i=0; i < 16; i++) {
@@ -348,7 +341,33 @@ public class DecisionCodelet extends Codelet
             // Getting state from discrete value
             stateVal += (int) Math.pow(2, i)*discreteVal;
         }
-        return stateVal.toString();
+        
+        Idea curI = (Idea) motivationMO.get(0);
+        Idea surI = (Idea) motivationMO.get(1);
+        boolean curB = (double) Collections.max((List) curI.getValue()) > (double) surI.getValue();
+        
+        
+        
+        if(curB){
+            motivationName = "CURIOSITY";
+        }
+        else{
+            motivationName = "SURVIVAL";
+        }
+        double mot_value;
+        if(motivationName.equals("SURVIVAL"))  mot_value = (double) surI.getValue();
+        else{
+            mot_value = (double)Collections.max((List) curI.getValue());
+            
+        } 
+        if(num_tables==1){
+            return (double)Collections.max((List) curI.getValue())+" "+
+                (double) surI.getValue()+" "+stateVal.toString();
+        }
+        else if(num_tables==2){
+            return mot_value+" "+stateVal.toString();
+        }
+        return null;
     }
 		
 	
@@ -366,21 +385,30 @@ public class DecisionCodelet extends Codelet
     }
 
     private void printToFile(Object object,String filename, int action_num){
-    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
-    LocalDateTime now = LocalDateTime.now();
-
-    if ( experiment_number < MAX_EXPERIMENTS_NUMBER) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
+        LocalDateTime now = LocalDateTime.now();
+        boolean exp_b = false;
+        Idea curI = (Idea) motivationMO.get(0);
+        Idea surI = (Idea) motivationMO.get(1);
+        boolean surB = ((double) surI.getValue() > (double) Collections.max((List) curI.getValue())  && exp_s<MAX_ACTION_NUMBER) || exp_c>MAX_ACTION_NUMBER;
+        
+        if(num_tables == 1) exp_b = this.experiment_number < MAX_EXPERIMENTS_NUMBER;
+        else if(!surB) exp_b = this.exp_c < MAX_EXPERIMENTS_NUMBER;
+        else exp_b = this.exp_s < MAX_EXPERIMENTS_NUMBER;
+        
+        if ( exp_b) {
             try(FileWriter fw = new FileWriter("profile/"+filename,true);
                 BufferedWriter bw = new BufferedWriter(fw);
                 PrintWriter out = new PrintWriter(bw))
             {
-                out.println(dtf.format(now)+" "+ object+" Exp:"+experiment_number+" Nact:"+action_num+" Type:"+motivationMO.getName());
+                out.println(dtf.format(now)+" "+ object+" Exp:"+experiment_number+
+                        " Nact:"+action_num+" Type:"+motivationName);
 
                 out.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-    }
+        }
 
     }
 

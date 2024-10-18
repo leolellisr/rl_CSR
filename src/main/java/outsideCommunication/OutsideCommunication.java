@@ -157,7 +157,10 @@ public class OutsideCommunication {
 		if (ret == remoteApi.simx_return_ok  || ret == remoteApi.simx_return_novalue_flag) {
 			System.out.println("init ok ");
 		} else {
-				System.exit(1);
+                            vrep.simxPauseCommunication(clientID, true);
+                            vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot_wait);
+
+                            System.exit(1);
 		}
 	
 

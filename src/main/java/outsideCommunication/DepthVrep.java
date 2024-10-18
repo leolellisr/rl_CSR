@@ -49,7 +49,7 @@ public class DepthVrep implements SensorI{
     private  int time_graph;
     private List<Float> depth_data;    
     private int stage;    
-    private final int res = 256;
+    private final int res = 256, print_step=1;
     private final int max_time_graph=100;
     private SensorI vision;
     private boolean debug = false;
@@ -80,7 +80,7 @@ public class DepthVrep implements SensorI{
     @Override
     public Object getData() {
        try {
-            Thread.sleep(1000);
+            Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }
@@ -98,7 +98,6 @@ public class DepthVrep implements SensorI{
 	printToFile(position.getArray()[2], "positions.txt");
         if(debug) System.out.println("Marta on exp "+this.vision.getExp()+" with z = "+position.getArray()[2]);        
         if (this.vision.getExp() > 1 && (position.getArray()[2] < 0.35 || position.getArray()[0] > 0.2)) {
-            vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot);
             System.out.println("Marta crashed on exp "+this.vision.getExp()+" with z = "+position.getArray()[2]);
                             
             vrep.simxPauseCommunication(clientID, true);
@@ -109,8 +108,13 @@ public class DepthVrep implements SensorI{
 			Thread.currentThread().interrupt();
 		}
             vrep.simxPauseCommunication(clientID, false);
-            vrep.simxStartSimulation(clientID, remoteApi.simx_opmode_blocking);
-                            
+            vrep.simxStartSimulation(clientID, remoteApi.simx_opmode_oneshot_wait);
+            try {
+			Thread.sleep(100);
+		} catch (Exception e) {
+			Thread.currentThread().interrupt();
+		}  
+            
         }
         
         long startTime = System.currentTimeMillis();
@@ -214,17 +218,13 @@ public class DepthVrep implements SensorI{
                 }
             }
        }
-        
-        // SYNC
- 	/*if (vrep.simxSynchronous(clientID, true) == remoteApi.simx_return_ok)
-            vrep.simxSynchronousTrigger(clientID);*/
+
         printToFile(depth_data, "depth.txt");        
-        //System.out.println(depth_data);
         return  depth_data;
     }
     
     private void printToFile(Object object, String filename){
-        if(this.vision.getExp() == 1 || this.vision.getExp()%5 == 0){
+        if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();  
         
@@ -232,7 +232,6 @@ public class DepthVrep implements SensorI{
             BufferedWriter bwd = new BufferedWriter(fwd);
             PrintWriter outd = new PrintWriter(bwd)){
             outd.println(dtf.format(now)+"_"+this.vision.getExp()+"_"+time_graph+" "+ object);
-                //if(time_graph == max_time_graph-1) System.out.println(dtf.format(now)+"vision: "+time_graph);
             time_graph++;
             outd.close();
         } catch (IOException e) {
@@ -259,6 +258,26 @@ public class DepthVrep implements SensorI{
 
     @Override
     public int getAux() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public int getMaxActions() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public int getMaxExp() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public int getExp(String s) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void setExp(int exp, String s) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 

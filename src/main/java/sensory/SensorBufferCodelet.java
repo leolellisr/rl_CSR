@@ -61,12 +61,12 @@ public class SensorBufferCodelet extends Codelet {
             return;
         }
         
-        try {
-            Thread.sleep(00);
+        /*try {
+            Thread.sleep(5);
 //            System.out.println("\u001B[31m"+"TRY CATCH");
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }
+        }*/
                 
         List sonar_buffer_list = (List) buffer_output.getI();
         

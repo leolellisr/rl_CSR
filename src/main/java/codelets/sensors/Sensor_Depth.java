@@ -51,10 +51,6 @@ public class Sensor_Depth extends Codelet {
         depth_read.setI(depth.getData());
         this.stage = vision.getStage();
         depth.setStage(vision.getStage());
-        //System.out.println("Sensor depth:"+this.stage);
-        ///System.out.println("Sensor depth vision.getStage:"+vision.getStage());
-        //vision.setStage(vision.getStage()-1);
-        //System.out.println("Sensor depth vision.getStage+1:"+vision.getStage());
     }
     
 }

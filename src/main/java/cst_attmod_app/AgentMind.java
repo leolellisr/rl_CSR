@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import outsideCommunication.OutsideCommunication;
-import codelets.learner.OldLearnerCodelet;
 import codelets.learner.RewardComputerCodelet;
 import codelets.learner.LearnerCodelet;
 import codelets.learner.QLearningL;
@@ -49,6 +48,7 @@ import codelets.sensors.BU_FM_Depth;
 import codelets.sensors.TD_FM_Color;
 import codelets.sensors.TD_FM_Depth;
 import codelets.motivation.CuriosityDrive_MotivationCodelet;
+import codelets.motivation.DriverArray;
 import codelets.motivation.SurvivalDrive_MotivationCodelet;
 import codelets.sensors.Sensor_Battery;
 import java.io.IOException;
@@ -68,12 +68,14 @@ public class AgentMind extends Mind {
     public static final int Sensor_dimension = 256;
     public static final boolean debug = true;
     public static final boolean saverCodelet = false;
-    private int index_hunger, index_curiosity;
+    private int index_hunger, index_curiosity, print_step;
         private String stringOutputac = "", stringOutputreS = "", stringOutputreC = "";
 
-    public AgentMind(OutsideCommunication oc, String mode, String motivation, int num_tables) throws IOException{
-        
+    public AgentMind(OutsideCommunication oc, String mode, String motivation, 
+            int num_tables, int print_step) throws IOException{
         super();
+        this.print_step = print_step;
+        
         //System.out.println("AgentMind");
         //////////////////////////////////////////////
         //Declare Memory Objects
@@ -81,7 +83,7 @@ public class AgentMind extends Mind {
         
         // Motivation
         // MemoryObject curiosity_motivationMO = null, curiosity_activationMO  = null, hunger_motivationMO  = null;
-        MemoryContainer motivationMC = new MemoryContainer("MOTIVATION");
+        DriverArray motivationMC = new DriverArray("MOTIVATION");
 
         //Motor - Neck
         MemoryObject motorActionMO;
@@ -132,22 +134,9 @@ public class AgentMind extends Mind {
         
         
       // Color data 
-        
- /* not used
-      //Vision RED data
-        List visionRed = Collections.synchronizedList(new ArrayList<ArrayList<Float>>());
-        MemoryObject vision_redMO = createMemoryObject("VISION_RED", visionRed);
-        
-        //Vision GREEN data
-        List visionGreen = Collections.synchronizedList(new ArrayList<ArrayList<Float>>());
-        MemoryObject vision_greenMO = createMemoryObject("VISION_GREEN", visionGreen);
-        
-        //Vision BLUE data
-        List visionBlue = Collections.synchronizedList(new ArrayList<ArrayList<Float>>());
-        MemoryObject vision_blueMO = createMemoryObject("VISION_BLUE", visionBlue);
+
           
-        */
-        
+      
         //Color bottom-up Feature Maps
 
         //Vision color FM
@@ -160,14 +149,6 @@ public class AgentMind extends Mind {
         visionColorFM.add(vision_blueFM);
         MemoryObject vision_color_fmMO = createMemoryObject("VISION_COLOR_FM", visionColorFM);
         
-/*        //Vision GREEN FM
-        List visionGreenFM = Collections.synchronizedList(new ArrayList<ArrayList<Float>>());
-        MemoryObject vision_green_fmMO = createMemoryObject("VISION_GREEN_FM", visionGreenFM);
-        
-        //Vision BLUE FM
-        List visionBlueFM = Collections.synchronizedList(new ArrayList<ArrayList<Float>>());
-        MemoryObject vision_blue_fmMO = createMemoryObject("VISION_BLUE_FM", visionBlueFM);
-  */      
 
         //Top-down FMs
         //Depth FM
@@ -331,52 +312,27 @@ public class AgentMind extends Mind {
         sensbuff_names_vision.add("BATTERY_BUFFER");
        
         
-/*        //Red buffer
-        Codelet vision_red_c = new Sensor_ColorRed(oc.vision, sensbuff_names_vision.size(), sensbuff_names_vision, "VISION_RED",Buffersize,Vision_image_dimension);
-        vision_red_c.addInput(vision_bufferMO);
-        vision_red_c.addOutput(vision_redMO);
-        insertCodelet(vision_red_c);
 
-        //Green buffer
-        Codelet vision_green_c = new Sensor_ColorGreen(oc.vision, sensbuff_names_vision.size(), sensbuff_names_vision, "VISION_GREEN",Buffersize,Vision_image_dimension);
-        vision_green_c.addInput(vision_bufferMO);
-        vision_green_c.addOutput(vision_greenMO);
-        insertCodelet(vision_green_c);
-        
-        //Blue buffer
-        Codelet vision_blue_c = new Sensor_ColorBlue(oc.vision, sensbuff_names_vision.size(), sensbuff_names_vision, "VISION_BLUE",Buffersize,Vision_image_dimension);
-        vision_blue_c.addInput(vision_bufferMO);
-        vision_blue_c.addOutput(vision_blueMO);
-        insertCodelet(vision_blue_c);
-  */      
         //Feature Maps bottom-up
         //Red FM
-        Codelet vision_color_fm_c = new BU_FM_Color(oc.vision, sensbuff_names_vision.size(),sensbuff_names_vision,"VISION_COLOR_FM",Buffersize,Sensor_dimension);
+        Codelet vision_color_fm_c = new BU_FM_Color(oc.vision, sensbuff_names_vision.size(),
+                sensbuff_names_vision,"VISION_COLOR_FM",Buffersize,Sensor_dimension,print_step);
         vision_color_fm_c.addInput(vision_bufferMO);
         vision_color_fm_c.addOutput(vision_color_fmMO);
         insertCodelet(vision_color_fm_c);
 
-/*        //Green FM
-        Codelet vision_green_fm_c = new BU_FM_ColorGreen(oc.vision, sensbuff_names_vision.size(), sensbuff_names_vision, "VISION_GREEN_FM",Buffersize,Sensor_dimension);
-        vision_green_fm_c.addInput(vision_bufferMO);
-        vision_green_fm_c.addOutput(vision_green_fmMO);
-        insertCodelet(vision_green_fm_c);
-        
-        //Blue FM
-        Codelet vision_blue_fm_c = new BU_FM_ColorBlue(oc.vision, sensbuff_names_vision.size(), sensbuff_names_vision, "VISION_BLUE_FM",Buffersize,Sensor_dimension);
-        vision_blue_fm_c.addInput(vision_bufferMO);
-        vision_blue_fm_c.addOutput(vision_blue_fmMO);
-        insertCodelet(vision_blue_fm_c);
-  */      
+
                 
         //Depth FM
-        Codelet depth_fm_c = new BU_FM_Depth(oc.vision, sensbuff_names_vision.size(),sensbuff_names_vision,"DEPTH_FM",Buffersize,Sensor_dimension);
+        Codelet depth_fm_c = new BU_FM_Depth(oc.vision, sensbuff_names_vision.size(),
+                sensbuff_names_vision,"DEPTH_FM",Buffersize,Sensor_dimension, print_step);
         depth_fm_c.addInput(depth_bufferMO);
         depth_fm_c.addOutput(depth_fmMO);
         insertCodelet(depth_fm_c);
         
      // TOP DOWN
-        Codelet vision_color_top_fm_c = new TD_FM_Color(oc.vision, sensbuff_names_vision.size(), sensbuff_names_vision, "VISION_COLOR_TOP_FM",Buffersize,Sensor_dimension);
+        Codelet vision_color_top_fm_c = new TD_FM_Color(oc.vision, sensbuff_names_vision.size(), 
+                sensbuff_names_vision, "VISION_COLOR_TOP_FM",Buffersize,Sensor_dimension, print_step);
         vision_color_top_fm_c.addInput(vision_bufferMO);
         vision_color_top_fm_c.addInput(winnersMO);
         vision_color_top_fm_c.addInput(desFeatCMO);
@@ -386,7 +342,8 @@ public class AgentMind extends Mind {
          
       
         //Depth FM
-        Codelet depth_top_fm_c = new TD_FM_Depth(oc.vision, sensbuff_names_vision.size(),sensbuff_names_vision,"DEPTH_TOP_FM",Buffersize,Sensor_dimension);
+        Codelet depth_top_fm_c = new TD_FM_Depth(oc.vision, sensbuff_names_vision.size(),
+                sensbuff_names_vision,"DEPTH_TOP_FM",Buffersize,Sensor_dimension, print_step);
         depth_top_fm_c.addInput(winnersMO);
         depth_top_fm_c.addInput(depth_bufferMO);
         depth_top_fm_c.addInput(desFeatDMO);
@@ -398,15 +355,13 @@ public class AgentMind extends Mind {
         
         ArrayList<String> FMnames = new ArrayList<>();
         FMnames.add("VISION_COLOR_FM");
-//        FMnames.add("VISION_GREEN_FM");
-//        FMnames.add("VISION_BLUE_FM");
         FMnames.add("DEPTH_FM");
         FMnames.add("VISION_COLOR_TOP_FM");
         FMnames.add("DEPTH_TOP_FM");
         FMnames.add("REGION_TOP_FM");
         
         //CFM
-        Codelet comb_fm_c = new CFM(oc.vision, FMnames.size(), FMnames,Buffersize,Sensor_dimension);
+        Codelet comb_fm_c = new CFM(oc.vision, FMnames.size(), FMnames,Buffersize,Sensor_dimension, print_step);
         comb_fm_c.addInput(vision_color_fmMO);
         comb_fm_c.addInput(depth_fmMO);
         comb_fm_c.addInput(vision_color_top_fmMO);
@@ -418,14 +373,16 @@ public class AgentMind extends Mind {
         insertCodelet(comb_fm_c);
         
         //SALIENCY MAP CODELET
-        Codelet sal_map_cod = new SalMap(oc.vision, "SALIENCY_MAP", "COMB_FM", "ATTENTIONAL_MAP", Buffersize, Sensor_dimension);
+        Codelet sal_map_cod = new SalMap(oc.vision, "SALIENCY_MAP", "COMB_FM", "ATTENTIONAL_MAP", Buffersize, 
+                Sensor_dimension, print_step);
         sal_map_cod.addInput(combFMMO);
         sal_map_cod.addInput(attMapMO);
         sal_map_cod.addOutput(salMapMO);
         insertCodelet(sal_map_cod);
         
         //DECISION MAKING CODELET
-        Codelet dec_mak_cod = new WinnerPicker(oc.vision, "WINNERS", "ATTENTIONAL_MAP", "SALIENCY_MAP", Buffersize, Sensor_dimension);
+        Codelet dec_mak_cod = new WinnerPicker(oc.vision, "WINNERS", "ATTENTIONAL_MAP", "SALIENCY_MAP", 
+                Buffersize, Sensor_dimension, print_step);
         dec_mak_cod.addInput(salMapMO);
         dec_mak_cod.addInput(type_fmMO);
         dec_mak_cod.addOutput(winnersMO);
@@ -459,7 +416,7 @@ public class AgentMind extends Mind {
             insertCodelet(sur_reward_cod);
 
             //LEARNER CODELET
-            Codelet sur_learner_cod = new LearnerCodelet(oc, Buffersize, mode, motivation, "SURVIVAL", "QTABLES", num_tables);
+            Codelet sur_learner_cod = new LearnerCodelet(oc.vrep, oc.clientID, oc, Buffersize, mode, motivation, "SURVIVAL", "QTABLES", num_tables);
             sur_learner_cod.addInput(salMapMO);
             sur_learner_cod.addInput(sur_rewardsMO);
             sur_learner_cod.addInput(battery_bufferMO);
@@ -471,7 +428,7 @@ public class AgentMind extends Mind {
             sur_learner_cod.addOutput(qtableSMO);
             insertCodelet(sur_learner_cod);
 
-            Codelet cur_learner_cod = new LearnerCodelet(oc, Buffersize, mode, motivation, "CURIOSITY", "QTABLEC", num_tables);
+            Codelet cur_learner_cod = new LearnerCodelet(oc.vrep, oc.clientID, oc, Buffersize, mode, motivation, "CURIOSITY", "QTABLEC", num_tables);
             cur_learner_cod.addInput(salMapMO);
             cur_learner_cod.addInput(cur_rewardsMO);
             cur_learner_cod.addInput(actionsMO);
@@ -497,7 +454,7 @@ public class AgentMind extends Mind {
             insertCodelet(reward_cod);
             
             
-            Codelet learner_cod = new LearnerCodelet(oc, Buffersize, mode, motivation, "", "QTABLE", num_tables);
+            Codelet learner_cod = new LearnerCodelet(oc.vrep, oc.clientID, oc, Buffersize, mode, motivation, "", "QTABLE", num_tables);
             learner_cod.addInput(salMapMO);
             learner_cod.addInput(rewardsMO);
             learner_cod.addInput(actionsMO);
@@ -528,7 +485,7 @@ public class AgentMind extends Mind {
         decision_cod.addOutput(statesMO);
         insertCodelet(decision_cod);
         
-        Codelet action_exec_cod = new ActionExecCodelet(oc,  mode, Buffersize, Sensor_dimension);
+        Codelet action_exec_cod = new ActionExecCodelet(oc,  mode, Buffersize, Sensor_dimension, num_tables);
          action_exec_cod.addInput(salMapMO);
          action_exec_cod.addInput(winnersMO);
          action_exec_cod.addInput(vision_color_fmMO);
@@ -576,13 +533,13 @@ public class AgentMind extends Mind {
         
         if(motivation.equals("drives")){
             // Motivation
-            Codelet curiosity_motivation_cod = new CuriosityDrive_MotivationCodelet("Curiosity_Motivation", 0.0, 1.0, 0.0, oc);
+            Codelet curiosity_motivation_cod = new CuriosityDrive_MotivationCodelet("Curiosity_Motivation", 0.0, 1.0, 0.0, oc,num_tables);
             curiosity_motivation_cod.addInput(actionsMO);
             curiosity_motivation_cod.addInput(cur_rewardsMO);
             curiosity_motivation_cod.addOutput(motivationMC);
             insertCodelet(curiosity_motivation_cod);
 
-            Codelet hunger_motivation_cod = new SurvivalDrive_MotivationCodelet("Hunger_Motivation", 0.0, 1.0, 0.0, oc);
+            Codelet hunger_motivation_cod = new SurvivalDrive_MotivationCodelet("Hunger_Motivation", 0.0, 1.0, 0.0, oc,num_tables);
             hunger_motivation_cod.addInput(battery_bufferMO);
             hunger_motivation_cod.addOutput(motivationMC);
             insertCodelet(hunger_motivation_cod);

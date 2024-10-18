@@ -17,16 +17,16 @@ new_res_1_2 = (res/slices)
 winner = -1
 
 # 1 Q-Table
-file1 = "../results/1QTable/profile/"
+file1 = "../results/Train/1QTable/profile/"
 
 
 # 2 Q-Tables
-file2 = "../results/2QTables/profile/"
+file2 = "../results/Train/2QTables/profile/"
 output_folder = "../results/"
 # Paths
-path_imgs1 = '../results/1QTable/data/'
-path_imgs2 = '../results/2QTables/data/'
-path_res = "../results/txt_last_exp/" 
+path_imgs1 = '../results/Train/1QTable/data/'
+path_imgs2 = '../results/Train/2QTables/data/'
+path_res = "../results/" 
 
 m_i = False
 
@@ -299,28 +299,28 @@ if clean:
 
 
 # ID inputs - Format "YYYY_MM_DD_HH_MM_SS_step"
-goal_time_img = "2024_03_24_12_49_57_40_160" # t = 1
-goal_time_red = "2024_03_24_12_49_57_40_63" # t = 3
-goal_time_redFM = "2024_03_24_12_49_57_40_63" # t = 3
+goal_time_img = "2024_10_10_04_29_02_22_247" # t = 1
+goal_time_red = "2024_10_10_05_16_02_20_1004" # t = 3
+goal_time_redFM = "2024_10_10_05_16_02_20_1004" # t = 3
 
-goal_time_green = "2024_03_24_12_49_57_40_63" # t = 3
-goal_time_greenFM = "2024_03_24_12_49_57_40_63"
+goal_time_green = "2024_10_10_05_16_02_20_1004" # t = 3
+goal_time_greenFM = "2024_10_10_05_16_02_20_1004"
 
-goal_time_blue = "2024_03_24_12_49_57_40_63" # t = 3
-goal_time_blueFM = "2024_03_24_12_49_57_40_63"
+goal_time_blue = "2024_10_10_05_16_02_20_1004" # t = 3
+goal_time_blueFM = "2024_10_10_05_16_02_20_1004"
 
-goal_time_topColor = "2024_03_24_12_49_57_40_63" # t = 3
+goal_time_topColor = "2024_10_10_05_16_02_20_1004" # t = 3
 
-goal_time_depth = "2024_03_24_12_51_17_50_23" # t = 2
-goal_time_depthFM = "2024_03_24_12_49_57_40_63" # t = 3
-goal_time_topdepthFM = "2024_03_24_12_49_57_40_63" # t = 3
+goal_time_depth = "2024_10_10_05_16_02_20_1004" # t = 2
+goal_time_depthFM = "2024_10_10_05_16_02_20_1004" # t = 3
+goal_time_topdepthFM = "2024_10_10_05_16_02_20_1004" # t = 3
 
-goal_time_cfm =  "2024_03_24_12_49_57_40_63" # t = 3
+goal_time_cfm =  "2024_10_10_05_16_02_20_1004" # t = 3
  
-goal_time_sal =  "2024_03_24_12_49_57_40_63" # t = 3
-goal_time_att =  "2024_03_24_12_49_57_40_63" # t = 3
-goal_time_win =  "2024_03_24_12_49_57_40_63" # t = 3 
-goal_time_winT =  "2024_03_24_12_49_57_40_63" # t = 3 
+goal_time_sal =  "2024_10_10_05_16_02_20_1004" # t = 3
+goal_time_att =  "2024_10_10_05_16_02_20_1004" # t = 3
+goal_time_win =  "2024_10_10_05_16_02_20_1004" # t = 3 
+goal_time_winT =  "2024_10_10_05_16_02_20_1004" # t = 3 
 
 if debug: print("begin")
 # Open grayscaled img 
@@ -357,8 +357,8 @@ if aux_img > 0:
     if debug: print("fms")
 
     map_data("fm", path_res+"vision_red_FM.txt", goal_time_redFM, goal_time_img, img)
-    #map_data("fm", path_res+"vision_green_FM.txt", goal_time_greenFM, goal_time_img, img)
-    #map_data("fm", path_res+"vision_blue_FM.txt", goal_time_blueFM, goal_time_img, img)
+    map_data("fm", path_res+"vision_green_FM.txt", goal_time_greenFM, goal_time_img, img)
+    map_data("fm", path_res+"vision_blue_FM.txt", goal_time_blueFM, goal_time_img, img)
     map_data("fm", path_res+"depth_FM.txt", goal_time_depthFM, goal_time_img, img)
     
     if debug: print("color td")

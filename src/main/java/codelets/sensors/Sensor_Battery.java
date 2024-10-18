@@ -16,7 +16,6 @@ import CommunicationInterface.SensorI;
 import br.unicamp.cst.core.entities.Codelet;
 import br.unicamp.cst.core.entities.MemoryObject;
 import outsideCommunication.VirtualBattery;
-//import codelets.motor.Lock;
 
 /**
  *
@@ -47,12 +46,11 @@ public class Sensor_Battery extends Codelet {
 
     @Override
     public void proc() {
-        if((boolean)battery.getCharge() && (int)battery.getData()<100) battery.setData((int)battery.getData()+10);
-        else if((int)battery.getData()>0) battery.setData((int)battery.getData()-10);
+        if((boolean)battery.getCharge() && (int)battery.getData()<100) battery.setData((int)battery.getData()+1);
+        else if((int)battery.getData()>0) battery.setData((int)battery.getData()-1);
         battery_read.setI(battery.getData());
         if(debug) System.out.println("proc battery:"+(int)battery.getData());
-        
-        
+
     }
     
 }

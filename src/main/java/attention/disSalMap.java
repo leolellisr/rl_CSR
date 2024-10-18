@@ -14,9 +14,7 @@ package attention;
 
 import CommunicationInterface.SensorI;
 import br.unicamp.cst.core.entities.Codelet;
-//import br.unicamp.cst.core.entities.Memory;
 import br.unicamp.cst.core.entities.MemoryObject;
-//import codelets.motor.Lock;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -34,7 +32,7 @@ import java.util.List;
  */
 public class disSalMap extends Codelet {
     
-    private  int time_graph;
+    private  int time_graph, print_step;
     private final int max_time_graph=100;
 
     private List saliencyMap;
@@ -48,7 +46,8 @@ public class disSalMap extends Codelet {
 
     private SensorI vision;
     
-    public disSalMap(SensorI vision, String salMapName, String combFMName, String AttMName, int timeWin, int sensorDim){
+    public disSalMap(SensorI vision, String salMapName, String combFMName, 
+            String AttMName, int timeWin, int sensorDim, int print_step){
         this.time_graph = 0;
         saliencyMapName = salMapName;
         combFeatMapName = combFMName;
@@ -56,7 +55,7 @@ public class disSalMap extends Codelet {
         timeWindow = timeWin;
         sensordimension = sensorDim;
         this.vision = vision;
-
+        this.print_step = print_step;
     }
     
     @Override
@@ -105,7 +104,6 @@ public class disSalMap extends Codelet {
 
             for (int j = 0; j < sensordimension; j++) {
                 salMap_sizeMinus1.set(j, mostRecentAttMarray.get(j)*mostRecentCFMarray.get(j));
-                //System.out.print(" j = "+j+ " SalMap = "+salMap_sizeMinus1.get(j)+" att map = "+ mostRecentAttMarray.get(j)+" CFM = "+ mostRecentCFMarray.get(j));
             }
             
         }
@@ -114,22 +112,19 @@ public class disSalMap extends Codelet {
     }
     
     private void printToFile(Object object,String filename){
-        if(this.vision.getExp() == 1 || this.vision.getExp()%20 == 0){
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
-        LocalDateTime now = LocalDateTime.now();
-        //if(time_graph%2 == 0 ){
+        if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
+            LocalDateTime now = LocalDateTime.now();
             try(FileWriter fw = new FileWriter("profile/"+filename,true);
                 BufferedWriter bw = new BufferedWriter(fw);
                 PrintWriter out = new PrintWriter(bw))
             {
                 out.println(dtf.format(now)+"_"+vision.getExp()+"_"+time_graph+" "+ object);
-                //if(time_graph == max_time_graph-1) System.out.println(filename+": "+time_graph);          
                 time_graph++;
                 out.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        //}else time_graph++; 
-    }
+        }
     }
 }

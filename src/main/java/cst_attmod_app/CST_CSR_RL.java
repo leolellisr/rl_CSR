@@ -38,10 +38,9 @@ public class CST_CSR_RL {
     		}
     	}
         OutsideCommunication oc = new OutsideCommunication();
-        oc.start();
-        AgentMind am = new AgentMind(oc, "learning", "drives", 2);
-        /*MindViewer mv = new MindViewer(am,"mind",null);
-        mv.setVisible(true);*/
+        oc.start(); 
+        AgentMind am = new AgentMind(oc, "exploring", "drives", 2, 10); // OC, mode, Num. QTables,  PrintStep
+
     }
     
 }

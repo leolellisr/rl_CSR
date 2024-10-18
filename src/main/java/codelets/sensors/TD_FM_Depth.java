@@ -38,7 +38,7 @@ public class TD_FM_Depth extends FeatMapCodelet {
     private float mr = 10;                     //Max Value for VisionSensor
     private final int max_time_graph=100;
     private final int res = 256;                     //Resolution of VisionSensor
-    private  int time_graph;
+    private  int time_graph, print_step;
     private final int slices = 16;                    //Slices in each coordinate (x & y) 
     private int stage;
     private List<Integer> region_goal;
@@ -48,13 +48,15 @@ public class TD_FM_Depth extends FeatMapCodelet {
     private MemoryObject desired_feature, desired_featureR;
     //private MemoryObject regionMO;
   private boolean debug = false;
-    public TD_FM_Depth(SensorI vision, int nsensors, ArrayList<String> sens_names, String featmapname,int timeWin, int mapDim) {
+    public TD_FM_Depth(SensorI vision, int nsensors, ArrayList<String> sens_names, String featmapname,
+            int timeWin, int mapDim, int  print_step) {
         super(nsensors, sens_names, featmapname,timeWin,mapDim);
         this.time_graph = 0;
         this.depth_goal = 10f;
         this.region_goal = new ArrayList<>(2);
         this.vision = vision;
         this.stage = this.vision.getStage();
+        this.print_step=print_step;
         //this.regionMO = (MemoryObject) this.getOutput("REGION_TOP_FM");
     }
     
@@ -120,29 +122,7 @@ public class TD_FM_Depth extends FeatMapCodelet {
 
         List depthFM = (List) featureMap.getI();        
         regionTD = (List) regionMO.getI();
-        
-
-         //List winnerList = (List) winners.getI();
-        //List winnersTypeList = (List) winnersType.getI();
-        /*if(winnerList.size()>0){
-            Winner lastWinner = (Winner) winnerList.get(winnerList.size()-1);
-            System.out.println("FM depth last winner: "+lastWinner.featureJ);
-            if(lastWinner.featureJ < 64) setDepthGoal(0);
-            else if(lastWinner.featureJ >= 63 && lastWinner.featureJ < 127) setDepthGoal(4);
-            else if(lastWinner.featureJ >= 127 && lastWinner.featureJ < 191) setDepthGoal(7);
-            else if(lastWinner.featureJ >= 191 && lastWinner.featureJ < 256) setDepthGoal(10);
-           
-            for(int n = 0;n<slices;n++){
-                for(int m = 0;m<slices;m++){
-                    if(n*slices+m == lastWinner.featureJ) {
-                        ArrayList<Integer> regionGoal  = new ArrayList<>(Arrays.asList(m, n));
-                         System.out.println("FM depth last region: "+(n*slices+m));
-                        setRegionGoal(regionGoal);
-                    }
-                }   
-            }
-        }*/
-        
+                
         List desFeatList = (List) desired_feature.getI();
         if( !desFeatList.isEmpty()){
             Float desFeatD = (Float) desFeatList.get(desFeatList.size()-1);
@@ -154,9 +134,7 @@ public class TD_FM_Depth extends FeatMapCodelet {
             ArrayList<Integer> desFeatR = (ArrayList<Integer>) desFeatRList.get(desFeatRList.size()-1);
             setRegionGoal(desFeatR);
         }
-        
-        
-            
+ 
         
         if(depthFM.size() == timeWindow){
             depthFM.remove(0);
@@ -178,11 +156,9 @@ public class TD_FM_Depth extends FeatMapCodelet {
         }
         if(this.stage==3){        
             MemoryObject depthDataMO;
-            //System.out.println("depthData_buffer size before return:"+ depthData_buffer.size());
             if(depthData_buffer.size() < 1){
                 return;
             }
-            //System.out.println("depthData_buffer size after return:"+ depthData_buffer.size());        
             depthDataMO = (MemoryObject)depthData_buffer.get(depthData_buffer.size()-1);
 
             List depthData;
@@ -235,7 +211,6 @@ public class TD_FM_Depth extends FeatMapCodelet {
                     else if(Math.abs(n-this.region_goal.get(0))<8 && Math.abs(m-this.region_goal.get(1))<8) region_array.add(new Float(0.2));
                     else region_array.add(new Float(0));
                             
-                    //region_array.add(correct_mean/mr);
                     MeanValue = 0;
                     count_mean=0;
                 }
@@ -247,16 +222,14 @@ public class TD_FM_Depth extends FeatMapCodelet {
                 depthFM_t.set(j, depth_mean.get(j));
             }
         }
-        //System.out.println("depthFM size:"+ depthFM_t.size());
         printToFile(depthFM_t, "depth_top_FM.txt");
         printToFile(regionTD_t, "region_top_FM.txt");
     }
     
     private void printToFile(Object object,String filename){
-        if(this.vision.getExp() == 1 || this.vision.getExp()%20 == 0){
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
-        LocalDateTime now = LocalDateTime.now();
-        // if(time_graph%2 == 0 ){
+        if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
+            LocalDateTime now = LocalDateTime.now();
             try(FileWriter fw = new FileWriter("profile/"+filename,true);
                 BufferedWriter bw = new BufferedWriter(fw);
                 PrintWriter out = new PrintWriter(bw))
@@ -268,8 +241,7 @@ public class TD_FM_Depth extends FeatMapCodelet {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        // }else time_graph++; 
-    }
+        }
     }
 }
     

@@ -51,7 +51,7 @@ public class MotorCodelet extends Codelet {
     @Override
     public void proc() {
     	try {
-            Thread.sleep(50);
+            Thread.sleep(2000);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }

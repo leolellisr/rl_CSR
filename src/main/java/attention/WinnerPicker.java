@@ -15,7 +15,6 @@ package attention;
 import CommunicationInterface.SensorI;
 import br.unicamp.cst.core.entities.Codelet;
 import br.unicamp.cst.core.entities.MemoryObject;
-//import codelets.motor.Lock;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -44,10 +43,10 @@ public class WinnerPicker extends Codelet{
     private String salMapName;
     private String winnersListName;
     private String attentionalMapName;
-    private int timeWindow;
+    private int timeWindow, print_step;
     private int sensorDimension;
     private final int max_time_graph=100;
-
+    
     private static final double GUASSIAN_WIDTH_EXOGENOUS_SONAR = 0.5;
     private static final double GUASSIAN_WIDTH_EXOGENOUS_IOR_SONAR = 0.5;
 
@@ -70,7 +69,8 @@ public class WinnerPicker extends Codelet{
     private static final double TM = 1000;
     private SensorI vision;
 
-    public WinnerPicker(SensorI vision, String winListName, String attMapName,String salMName, int tWindow, int sensDim){
+    public WinnerPicker(SensorI vision, String winListName, String attMapName,
+            String salMName, int tWindow, int sensDim, int print_step){
         super();
         this.time_graph = 0;
         winnersListName = winListName;
@@ -79,7 +79,7 @@ public class WinnerPicker extends Codelet{
         sensorDimension = sensDim;
         salMapName = salMName;
         this.vision = vision;
-
+        this.print_step = print_step;
         
     }
 
@@ -94,9 +94,7 @@ public class WinnerPicker extends Codelet{
         winnersList = (List) MO.getI();
         MO = (MemoryObject) this.getOutput(attentionalMapName);
         attentionalMap = (List) MO.getI();
-        
-//        MemoryObject MO = (MemoryObject) this.getInput("WINNERS");
-//        winners = (List) MO.getI();
+
     }
 
     @Override
@@ -116,8 +114,7 @@ public class WinnerPicker extends Codelet{
         float max = 0;
         int max_index = -1;
         long fireTime = 0;
-//        int t_max = 0;
-         //System.out.println("proc Dec Mak");
+
 
 
         for(int t = 0; t < saliencyMap.size();t++){
@@ -133,32 +130,22 @@ public class WinnerPicker extends Codelet{
                 }
             }
         }
-        //System.out.println("before last winner dec mak");
         int last_winner_index = -1;
         if (!winnersList.isEmpty()) {
-                //System.out.println("winner is not empty: "+winnersList.size());
         	Winner last_winner = (Winner) winnersList.get(winnersList.size()-1);
         	last_winner_index = last_winner.featureJ;
-                //System.out.println("last winner: "+ last_winner.featureJ);
         } 
-        //else System.out.println("winner is empty");
         
         int type = BOTTOM_UP;
         ArrayList<Integer> linewinner = (ArrayList<Integer>) winnerType.get(winnerType.size()-1);
         if(max != 0 && last_winner_index  != max_index){
             if(linewinner.get(max_index) == TOP_DOWN) type = TOP_DOWN;
-            //System.out.println("linewinner.get(max_index): "+linewinner.get(max_index));
             winnersList.add(new Winner(max_index, 
 //                    t_max,
                     type, fireTime));
         }
-        //System.out.println("print winner Dec Mak");
         printToFile(max_index, "winners.txt");
         
-        /*for (int i = 0; i < winnersList.size(); i++) {
-            System.out.println("\u001B[32m"+winnersList.get(i));
-        }*/
-
         int i,j,w;
         double deltaj, deltai;
         long t;
@@ -174,8 +161,7 @@ public class WinnerPicker extends Codelet{
             attMap_sizeMinus1 = (ArrayList < Float >)attentionalMap.get(attentionalMap.size()-1);
             attMap_sizeMinus1.add(1F);
         }
-        //System.out.println("winnersList");
-        //System.out.println(winnersList);
+        
         for (w = 0; w < winnersList.size(); w++) {
             Long timeCourse = System.currentTimeMillis();
             Winner winner_w = (Winner) winnersList.get(w);
@@ -185,8 +171,6 @@ public class WinnerPicker extends Codelet{
 
             // The course is over to this feature -> remove it from the list
             if((winner_w.fireTime + BOTTOM_UP_PRE_TIME+BOTTOM_UP_EXCITATORY_TIME+BOTTOM_UP_INHIBITORY_TIME) < timeCourse){
-//                t = timeCourse - winner_w.fireTime;
-                //printToFileComplet(t, j, winner_w.fireTime, timeCourse, 0, 0, 0, winnersList.size(), "REM", "decisionValues.txt");
                 winnersList.remove(w);
             }
 
@@ -201,7 +185,6 @@ public class WinnerPicker extends Codelet{
                 // Calculate the activation level for the most central neuron based on the time
                 deltaj = exponentialGrowDecayBottomUp(BOTTOM_UP_PRE_TIME, TS, TM, t);
                 attMap_sizeMinus1.set(j, attMap_sizeMinus1.get(j)+(float)deltaj);
-                //System.out.println("exc "+deltaj);
                             
                 // Calculate the activation level for the neighbours
                 for(i=0; i < j; i++){
@@ -214,12 +197,7 @@ public class WinnerPicker extends Codelet{
                     attMap_sizeMinus1.set(i, attMap_sizeMinus1.get(i)+(float)deltai);
                 }
                 
-                //printToFileComplet(t, j, winner_w.fireTime,timeCourse, auxAttWinnerAnt, attMap_sizeMinus1.get(j), deltaj, winnersList.size(), "EXC", "decisionValues.txt");
                 
-                /*for(i = 0; i < sensorDimension; i++){
-                    System.out.print("\u001B[34m"+" i = "+i+" attMap = "+attMap_sizeMinus1.get(i));
-                }
-                System.out.println("");*/
             }
             
             // The course is in inhibitory phase
@@ -245,21 +223,11 @@ public class WinnerPicker extends Codelet{
                     attMap_sizeMinus1.set(i, attMap_sizeMinus1.get(i)-(float)deltai);
                 }
                                 
-                /*for(i = 0; i < sensorDimension; i++){
-                    System.out.print("\u001B[31m"+" i = "+i+" attMap = "+attMap_sizeMinus1.get(i));
-                }
-                System.out.println("");*/
-               
-                //printToFileComplet(t, j, winner_w.fireTime, timeCourse, auxAttWinnerAnt, attMap_sizeMinus1.get(j), deltaj, winnersList.size(), "INB", "decisionValues.txt");
             }
             
         }
         
-        /*for(i = 0; i < sensorDimension; i++){
-            System.out.println("i = "+i+" attMap = "+attMap_sizeMinus1.get(i));
-        }
-        System.out.println("time dec " + time_graph);*/
-        
+               
         printToFile(attMap_sizeMinus1, "attMap.txt");
     }
 
@@ -280,10 +248,9 @@ public class WinnerPicker extends Codelet{
     }
     
     private void printToFile(Object object,String filename){
-        if(this.vision.getExp() == 1 || this.vision.getExp()%20 == 0){
+        if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();
-        //if(time_graph%2 == 0 ){
             try(FileWriter fw = new FileWriter("profile/"+filename,true);
                 BufferedWriter bw = new BufferedWriter(fw);
                 PrintWriter out = new PrintWriter(bw))
@@ -295,7 +262,6 @@ public class WinnerPicker extends Codelet{
                 e.printStackTrace();
             }
         }
-        //} else time_graph++;
     }
     
     private void printToFileComplet(long t, Object winner, long fireTime, long timeCourse, float attAntWinner, float attAftWinner, double delta, int winnersListSize, String fase, String filename){

@@ -32,18 +32,19 @@ import java.time.format.DateTimeFormatter;
  * @author L. L. Rossi (leolellisr)
  */
 public class BU_FM_Depth extends FeatMapCodelet {
-    private final float mr = 10;                     //Max Value for VisionSensor
-    private final int max_time_graph=100;
-    private final int res = 256;                     //Resolution of VisionSensor
-    private  int time_graph;
-    private final int slices = 16;                    //Slices in each coordinate (x & y) 
-    private SensorI vision;
+private final float mr = 10;                     //Max Value for VisionSensor
+private final int max_time_graph=100;
+private final int res = 256;                     //Resolution of VisionSensor
+private  int time_graph,print_step;
+private final int slices = 16;                    //Slices in each coordinate (x & y) 
+private SensorI vision;
 private boolean debug = false;
-    public BU_FM_Depth(SensorI vision, int nsensors, ArrayList<String> sens_names, String featmapname,int timeWin, int mapDim) {
+    public BU_FM_Depth(SensorI vision, int nsensors, ArrayList<String> sens_names, 
+            String featmapname,int timeWin, int mapDim, int print_step) {
         super(nsensors, sens_names, featmapname,timeWin,mapDim);
         this.time_graph = 0;
         this.vision = vision;
-        
+        this.print_step=print_step;
     }
 
     @Override
@@ -58,7 +59,6 @@ private boolean debug = false;
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }
-        //System.out.println("sensor_buffers size:"+ sensor_buffers.size());
         MemoryObject depth_bufferMO = (MemoryObject) sensor_buffers.get(1);        //Gets Data
         
         List depthData_buffer;
@@ -82,11 +82,9 @@ private boolean debug = false;
         }
                 
         MemoryObject depthDataMO;
-        // System.out.println("depthData_buffer size before return:"+ depthData_buffer.size());
         if(depthData_buffer.size() < 1){
             return;
         }
-        // System.out.println("depthData_buffer size after return:"+ depthData_buffer.size());        
         depthDataMO = (MemoryObject)depthData_buffer.get(depthData_buffer.size()-1);
 
         List depthData;
@@ -137,32 +135,27 @@ private boolean debug = false;
             }
         }
         
-        
         for (int j = 0; j < depth_mean_red.size(); j++) {
            
             depthFM_t.set(j, depth_mean_red.get(j));
         }   
-        //System.out.println("depthFM size:"+ depthFM_t.size());
         printToFile(depthFM_t);
     }
     private void printToFile(ArrayList<Float> arr){
-        // if(time_graph%2 == 0 ){
-        if(this.vision.getExp() == 1 || this.vision.getExp()%20 == 0){
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
-        LocalDateTime now = LocalDateTime.now(); 
-        try(FileWriter fw = new FileWriter("profile/depth_FM.txt", true);
-            BufferedWriter bw = new BufferedWriter(fw);
-            PrintWriter out = new PrintWriter(bw))
-        {
-            out.println(dtf.format(now)+"_"+this.vision.getExp()+"_"+time_graph+" "+ arr);
-            //if(time_graph == max_time_graph-1) System.out.println("depth_FM: "+time_graph);
-            time_graph++;
-            out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
+            LocalDateTime now = LocalDateTime.now(); 
+            try(FileWriter fw = new FileWriter("profile/depth_FM.txt", true);
+                BufferedWriter bw = new BufferedWriter(fw);
+                PrintWriter out = new PrintWriter(bw))
+            {
+                out.println(dtf.format(now)+"_"+this.vision.getExp()+"_"+time_graph+" "+ arr);
+                time_graph++;
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        // }else time_graph++; 
-    }
     }
 }
     

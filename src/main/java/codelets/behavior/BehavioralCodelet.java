@@ -84,7 +84,6 @@ public class BehavioralCodelet extends Codelet {
                 long start_proc = System.currentTimeMillis();
                 float yawPos = oc.NeckYaw_m.getSpeed();
                 float headPos = oc.HeadPitch_m.getSpeed(); 
-//                int foveaPos = (int) oc.Fovea_m.getSpeed();
                 System.out.println("yawPos: "+yawPos+" headPos: "+headPos);
 		try {
                     Thread.sleep(50);
@@ -92,7 +91,7 @@ public class BehavioralCodelet extends Codelet {
                     Thread.currentThread().interrupt();
                 }
                 int actionToTake = (int) actions.get(actions.size() -1);
-                if (actionToTake == 1) {
+                    if (actionToTake == 1) {
                                 yawPos = yawPos-angle_step;
                                 neckMotorMO.setI(yawPos);
                         }
@@ -132,91 +131,7 @@ public class BehavioralCodelet extends Codelet {
                             foveaMO.setI(4);
                              
                         }
-               /*         
-                        // just Stage 3
-                        else if (actionToTake == 10 && this.stage == 3) {
-                            if(foveaPos == 0 || foveaPos == 2){
-                                yawPos = yawPos-angle_step;
-                                neckMotorMO.setI(yawPos);
-                            }
-                            else if(foveaPos == 1 || foveaPos == 3){
-                                yawPos = yawPos+angle_step;
-                                neckMotorMO.setI(yawPos);
-                            }
-                         }
-                         else if (actionToTake == 11 && this.stage == 3) {
-                            if(foveaPos == 0 || foveaPos == 2){
-                                yawPos = yawPos+angle_step;
-                                neckMotorMO.setI(yawPos);
-                            }
-                            else if(foveaPos == 1 || foveaPos == 3){
-                                yawPos = yawPos-angle_step;
-                                neckMotorMO.setI(yawPos);
-                            }
-                         }
-                         else if (actionToTake == 12 && this.stage == 3) {
-                            if(foveaPos == 3 || foveaPos == 2){
-                                headPos = headPos-angle_step;
-                                headMotorMO.setI(headPos);
-                            }
-                            else if(foveaPos == 1 || foveaPos == 0){
-                                headPos = headPos+angle_step;
-                                headMotorMO.setI(headPos);
-                            }
-                         }
-                         else if (actionToTake == 13 && this.stage == 3) {
-                            if(foveaPos == 3 || foveaPos == 2){
-                                headPos = headPos+angle_step;
-                                headMotorMO.setI(headPos);
-                            }
-                            else if(foveaPos == 1 || foveaPos == 0){
-                                headPos = headPos-angle_step;
-                                headMotorMO.setI(headPos);
-                            }
-                         }
-                         
-                         // attentional actions
-                        else if (actionToTake == 14 && this.stage == 3) {
-				// Moving neck to left yawPos > -1.4 && 
-                                if(winnerRed !=-1 && IntStream.of(fovea0).anyMatch(x -> x == winnerRed)) {
-                                    fovea = 0; 
-                               }
-                                else if(winnerRed !=-1 && IntStream.of(fovea1).anyMatch(x -> x == winnerRed)) {
-                                    fovea = 1; 
-                               }
-                                else if(winnerRed !=-1 && IntStream.of(fovea2).anyMatch(x -> x == winnerRed)) {
-                                    fovea = 2; 
-                               }
-                                else if(winnerRed !=-1 && IntStream.of(fovea3).anyMatch(x -> x == winnerRed)) {
-                                    fovea = 3; 
-                               } else fovea = 4;
-			} 
-                        
-                        else if (actionToTake == 15 && this.stage == 3) {
-				// Moving neck to left
-                                if(winnerDist !=-1 && IntStream.of(fovea0).anyMatch(x -> x == winnerDist)) {
-                                    fovea = 0; 
-                               }
-                                else if(winnerDist !=-1 && IntStream.of(fovea1).anyMatch(x -> x == winnerDist)) {
-                                    fovea = 1; 
-                               }
-                                else if(winnerDist !=-1 && IntStream.of(fovea2).anyMatch(x -> x == winnerDist)) {
-                                    fovea = 2; 
-                               }
-                                else if(winnerDist !=-1 && IntStream.of(fovea3).anyMatch(x -> x == winnerDist)) {
-                                    fovea = 3; 
-                               } else fovea = 4;
-                          }
-
-			else if (actionToTake == 16 && this.stage == 3) {
-                                fovea = 4;
-			}
-			// Do nothing
-			else {
-                                if(winnerFovea !=-1 && IntStream.of(posCenter).anyMatch(x -> x == winnerFovea)) global_reward += 1; 
-                                
-			}
-*/
+               
         }        
 }
 

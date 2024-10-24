@@ -49,8 +49,8 @@ public class VisionVrep implements SensorI{
     private final int max_time_graph=100;
     private static final int MAX_ACTION_NUMBER = 500;
 	
-    private static final int MAX_EXPERIMENTS_NUMBER = 50;
-    public VisionVrep(remoteApi vrep, int clientid, IntW vision_handles) {
+    private int max_epochs;
+    public VisionVrep(remoteApi vrep, int clientid, IntW vision_handles, int max_epochs) {
         this.time_graph = 0;
         vision_data = Collections.synchronizedList(new ArrayList<>(res*res*3));
         this.vrep = vrep;
@@ -60,6 +60,7 @@ public class VisionVrep implements SensorI{
         this.num_exp_s = 1;
         this.vision_handles = vision_handles;
         clientID = clientid;
+        this.max_epochs = max_epochs;
         for (int i = 0; i < res*res*3; i++) {
             vision_data.add(0f);
         }    
@@ -112,7 +113,7 @@ public class VisionVrep implements SensorI{
     @Override
     public int getMaxExp() {
             
-        return  MAX_EXPERIMENTS_NUMBER;
+        return  this.max_epochs;
     }
     
     @Override

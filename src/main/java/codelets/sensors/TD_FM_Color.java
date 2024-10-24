@@ -209,10 +209,10 @@ public class TD_FM_Color extends FeatMapCodelet {
                 vision_color_FM_t.set(j, vision_mean_color.get(j));
             }   
         }
-        printToFile(vision_color_FM_t);
+       // printToFile(vision_color_FM_t);
     }
     
-    private void printToFile(ArrayList<Float> arr){
+    /*private void printToFile(ArrayList<Float> arr){
         // if(time_graph%2 == 0 ){
         if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
@@ -228,7 +228,7 @@ public class TD_FM_Color extends FeatMapCodelet {
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 }
     
 

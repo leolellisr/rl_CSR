@@ -167,10 +167,10 @@ public class BU_FM_Color extends FeatMapCodelet {
             count_3 += 1;
         }
         //System.out.println("Vision r size:"+visionData_Array.size());
-        printToFile(visionRedData_Array, "vision_red.txt");
+/*        printToFile(visionRedData_Array, "vision_red.txt");
         printToFile(visionGreenData_Array, "vision_green.txt");
         printToFile(visionBlueData_Array, "vision_blue.txt");
-        
+  */      
         // get mean all elements
         float sumR = 0, sumG = 0, sumB = 0;
         for (float value : visionRedData_Array) {
@@ -195,19 +195,19 @@ public class BU_FM_Color extends FeatMapCodelet {
            
             vision_redFM_t.set(j, vision_mean_red.get(j));
         }   
-         printToFile(vision_redFM_t, "vision_red_FM.txt");
+//         printToFile(vision_redFM_t, "vision_red_FM.txt");
          
         for (int j = 0; j < vision_mean_green.size(); j++) {
            
             vision_greenFM_t.set(j, vision_mean_green.get(j));
         }
-         printToFile(vision_greenFM_t, "vision_green_FM.txt");
+   //      printToFile(vision_greenFM_t, "vision_green_FM.txt");
          
         for (int j = 0; j < vision_mean_blue.size(); j++) {
            
             vision_blueFM_t.set(j, vision_mean_blue.get(j));
         }
-        printToFile(vision_blueFM_t, "vision_blue_FM.txt");
+     //   printToFile(vision_blueFM_t, "vision_blue_FM.txt");
        
        vision_redFM.set(t, vision_redFM_t);
        vision_greenFM.set(t, vision_greenFM_t);
@@ -220,7 +220,8 @@ public class BU_FM_Color extends FeatMapCodelet {
         featureMap.setI(vision_FM);
         if(debug) System.out.println("vision_FM end: "+vision_FM.size());
     }
-    private void printToFile(ArrayList<Float> arr, String title){
+    
+    /*private void printToFile(ArrayList<Float> arr, String title){
         if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
              //if(time_graph%2 == 0 ){
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
@@ -236,7 +237,7 @@ public class BU_FM_Color extends FeatMapCodelet {
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 }
     
 

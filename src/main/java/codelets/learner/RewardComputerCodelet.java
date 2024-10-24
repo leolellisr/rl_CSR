@@ -305,17 +305,17 @@ public class RewardComputerCodelet extends Codelet
                         i += 1;
                     }
                     cur_delta = lcur_drive-cur_drive;
-                    float cur_f = 1;
+                    float cur_f = 10;
                         // Retrieve the random element from the ArrayList
                     action_index = max_list.get(random.nextInt(max_list.size()));
                     cur_drive = (float) max_action;
                     
                     
                     if(cur_drive==0)  global_reward += 1*cur_f+cur_f*cur_delta;
-                    else if(cur_drive==1)  global_reward -= 1*cur_f;
+                    //else if(cur_drive==1)  global_reward -= 1*cur_f;
                     // cur_f = cur_delta*cur_delta;
                     if(cur_drive<lcur_drive)  global_reward += 1*cur_f*cur_delta;
-                    else if(cur_drive>lcur_drive) global_reward -= 1*cur_f*cur_delta;
+                    //else if(cur_drive>lcur_drive) global_reward -= 1*cur_f*cur_delta;
                     
                     lcur_drive=cur_drive;
                     
@@ -327,11 +327,11 @@ public class RewardComputerCodelet extends Codelet
 
                     
                     if(sur_drive==0)  global_reward += 1*sur_f;
-                    else if(sur_drive==1)  global_reward -= 1*sur_f;
+                    //else if(sur_drive==1)  global_reward -= 1*sur_f;
                     
                     //sur_f = sur_delta*sur_delta;
                     if(sur_drive<lsur_drive)  global_reward += 1*sur_f*sur_delta;
-                    else if(sur_drive>lsur_drive) global_reward -= 1*sur_f*sur_delta;
+                    //else if(sur_drive>lsur_drive) global_reward -= 1*sur_f*sur_delta;
                      
                     lsur_drive=sur_drive;
                     

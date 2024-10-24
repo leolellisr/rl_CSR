@@ -222,11 +222,11 @@ public class TD_FM_Depth extends FeatMapCodelet {
                 depthFM_t.set(j, depth_mean.get(j));
             }
         }
-        printToFile(depthFM_t, "depth_top_FM.txt");
-        printToFile(regionTD_t, "region_top_FM.txt");
+     /*   printToFile(depthFM_t, "depth_top_FM.txt");
+        printToFile(regionTD_t, "region_top_FM.txt");*/
     }
     
-    private void printToFile(Object object,String filename){
+  /*  private void printToFile(Object object,String filename){
         if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
             LocalDateTime now = LocalDateTime.now();
@@ -242,7 +242,7 @@ public class TD_FM_Depth extends FeatMapCodelet {
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 }
     
 

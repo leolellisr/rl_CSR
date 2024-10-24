@@ -139,9 +139,9 @@ private boolean debug = false;
            
             depthFM_t.set(j, depth_mean_red.get(j));
         }   
-        printToFile(depthFM_t);
+        //printToFile(depthFM_t);
     }
-    private void printToFile(ArrayList<Float> arr){
+   /* private void printToFile(ArrayList<Float> arr){
         if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
             LocalDateTime now = LocalDateTime.now(); 
@@ -156,7 +156,7 @@ private boolean debug = false;
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 }
     
 

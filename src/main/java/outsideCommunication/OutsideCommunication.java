@@ -44,20 +44,21 @@ public class OutsideCommunication {
 	public ArrayList<SensorI> vision_orientations;
         public static final int Resolution = 256;
         public IntW[] obj_handle;
-        private int nObjs = 4;
+        private int nObjs = 4, max_epochs;
         private final boolean debug = false;
         private List<FloatWA> objsPositions;
         private ArrayList<FloatWA> allobjsPositions;
         private ArrayList<FloatWA> objsOrientations;
 
   
-	public OutsideCommunication() {
+	public OutsideCommunication(int max_epochs) {
 		vrep = new remoteApi();
 		vision_orientations = new ArrayList<>();
                 obj_handle = new IntW[nObjs];
                 objsPositions = new ArrayList<>();
                 allobjsPositions = new ArrayList<>();
                 objsOrientations = new ArrayList<>();
+                this.max_epochs = max_epochs;
 
 	}
 
@@ -119,7 +120,7 @@ public class OutsideCommunication {
 				System.out.println("Connected to sensor ");
 		
 
-		vision = new VisionVrep(vrep, clientID, vision_handles);
+		vision = new VisionVrep(vrep, clientID, vision_handles, max_epochs);
                 battery = new VirtualBattery();
                 depth = new DepthVrep(vrep, clientID, vision_handles, vision.getStage(), vision);    
 		try {

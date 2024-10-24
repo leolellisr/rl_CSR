@@ -144,7 +144,7 @@ public class WinnerPicker extends Codelet{
 //                    t_max,
                     type, fireTime));
         }
-        printToFile(max_index, "winners.txt");
+//        printToFile(max_index, "winners.txt");
         
         int i,j,w;
         double deltaj, deltai;
@@ -228,7 +228,7 @@ public class WinnerPicker extends Codelet{
         }
         
                
-        printToFile(attMap_sizeMinus1, "attMap.txt");
+       // printToFile(attMap_sizeMinus1, "attMap.txt");
     }
 
     private double exponentialGrowDecayBottomUp(double pre, double ts, double tm, float t) {
@@ -247,7 +247,7 @@ public class WinnerPicker extends Codelet{
         return (height*Math.exp(-1*((Math.pow((float)position-posCenter,2))/(2*Math.pow(width,2)))));
     }
     
-    private void printToFile(Object object,String filename){
+   /* private void printToFile(Object object,String filename){
         if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();
@@ -283,6 +283,6 @@ public class WinnerPicker extends Codelet{
             }
         }
     }
-
+*/
 
 }

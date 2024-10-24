@@ -141,12 +141,12 @@ private boolean debug = false;
         }
         
         
-        printToFile((ArrayList<Float>) CFMrow, "CFM.txt");
-        printToFile((ArrayList<Integer>) winners_row, "winnerType.txt");
+        /*printToFile((ArrayList<Float>) CFMrow, "CFM.txt");
+        printToFile((ArrayList<Integer>) winners_row, "winnerType.txt");*/
     }
     
       
-    private void printToFile(Object object,String filename){
+   /* private void printToFile(Object object,String filename){
         if(this.sensor.getExp() == 1 || this.sensor.getExp()%print_step == 0){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();
@@ -163,5 +163,5 @@ private boolean debug = false;
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 }

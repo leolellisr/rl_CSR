@@ -136,7 +136,7 @@ public class CuriosityDrive_MotivationCodelet extends MotivationalCodelet
         if(debug) System.out.println("curiosity_motivation_list: "+curiosity_motivation_list);
         if(index == -1) index = motivationMC.setI(curiosity_motivation_id, activation);
         else motivationMC.setI(curiosity_motivation_id, activation, index);
-        printToFile(activation,"curiosity_drive.txt", action_number);
+       // printToFile(activation,"curiosity_drive.txt", action_number);
         action_number+=1;    
         boolean exp_b = false;
         if(num_tables == 1) exp_b = this.experiment_number != this.oc.vision.getExp();
@@ -161,7 +161,7 @@ public class CuriosityDrive_MotivationCodelet extends MotivationalCodelet
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
     
-    private void printToFile(Object object,String filename, int action_num){
+    /*private void printToFile(Object object,String filename, int action_num){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();
         boolean exp_b = false;
@@ -182,5 +182,5 @@ public class CuriosityDrive_MotivationCodelet extends MotivationalCodelet
             }
         }
 
-    }
+    }*/
 }

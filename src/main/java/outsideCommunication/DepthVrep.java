@@ -95,7 +95,7 @@ public class DepthVrep implements SensorI{
 	vrep.simxGetObjectPosition(clientID, vision_handles.getValue(), -1, position,
         vrep.simx_opmode_streaming);
 		
-	printToFile(position.getArray()[2], "positions.txt");
+//	printToFile(position.getArray()[2], "positions.txt");
         if(debug) System.out.println("Marta on exp "+this.vision.getExp()+" with z = "+position.getArray()[2]);        
         if (this.vision.getExp() > 1 && (position.getArray()[2] < 0.35 || position.getArray()[0] > 0.2)) {
             System.out.println("Marta crashed on exp "+this.vision.getExp()+" with z = "+position.getArray()[2]);
@@ -219,11 +219,11 @@ public class DepthVrep implements SensorI{
             }
        }
 
-        printToFile(depth_data, "depth.txt");        
+       // printToFile(depth_data, "depth.txt");        
         return  depth_data;
     }
     
-    private void printToFile(Object object, String filename){
+   /* private void printToFile(Object object, String filename){
         if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();  
@@ -239,7 +239,7 @@ public class DepthVrep implements SensorI{
         }
         }
     }
-
+*/
 	@Override
 	public void resetData() {
 		// TODO Auto-generated method stub

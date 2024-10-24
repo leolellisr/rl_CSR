@@ -109,10 +109,10 @@ public class SalMap extends Codelet {
             
         }
         
-        printToFile(salMap_sizeMinus1, "salMap.txt");
+        //printToFile(salMap_sizeMinus1, "salMap.txt");
     }
     
-    private void printToFile(Object object,String filename    ){
+    /*private void printToFile(Object object,String filename    ){
         if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();
@@ -129,5 +129,5 @@ public class SalMap extends Codelet {
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 }

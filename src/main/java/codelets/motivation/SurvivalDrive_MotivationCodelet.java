@@ -123,7 +123,7 @@ public class SurvivalDrive_MotivationCodelet extends MotivationalCodelet
         if(debug) System.out.println("Battery activation: "+this.activation);
         if(index == -1) index = motivationMC.setI(survival_motivation_idea, activation);
         else motivationMC.setI(survival_motivation_idea, activation, index);
-        printToFile(activation,"survival_drive.txt", action_number);
+       // printToFile(activation,"survival_drive.txt", action_number);
         action_number+=1;    
         
 
@@ -152,7 +152,7 @@ public class SurvivalDrive_MotivationCodelet extends MotivationalCodelet
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
     
-    private void printToFile(Object object,String filename, int action_num){
+   /* private void printToFile(Object object,String filename, int action_num){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();
         
@@ -174,5 +174,5 @@ public class SurvivalDrive_MotivationCodelet extends MotivationalCodelet
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 }

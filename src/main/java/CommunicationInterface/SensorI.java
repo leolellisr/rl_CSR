@@ -26,7 +26,7 @@ public interface SensorI {
     public void resetData();
     public int getMaxActions();
     public int getMaxExp();
-    
+    public boolean endExp();
     public int getStage();
 public int getAux();
     public void setStage(int stage);

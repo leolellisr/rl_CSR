@@ -14,6 +14,7 @@ package outsideCommunication;
 
 import CommunicationInterface.SensorI;
 import coppelia.CharWA;
+import coppelia.FloatWA;
 import coppelia.IntWA;
 
 import coppelia.IntW;
@@ -48,7 +49,7 @@ public class VisionVrep implements SensorI{
     private final int res = 256;
     private final int max_time_graph=100;
     private static final int MAX_ACTION_NUMBER = 500;
-	
+	private boolean debug = false;
     private int max_epochs;
     public VisionVrep(remoteApi vrep, int clientid, IntW vision_handles, int max_epochs) {
         this.time_graph = 0;
@@ -102,6 +103,35 @@ public class VisionVrep implements SensorI{
                 MeanValue_b = 0;
             }
         }         
+    }
+    @Override
+    public boolean endExp(){
+        FloatWA position = new FloatWA(3);
+	vrep.simxGetObjectPosition(clientID, vision_handles.getValue(), -1, position,
+        vrep.simx_opmode_streaming);
+		
+//	printToFile(position.getArray()[2], "positions.txt");
+        if(debug) System.out.println("Marta on exp "+this.getExp()+" with z = "+position.getArray()[2]);        
+        if (this.getExp() > 1 && (position.getArray()[2] < 0.35 || position.getArray()[0] > 0.2)) {
+            System.out.println("Marta crashed on exp "+this.getExp()+" with z = "+position.getArray()[2]);
+                            
+            vrep.simxPauseCommunication(clientID, true);
+            vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot_wait);
+            try {
+			Thread.sleep(20);
+		} catch (Exception e) {
+			Thread.currentThread().interrupt();
+		}
+            vrep.simxPauseCommunication(clientID, false);
+            vrep.simxStartSimulation(clientID, remoteApi.simx_opmode_oneshot_wait);
+            try {
+			Thread.sleep(100);
+		} catch (Exception e) {
+			Thread.currentThread().interrupt();
+		}  
+            
+        }
+        return this.getExp() > 1 && (position.getArray()[2] < 0.35 || position.getArray()[0] > 0.2);
     }
     
     @Override

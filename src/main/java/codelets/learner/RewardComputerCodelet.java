@@ -267,16 +267,17 @@ public class RewardComputerCodelet extends Codelet
 
                         // Find reward of the current state, given previous  winner 
 
-            if(yawPos>1.4f || yawPos<-1.4f || headPos>0.6f || headPos<-0.4f ){
-                    crashed = true;
-            }
-            if((crashed || battery_lvint == 0) && nrewards){
+            if(this.oc.vision.endExp() || battery_lvint==0){
+             crashed = true;
+             
+        }
+            if(crashed){
                     global_reward -= 10;
             }
 
 
             Double reward = 1d;
-            if(nrewards) global_reward += reward*action_number;
+            global_reward += reward;
 
                         // Gets last action taken
             String lastAction = actionsList.get(actionsList.size() - 1);
@@ -489,13 +490,13 @@ public class RewardComputerCodelet extends Codelet
         // Getting just the last entry (current sal map)
         lastLine = (ArrayList<Float>) saliencyMap.get(saliencyMap.size() -1);
 
-        if (Collections.max(lastLine) == 0) aux_crash += 1;
+        /*if (Collections.max(lastLine) == 0) aux_crash += 1;
         else aux_crash = 0; 
 
         if(action_number > 10 && aux_crash> 5 ){
             crashed = true;
         }
-
+        */
 
         if (Collections.max(lastLine) > 0){
           for(int n = 0;n<4;n++){

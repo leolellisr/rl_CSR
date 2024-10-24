@@ -80,7 +80,7 @@ public class DepthVrep implements SensorI{
     @Override
     public Object getData() {
        try {
-            Thread.sleep(50);
+            Thread.sleep(100);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }
@@ -91,31 +91,7 @@ public class DepthVrep implements SensorI{
         //FloatWA auxValues_WA[];
         float temp_dep[];
         
-        FloatWA position = new FloatWA(3);
-	vrep.simxGetObjectPosition(clientID, vision_handles.getValue(), -1, position,
-        vrep.simx_opmode_streaming);
-		
-//	printToFile(position.getArray()[2], "positions.txt");
-        if(debug) System.out.println("Marta on exp "+this.vision.getExp()+" with z = "+position.getArray()[2]);        
-        if (this.vision.getExp() > 1 && (position.getArray()[2] < 0.35 || position.getArray()[0] > 0.2)) {
-            System.out.println("Marta crashed on exp "+this.vision.getExp()+" with z = "+position.getArray()[2]);
-                            
-            vrep.simxPauseCommunication(clientID, true);
-            vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot_wait);
-            try {
-			Thread.sleep(20);
-		} catch (Exception e) {
-			Thread.currentThread().interrupt();
-		}
-            vrep.simxPauseCommunication(clientID, false);
-            vrep.simxStartSimulation(clientID, remoteApi.simx_opmode_oneshot_wait);
-            try {
-			Thread.sleep(100);
-		} catch (Exception e) {
-			Thread.currentThread().interrupt();
-		}  
-            
-        }
+        
         
         long startTime = System.currentTimeMillis();
         int read_depth = vrep.simxGetVisionSensorDepthBuffer(clientID, vision_handles.getValue(), resolution, auxValues_WA, vrep.simx_opmode_streaming);     
@@ -278,6 +254,11 @@ public class DepthVrep implements SensorI{
 
     @Override
     public void setExp(int exp, String s) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public boolean endExp() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 

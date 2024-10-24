@@ -464,10 +464,10 @@ public class ActionExecCodelet extends Codelet
 	
     public void check_stop_experiment() {
 
-        if(yawPos>1.4f || yawPos<-1.4f || headPos>0.6f || headPos<-0.4f ){
+        /*if(yawPos>1.4f || yawPos<-1.4f || headPos>0.6f || headPos<-0.4f ){
             crashed = true;
-        }
-
+        }*/
+        
         MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
         int battery_lvint = (int)battery_lv.getI();
         boolean action;
@@ -476,8 +476,11 @@ public class ActionExecCodelet extends Codelet
         }else{
             action= cur_a>MAX_ACTION_NUMBER || sur_a>MAX_ACTION_NUMBER;            
         }
-
-        if (mode.equals("learning") && (action || crashed || battery_lvint==0) ){
+        if(this.oc.vision.endExp() || battery_lvint==0){
+             crashed = true;
+             
+        }
+        if (mode.equals("learning") && (action || crashed ) ){
             printToFile("object_count_end.txt");
             oc.shuffle_positions();
             oc.reset_positions();
@@ -533,8 +536,7 @@ public class ActionExecCodelet extends Codelet
             } catch (Exception e) {
                 Thread.currentThread().interrupt();
             }
-        } else if (mode.equals("exploring") && (action_number >= MAX_ACTION_NUMBER ) || crashed 
-                || battery_lvint==0) {
+        } else if (mode.equals("exploring") && (action_number >= MAX_ACTION_NUMBER ) || crashed ) {
             System.out.println("Max number of actions or crashed. Exp: "+ experiment_number +
                     " exp_c:"+exp_c+" exp_s:"+exp_s+
                     " ----- N_act: "+action_number+" Curiosity_lv: "+curiosity_lv+

@@ -118,7 +118,7 @@ public class CuriosityDrive_MotivationCodelet extends MotivationalCodelet
             curiosity_motivation_list = (ArrayList<Double>) curiosity_motivation_id.getValue();
             for(String action : allActionsList){
                 if(!actions.contains(action)){
-                    if(curiosity_motivation_list.get(allActionsList.indexOf(action)) == 0 || curiosity_motivation_list.get(allActionsList.indexOf(action)) < 0) curiosity_motivation_list.set(allActionsList.indexOf(action), 1.0);
+                    if(curiosity_motivation_list.get(allActionsList.indexOf(action)) == 0 || curiosity_motivation_list.get(allActionsList.indexOf(action)) > 0.6) curiosity_motivation_list.set(allActionsList.indexOf(action), curiosity_motivation_list.get(allActionsList.indexOf(action))+0.2);
                     else curiosity_motivation_list.set(allActionsList.indexOf(action), curiosity_motivation_list.get(allActionsList.indexOf(action))-0.1);
                 }else if(curiosity_motivation_list.get(allActionsList.indexOf(action)) > 0.1) {
                     curiosity_motivation_list.set(allActionsList.indexOf(action),curiosity_motivation_list.get(allActionsList.indexOf(action))-0.1);

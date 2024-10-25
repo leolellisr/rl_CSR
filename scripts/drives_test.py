@@ -16,7 +16,7 @@ sfile2 = "../results/2QTables/profile/nsur_rewards.txt"
 
 output_folder = "../results/"
 
-n_exps = 100
+n_exps = 106
 ## Remove strings 
 
 def remove_strings_from_file(file_name, strings_to_remove):
@@ -85,15 +85,15 @@ def get_data_drives(file,ind):
             else:
                      
                 col = line.split(' ') 
-                print(col)
-                print(int(col[3]))
+                #print(col)
+                #print(int(col[3]))
 
                 if int(col[3]) < n_exps:
                     #if(len(col)>5): col = col[1:]
-                    print("Exp:"+col[3])
+                    #print("Exp:"+col[3])
                     actions.append(float(col[6])+float(col[7])) 
                     try:
-                        drives[int(col[3])].append(float(col[ind]))
+                        drives[int(col[6])].append(float(col[ind]))
                         if debug: print(col)
                                
                     except:
@@ -103,7 +103,7 @@ def get_data_drives(file,ind):
             
 
             i+=1
-        print('len act:'+str(len(actions)))
+        #print('len act:'+str(len(actions)))
         for j, drive in enumerate(drives):
             if len(drive)==0: drives[j] = 0
             else: drives[j] = np.mean(drive)   
@@ -133,14 +133,14 @@ def get_data_drives2q(file, ind):
             else:
                      
                 col = line.split(' ') 
-                print(col)
-                print(int(col[3]))
+                #print(col)
+                #print(int(col[3]))
 
-                if int(col[3]) < n_exps:
+                if int(col[4]) < n_exps and int(col[5]) < n_exps:
                     #if(len(col)>5): col = col[1:]
-                    print("Exp:"+col[3])
+                    #print("Exp:"+col[3])
                     try:
-                        drives[int(col[3])].append(float(col[ind]))
+                        drives[int(col[6])].append(float(col[ind]))
                         if debug: print(col)
                         actions.append(float(col[6])+float(col[7]))        
                     except:

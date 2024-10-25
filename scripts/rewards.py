@@ -30,11 +30,14 @@ def get_data_drives(filer, filea, n_exps):
     rewards = []
     exps = []
     actions = []
-
+    dr_c = []
+    dr_s = []
     for i in range(0,n_exps):
         exp_i = []
         rewards.append(exp_i)
         actions.append(exp_i)
+        dr_c.append(exp_i)
+        dr_s.append(exp_i)
     with open(filer,"r") as f: # Open file
         data = f.readlines()
         aux = 0
@@ -44,19 +47,33 @@ def get_data_drives(filer, filea, n_exps):
                 aux+=1
             else:     
                 col = line.split(' ') 
-                if debug: print("rew 1Q: "+str(float(col[1])))
+                #if debug: print("rew 1Q: "+str(float(col[1])))
                 rewards[int(col[3])].append(float(col[1]))
-                if debug: print(col)
+                dr_c[int(col[3])].append(float(col[9]))
+                dr_s[int(col[3])].append(float(col[11]))
+                #if debug: print(col)
                 exps.append(i)
 
             i+=1
 
     if debug: print("len rew: "+str(len(rewards)))
-    for j, reward in enumerate(rewards):
-        if len(reward)==0: rewards[j] = 0
+    for j in range(0,len(rewards)):
+        if len(rewards[j])==0: rewards[j] = 0
         else: 
-            if debug: print("j: "+str(j))
-            rewards[j] = np.mean(reward)   
+            #if debug: print("j: "+str(j))
+            rewards[j] = np.mean(rewards[j])   
+
+        if len(dr_c[j])==0: dr_c[j] = 0
+        else: 
+            #if debug: print("j: "+str(j))
+            dr_c[j] = np.mean(dr_c[j])  
+
+        if len(dr_s[j])==0: dr_s[j] = 0
+        else: 
+            #if debug: print("j: "+str(j))
+            dr_s[j] = np.mean(dr_s[j])  
+            
+
 
     
     with open(filea,"r") as f: # Open file
@@ -83,14 +100,16 @@ def get_data_drives(filer, filea, n_exps):
             #if debug: print("j: "+str(j))
             actions[j] = np.max(action)   
 
-    return [rewards, exps, actions] # len 3
+    return [rewards, exps, actions, dr_c, dr_s] # len 5
 
 def get_data_2qt(filer, filea,n_exps, typed):
     rewards = []
     exps = []
     actions = []
+    dr_c = []
+    dr_s = []
     ei=2
-    id_c = 10
+    id_c = 0.1
     if typed=="c": 
         ei = 4
     else: 
@@ -101,6 +120,8 @@ def get_data_2qt(filer, filea,n_exps, typed):
         exp_i = []
         rewards.append(exp_i)
         actions.append(exp_i)
+        dr_c.append(exp_i)
+        dr_s.append(exp_i)
     with open(filer,"r") as f: # Open file
  
         data = f.readlines()
@@ -112,15 +133,30 @@ def get_data_2qt(filer, filea,n_exps, typed):
                 aux+=1
             else:     
                 col = line.split(' ') 
-                try: rewards[int(col[ei])].append(float(col[1])/id_c)
+                try: 
+                    rewards[int(col[ei])].append(float(col[1])*id_c)
+                    dr_c[int(col[3])].append(float(col[9]))
+                    dr_s[int(col[3])].append(float(col[11]))
                 except: print("end exp")
+                #print(typed+" epoca:"+str(int(col[ei]))+" rewards: "+str(float(col[1])))
                 exps.append(i)
             i+=1
 
     if debug: print("len rew: "+str(len(rewards)))
-    for j, reward in enumerate(rewards):
-            if len(reward)==0: rewards[j] = 0
-            else: rewards[j] = np.mean(reward)   
+    for j in range(0,len(rewards)):
+        if len(rewards[j])==0: rewards[j] = 0
+        else: rewards[j] = np.mean(rewards[j])   
+
+        if len(dr_c[j])==0: dr_c[j] = 0
+        else: 
+            #if debug: print("j: "+str(j))
+            dr_c[j] = np.mean(dr_c[j])  
+
+        if len(dr_s[j])==0: dr_s[j] = 0
+        else: 
+            #if debug: print("j: "+str(j))
+            dr_s[j] = np.mean(dr_s[j])  
+    
             
     if typed=="c": 
         ei = 3
@@ -139,7 +175,9 @@ def get_data_2qt(filer, filea,n_exps, typed):
                 col = line.split(' ') 
 
                 try:
-                    actions[2].append(float(col[5]))
+                    print("act")
+                    actions[int(col[ei])].append(float(col[7])+float(col[6]))
+                    print(float(col[7])+float(col[6]))
                 except:
                     print("end exps")    
 
@@ -150,9 +188,10 @@ def get_data_2qt(filer, filea,n_exps, typed):
         if len(action)==0: actions[j] = 0
         else: 
             #if debug: print("j: "+str(j))
-            actions[j] = np.max(action)    
-
-    return [rewards, exps, actions] # len 3
+            actions[j] = np.max(action)
+            print("max act")    
+            print(np.max(action))
+    return [rewards, exps, actions, dr_c, dr_s] # len 5
 
 def remove_strings_from_file(file_name, strings_to_remove):
     try:
@@ -188,7 +227,7 @@ def get_mean_n_std(step, results):
     dv_rewards = []
     dv_actions = []
     exps_s = []
-    mean_rewards.append(0)
+    mean_rewards.append(1)
     mean_actions.append(0)
     dv_rewards.append(0)
     dv_actions.append(0)
@@ -363,7 +402,7 @@ strings_to_remove = [
     "[","]","Exp number:", "Action num: ", "Battery:", "reward: ", "num_tables:",
     "Curiosity_lv: ", "Curiosity_lv:", "Red: ", "Green: ", "Blue: ", "Red:", "Green:", "Blue:","action:","mot_value: ",
     "r_imp: ","g_imp: ","b_imp: ", "hug_drive: ", "cur_drive: ", "QTables:", "cur_a: ", "sur_a: ",
-    "Exp:", "Nact:", "Type:", "cur_a:", "sur_a:","exp_c:","exp_s:","SurV:","dSurV:","CurV:","dCurV:"
+    "Exp:", "Nact:", "Type:", "cur_a:", "sur_a:","exp_c:","exp_s:","dSurV:","SurV:","dCurV:","CurV:"
 ]
 
 remove_strings_from_file(file1, strings_to_remove)
@@ -378,16 +417,16 @@ lenght= 11
 lenghta=12
 results1 = get_data_drives(file1,file1a, 101)
 
-lenght= 12
+lenght= 13
 lenghta=13
 results2c = get_data_2qt(file2c,file2a, 101, "c")
 results2s = get_data_2qt(file2s,file2a, 101,"s")
-results2a= [results2ci+results2si for results2ci, results2si in zip(results2c[2],results2s[2])]
+#results2a= [results2ci+results2si for results2ci, results2si in zip(results2c[2],results2s[2])]
  
 results2 = [x+y for x,y in zip(results2c,results2s)]
-results2s[2] = results2a
+#results2s[2] = results2a
 
-results2c[2] = results2a
+#results2c[2] = results2a
 
 # rewards, exps, actions, batery, curiosity, r, g, b
 print(f"num Exps: {len(results1[1])}")
@@ -397,23 +436,26 @@ print(f"Mean rewards 2: {statistics.mean(results2[0])}. Stdv: +- {statistics.std
 if(statistics.stdev(results2[0]) != 0): print(f"Mean rewards 1/2: {statistics.mean(results1[0])/statistics.mean(results2[0])}. Stdv: +- {statistics.stdev(results1[0])/statistics.stdev(results2[0])} ")
 
 print(f"Mean actions 1: {statistics.mean(results1[2])}. Stdv: +- {statistics.stdev(results1[2])} ")
-print(f"Mean actions 2: {statistics.mean(results2a)}. Stdv: +- {statistics.stdev(results2a)} ")
-if(statistics.stdev(results2a) != 0): print(f"Mean actions 1/2: {statistics.mean(results1[2])/statistics.mean(results2a)}. Stdv: +- {statistics.stdev(results1[2])/statistics.stdev(results2a)} ")
+print(f"Mean actions 2: {statistics.mean(results2s[2])}. Stdv: +- {statistics.stdev(results2s[2])} ")
+if(statistics.stdev(results2s[2]) != 0): print(f"Mean actions 1/2: {statistics.mean(results1[2])/statistics.mean(results2s[2])}. Stdv: +- {statistics.stdev(results1[2])/statistics.stdev(results2s[2])} ")
 
+print(f"Mean rewards 2c: {statistics.mean(results2c[0])}. Stdv: +- {statistics.stdev(results2c[0])} ")
 
-print("1 Q-Table")
+print("1 Q-Table------------- Rewards")
 plots1 = get_mean_n_std(10, results1)
 
-print("2 Q-Tables")
+print("2 Q-Tables ------------- Rewards ")
 plots2c = get_mean_n_std(10, results2c)
 plots2s = get_mean_n_std(10, results2s)
 
+print(plots2c)
+print(plots2s)
 # X Axis for Means     
 exp1 = [0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
 exp1 = [ep/2 for ep in exp1]
 cut2 = -9
-y_rewards = 60
-ticks_rewards = 10
+y_rewards = 20
+ticks_rewards = 2
 y_actions = 80
 ticks_actions = 10
 
@@ -436,6 +478,26 @@ def replace(results):
         aux.append(float(element))
     return aux
 
+results2c[3] = [rc/9 for rc in results2c[3]]
+results1[3] = [rc/7 for rc in results1[3]]
+results2s[3] = [rc/9 for rc in results2s[3]]
+
+results1[0] = results1[3]
+results2c[0] = results2c[3]
+results2s[0] = results2s[3]
+
+print("1 Q-Table ------------- Drives ")
+plots1 = get_mean_n_std(10, results1)
+
+print("2 Q-Tables ------------- Drives ")
+plots2c = get_mean_n_std(10, results2c)
+plots2s = get_mean_n_std(10, results2s)
 
 
-print("Finished")
+y_rewards = 2
+ticks_rewards = 1
+
+
+plot_graphs_mean_dv("Drives", plots1[0], plots1[1],  plots1[4], exp1, 
+                    plots2c[0], plots2c[1], plots2s[0], plots2s[1], y_rewards, 
+                    ticks_rewards, False)

@@ -121,8 +121,8 @@ public class ActionExecCodelet extends Codelet
         MAX_ACTION_NUMBER = oc.vision.getMaxActions();
         MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxExp();
         experiment_number = oc.vision.getExp();
-        exp_s = oc.vision.getExp();
-        exp_c = oc.vision.getExp();
+        exp_s = oc.vision.getExp("S");
+        exp_c = oc.vision.getExp("C");
     }
 
     // This method is used in every Codelet to capture input, broadcast 
@@ -348,7 +348,7 @@ public class ActionExecCodelet extends Codelet
                     }
                     if(debug) System.out.println("GOT RED");
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(2000);
                     } catch (Exception e) {
                         Thread.currentThread().interrupt();
                     }
@@ -371,7 +371,7 @@ public class ActionExecCodelet extends Codelet
                     oc.battery.setCharge(true);
                     if(debug) System.out.println("GOT GREEN");
                     try {
-                        Thread.sleep(500);
+                        Thread.sleep(1000);
                     } catch (Exception e) {
                         Thread.currentThread().interrupt();
                     }
@@ -394,7 +394,7 @@ public class ActionExecCodelet extends Codelet
                     if(debug) System.out.println("GOT BLUE");
 
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(2000);
                     } catch (Exception e) {
                         Thread.currentThread().interrupt();
                     }
@@ -487,7 +487,7 @@ public class ActionExecCodelet extends Codelet
 
             
             System.out.println("ACT EXEC Max number of actions or crashed. Exp: "+ experiment_number +
-                    " exp_c:"+exp_c+" exp_s:"+exp_s+" ----- N_act: "+action_number+"----- cur_a: "+cur_a+"----- sur_a: "+sur_a+
+                    " exp_c:"+exp_c+" exp_s:"+exp_s+" ----- N_act: "+action_number+"\n----- cur_a: "+cur_a+"----- sur_a: "+sur_a+
                     " Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
             System.out.println("crashed: "+crashed);
             System.out.println("battery_lvint: "+battery_lvint);
@@ -539,7 +539,7 @@ public class ActionExecCodelet extends Codelet
         } else if (mode.equals("exploring") && (action_number >= MAX_ACTION_NUMBER ) || crashed ) {
             System.out.println("Max number of actions or crashed. Exp: "+ experiment_number +
                     " exp_c:"+exp_c+" exp_s:"+exp_s+
-                    " ----- N_act: "+action_number+" Curiosity_lv: "+curiosity_lv+
+                    " ----- N_act: "+action_number+"\n Curiosity_lv: "+curiosity_lv+
                     " Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
             aux_crash = 0;
             oc.shuffle_positions();

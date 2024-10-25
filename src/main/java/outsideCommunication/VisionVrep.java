@@ -56,9 +56,10 @@ public class VisionVrep implements SensorI{
         vision_data = Collections.synchronizedList(new ArrayList<>(res*res*3));
         this.vrep = vrep;
         this.stage =3;
-        this.num_exp = 1;
+       this.num_exp = 194;
         this.num_exp_c = 1;
         this.num_exp_s = 1;
+        
         this.vision_handles = vision_handles;
         clientID = clientid;
         this.max_epochs = max_epochs;
@@ -125,7 +126,7 @@ public class VisionVrep implements SensorI{
             vrep.simxPauseCommunication(clientID, false);
             vrep.simxStartSimulation(clientID, remoteApi.simx_opmode_oneshot_wait);
             try {
-			Thread.sleep(100);
+			Thread.sleep(200);
 		} catch (Exception e) {
 			Thread.currentThread().interrupt();
 		}  
@@ -251,11 +252,11 @@ public class VisionVrep implements SensorI{
         
         // SYNC
 
-        printToFile(vision_data);        
+       // printToFile(vision_data);        
         return  vision_data;
     }
     
-    private void printToFile(Object object){
+   /* private void printToFile(Object object){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();  
         try(FileWriter fw = new FileWriter("profile/vision.txt", true);
@@ -293,7 +294,7 @@ public class VisionVrep implements SensorI{
             }
         }
     }
-
+*/
 	@Override
 	public void resetData() {
 		// TODO Auto-generated method stub

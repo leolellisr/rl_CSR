@@ -114,8 +114,8 @@ public class RewardComputerCodelet extends Codelet
     sensorDimension = sensDim;
     this.mode = mode;
     experiment_number = oc.vision.getExp();
-    exp_s = oc.vision.getExp();
-        exp_c = oc.vision.getExp();
+        exp_s = oc.vision.getExp("S");
+        exp_c = oc.vision.getExp("C");
     }
 
     // This method is used in every Codelet to capture input, broadcast 
@@ -202,13 +202,14 @@ public class RewardComputerCodelet extends Codelet
         }
         Idea curI = (Idea) motivationMO.get(0);
         Idea surI = (Idea) motivationMO.get(1);
-        boolean surB = ((double) surI.getValue() > (double) Collections.max((List) curI.getValue())  && exp_s<MAX_EXPERIMENTS_NUMBER) || exp_c>MAX_EXPERIMENTS_NUMBER;
+        boolean surB = (((double) surI.getValue() > (double) Collections.max((List) curI.getValue()))  && (exp_s<MAX_EXPERIMENTS_NUMBER) || exp_c>MAX_EXPERIMENTS_NUMBER);
         
         String motivationName;
         boolean exp_b = false;
         if(num_tables == 1) exp_b = this.experiment_number != this.oc.vision.getExp();
         else if(!surB) exp_b = this.exp_c != this.oc.vision.getExp("C");
         else exp_b = this.exp_s != this.oc.vision.getExp("S");
+        //System.out.println("Rewardcomputer SurB:"+surB);
         if(!surB){
             motivationName = "CURIOSITY";
         }
@@ -247,7 +248,7 @@ public class RewardComputerCodelet extends Codelet
         }
             
         if(!motivationType.equals(motivationName) && num_tables==2){
-            if(sdebug) System.out.println("motivationType:"+motivationType+" motivationMO:"+motivationName);
+            //System.out.println("motivationType:"+motivationType+" motivationMO:"+motivationName);
              if(debug) System.out.println("Rewardcomputer motivationType diff from motivationType");
             return;
         }
@@ -258,8 +259,8 @@ public class RewardComputerCodelet extends Codelet
         MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
         if(debug) System.out.println("battery_lv: "+battery_lv);
         battery_lvint = (int)battery_lv.getI();
-        if(sdebug) System.out.println("~Begin~ REWARD ----- QTables:"+num_tables+" Exp: "+ experiment_number + 
-                " ----- N_act: "+action_number+ " ----- Reward: "+global_reward+" ----- Battery: "+battery_lvint+" ----- Type: "+motivationType);
+        // System.out.println("~Begin~ REWARD ----- QTables:"+num_tables+" Exp: "+ experiment_number + 
+        //        " ----- N_act: "+action_number+ " ----- Reward: "+global_reward+" ----- Battery: "+battery_lvint+" ----- Type: "+motivationType);
         if (!saliencyMap.isEmpty() && !winnersList.isEmpty()) {
 
             Winner lastWinner = (Winner) winnersList.get(winnersList.size() - 1);
@@ -272,7 +273,7 @@ public class RewardComputerCodelet extends Codelet
              
         }
             if(crashed){
-                    global_reward -= 10;
+                    global_reward -= 20;
             }
 
 
@@ -327,7 +328,7 @@ public class RewardComputerCodelet extends Codelet
                     float sur_f = 10;
 
                     
-                    if(sur_drive==0)  global_reward += 1*sur_f;
+                    if(sur_drive==0)  global_reward += 1*sur_f+sur_f*sur_delta;
                     //else if(sur_drive==1)  global_reward -= 1*sur_f;
                     
                     //sur_f = sur_delta*sur_delta;

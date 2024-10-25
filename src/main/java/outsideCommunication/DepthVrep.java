@@ -80,7 +80,7 @@ public class DepthVrep implements SensorI{
     @Override
     public Object getData() {
        try {
-            Thread.sleep(100);
+            Thread.sleep(200);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }
@@ -99,6 +99,7 @@ public class DepthVrep implements SensorI{
         //int ret_RGB = vrep.simxGetVisionSensorImage(clientID, vision_handles.getValue(), resolution, image_RGB, 0, vrep.simx_opmode_streaming); 
         while (System.currentTimeMillis()-startTime < 2000)
         {
+try {
             //ret_RGB = vrep.simxGetVisionSensorImage(clientID, vision_handles.getValue(), resolution, image_RGB, 0, remoteApi.simx_opmode_buffer);
             read_depth = vrep.simxGetVisionSensorDepthBuffer(clientID, vision_handles.getValue(), resolution, auxValues_WA, remoteApi.simx_opmode_buffer );
         
@@ -193,8 +194,13 @@ public class DepthVrep implements SensorI{
                     }
                 }
             }
-       }
+             }
+        catch(Exception e){
+            System.out.println("Error depth");
+        }
 
+       }
+       
        // printToFile(depth_data, "depth.txt");        
         return  depth_data;
     }

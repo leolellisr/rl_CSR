@@ -86,7 +86,7 @@ private List<String> allStatesList;
         rewards = (List) MO.getI();
 
         motivationMC = (DriverArray) this.getOutput("MOTIVATION");
- proceduralMemoryMO = (MemoryContainer) this.getOutput("PROCEDURAL");
+ proceduralMemoryMO = (MemoryContainer) this.getInput("PROCEDURAL");
         
         if(debug) System.out.println("Curiosity MC name: "+this.motivationMC.getName());
         ArrayList<Memory> allMemories = this.motivationMC.getAllMemories();

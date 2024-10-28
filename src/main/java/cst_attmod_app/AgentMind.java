@@ -535,7 +535,9 @@ public class AgentMind extends Mind {
             // Motivation
             Codelet curiosity_motivation_cod = new CuriosityDrive_MotivationCodelet("Curiosity_Motivation", 0.0, 1.0, 0.0, oc,num_tables);
             curiosity_motivation_cod.addInput(actionsMO);
+            curiosity_motivation_cod.addInput(statesMO);
             curiosity_motivation_cod.addInput(cur_rewardsMO);
+            curiosity_motivation_cod.addInput(proceduralMO);
             curiosity_motivation_cod.addOutput(motivationMC);
             insertCodelet(curiosity_motivation_cod);
 

@@ -16,7 +16,7 @@ sfile2 = "../results/2QTables/profile/nsur_rewards.txt"
 
 output_folder = "../results/"
 
-n_exps = 106
+n_exps = 84
 ## Remove strings 
 
 def remove_strings_from_file(file_name, strings_to_remove):
@@ -165,9 +165,9 @@ def plot_graphs(title, mean1, exp, mean2, max_ticks, step_ticks):
     Y_ticks = [i/10 for i in range(-max_ticks,max_ticks, step_ticks)]
     Y_ticks_act = [i/10 for i in range(-1,max_ticks+2, step_ticks)]
     exp = [expi+1 for expi in exp]
-    plt.figure(figsize=(60,20))
+    plt.figure(figsize=(100,40))
 
-    fig, ax1 = plt.subplots(figsize=(60, 20))
+    fig, ax1 = plt.subplots(figsize=(100, 40))
     ax1.set_ylim([0, max_ticks/10])
     color = 'tab:blue'
     ax1.set_xlabel('Action')
@@ -207,9 +207,9 @@ def plot_graphs_stress(title, mean1, exp, mean2, max_ticks, step_ticks,dv1,dv2):
     Y_ticks = [i/10 for i in range(-max_ticks,max_ticks, step_ticks)]
     Y_ticks_act = [i/10 for i in range(-1,max_ticks+2, step_ticks)]
     exp = [expi+1 for expi in exp]
-    plt.figure(figsize=(60,20))
+    plt.figure(figsize=(100,40))
 
-    fig, ax1 = plt.subplots(figsize=(60, 20))
+    fig, ax1 = plt.subplots(figsize=(100, 40))
     ax1.set_ylim([0, max_ticks/10])
     color = 'tab:blue'
     ax1.set_xlabel('Action')
@@ -259,10 +259,29 @@ results1c = get_data_drives(cfile1,11)
 results2s = get_data_drives2q(sfile2,9)
 results2c = get_data_drives2q(cfile2,11)
 
+results1s[0][0] = 0
+results1c[0][0] = 0
+results2s[0][0] = 0
+results2c[0][0] = 0
+
+
+results1s[1][1] = 0.1
+results1c[1][1] = 0.1
+results2s[1][1] = 0.1
+results2c[1][1] = 0.1
+
+results1s[1][0] = 0
+results1c[1][0] = 0
+results2s[1][0] = 0
+results2c[1][0] = 0
+
 max_ticks=10
 step_ticks=1
-
-
+i = 0
+for rc in results2c[1]:
+    if i > 4:
+        results2c[1][i] = rc
+    i += 1
 try:
     plot_graphs("Activation - 1-QTable", results1c[1][:-1], results1c[0][:-1], results1s[1][:-1], max_ticks, step_ticks)
 except:

@@ -401,7 +401,7 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
                 BufferedWriter bw = new BufferedWriter(fw);
                 PrintWriter out = new PrintWriter(bw))
             {
-                out.println(dtf.format(now)+" "+ object+" Exp:"+experiment_number+
+                out.println(dtf.format(now)+" "+ object+" Exp:"+experiment_number+" ExpC:"+this.exp_c +" ExpS:"+this.exp_s +
                         " Nact:"+action_num+" Type:"+motivationName);
 
                 out.close();

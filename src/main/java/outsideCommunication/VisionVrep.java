@@ -56,7 +56,7 @@ public class VisionVrep implements SensorI{
         vision_data = Collections.synchronizedList(new ArrayList<>(res*res*3));
         this.vrep = vrep;
         this.stage =3;
-       this.num_exp = 194;
+       this.num_exp = 1;
         this.num_exp_c = 1;
         this.num_exp_s = 1;
         

@@ -454,9 +454,9 @@ print(plots2s)
 exp1 = [0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
 exp1 = [ep/2 for ep in exp1]
 cut2 = -9
-y_rewards = 20
+y_rewards = 10
 ticks_rewards = 2
-y_actions = 80
+y_actions = 30
 ticks_actions = 10
 
 # mean_rewards, dv_rewards, mean_actions, dv_actions, mean_bat, 

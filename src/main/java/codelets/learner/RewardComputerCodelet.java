@@ -273,13 +273,13 @@ public class RewardComputerCodelet extends Codelet
              
         }
             if(crashed){
-                    global_reward -= 20;
+                    global_reward -= 10;
             }
 
 
-            Double reward = 1d;
+           if(nrewards){ Double reward = 1d;
             global_reward += reward;
-
+           }
                         // Gets last action taken
             String lastAction = actionsList.get(actionsList.size() - 1);
             action_number += 1;            
@@ -313,10 +313,10 @@ public class RewardComputerCodelet extends Codelet
                     cur_drive = (float) max_action;
                     
                     
-                    if(cur_drive==0)  global_reward += 1*cur_f+cur_f*cur_delta;
+                    if(cur_drive==0 && cur_drive!=lcur_drive)  global_reward += 1*cur_f;
                     //else if(cur_drive==1)  global_reward -= 1*cur_f;
                     // cur_f = cur_delta*cur_delta;
-                    if(cur_drive<lcur_drive)  global_reward += 1*cur_f*cur_delta;
+                    if(cur_drive<lcur_drive)  global_reward += 1*cur_delta;
                     //else if(cur_drive>lcur_drive) global_reward -= 1*cur_f*cur_delta;
                     
                     lcur_drive=cur_drive;
@@ -328,11 +328,11 @@ public class RewardComputerCodelet extends Codelet
                     float sur_f = 10;
 
                     
-                    if(sur_drive==0)  global_reward += 1*sur_f+sur_f*sur_delta;
+                    if(sur_drive==0 && sur_drive!=lsur_drive)  global_reward += 1*sur_f;
                     //else if(sur_drive==1)  global_reward -= 1*sur_f;
                     
                     //sur_f = sur_delta*sur_delta;
-                    if(sur_drive<lsur_drive)  global_reward += 1*sur_f*sur_delta;
+                    if(sur_drive<lsur_drive)  global_reward += 1*sur_delta;
                     //else if(sur_drive>lsur_drive) global_reward -= 1*sur_f*sur_delta;
                      
                     lsur_drive=sur_drive;

@@ -48,8 +48,9 @@ public class CuriosityDrive_MotivationCodelet extends MotivationalCodelet
     private ArrayList<Double> curiosity_motivation_list;
     private int experiment_number, action_number, exp_c, num_tables;
     private static int MAX_ACTION_NUMBER;
-	
+private List<String> allStatesList;	
     private static int MAX_EXPERIMENTS_NUMBER;   
+    private MemoryContainer proceduralMemoryMO;
     public CuriosityDrive_MotivationCodelet(String id, double level, double priority, double urgencyThreshold, 
             OutsideCommunication outc, int num_tables){
         super(id, level, priority, urgencyThreshold);
@@ -60,6 +61,15 @@ public class CuriosityDrive_MotivationCodelet extends MotivationalCodelet
         MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxExp();
         this.num_tables = num_tables;
         exp_c = oc.vision.getExp();
+         if(stage == 1 || stage == 2){
+            nActions = 10;
+            allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
+        }else if(stage == 3){
+            nActions = 20;
+            allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
+        }
+        curiosity_motivation_list = new ArrayList<>(Collections.nCopies(nActions, 0.0));
+
     }
     
     @Override
@@ -68,12 +78,16 @@ public class CuriosityDrive_MotivationCodelet extends MotivationalCodelet
         MemoryObject MO;
         MO = (MemoryObject) this.getInput("ACTIONS");
         actions = (List) MO.getI();
-
+        
+        MO = (MemoryObject) this.getInput("STATES");
+        allStatesList = (List) MO.getI();
+        
         MO = (MemoryObject) this.getInput("CUR_REWARDS");
         rewards = (List) MO.getI();
 
         motivationMC = (DriverArray) this.getOutput("MOTIVATION");
-
+ proceduralMemoryMO = (MemoryContainer) this.getOutput("PROCEDURAL");
+        
         if(debug) System.out.println("Curiosity MC name: "+this.motivationMC.getName());
         ArrayList<Memory> allMemories = this.motivationMC.getAllMemories();
         if(debug) System.out.println("Curiosity MC size: "+allMemories.size());
@@ -93,17 +107,24 @@ public class CuriosityDrive_MotivationCodelet extends MotivationalCodelet
 
     }
 
+    public boolean verify_if_memory_exists(String name){
+            boolean exists = false;
+            if(!proceduralMemoryMO.getAllMemories().isEmpty()){
+                for(Memory memory : proceduralMemoryMO.getAllMemories()) {
+                    if(memory.getName().equalsIgnoreCase(name)){
+                        exists = true;
+                        break;
+                    }
+                }
+            }
+            return exists;
+        }
+    
    // Main Codelet function, to be implemented in each subclass.
     @Override
     public void proc() {
         getActivation();
-        if(stage == 1 || stage == 2){
-            nActions = 10;
-            allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
-        }else if(stage == 3){
-            nActions = 20;
-            allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
-        }
+       
         
         try {
         Thread.sleep(50);
@@ -111,16 +132,16 @@ public class CuriosityDrive_MotivationCodelet extends MotivationalCodelet
             Thread.currentThread().interrupt();
         }
 
-        if(curiosity_motivation_id.getValue() == null && stage > 1){
-            curiosity_motivation_list = new ArrayList<>(Collections.nCopies(nActions, 0.0));
-
+        if(allStatesList == null || stage > 1){
+            return;
         } else if (stage > 1){
+            String lastState = allStatesList.get(allStatesList.size()-1);
+            boolean verify_memory = verify_if_memory_exists(lastState);
             curiosity_motivation_list = (ArrayList<Double>) curiosity_motivation_id.getValue();
             for(String action : allActionsList){
-                if(!actions.contains(action)){
-                    if(curiosity_motivation_list.get(allActionsList.indexOf(action)) == 0 || curiosity_motivation_list.get(allActionsList.indexOf(action)) > 0.6) curiosity_motivation_list.set(allActionsList.indexOf(action), curiosity_motivation_list.get(allActionsList.indexOf(action))+0.2);
-                    else curiosity_motivation_list.set(allActionsList.indexOf(action), curiosity_motivation_list.get(allActionsList.indexOf(action))-0.1);
-                }else if(curiosity_motivation_list.get(allActionsList.indexOf(action)) > 0.1) {
+                if(!verify_memory){
+                    curiosity_motivation_list.set(allActionsList.indexOf(action), 0.8);
+                }else if(curiosity_motivation_list.get(allActionsList.indexOf(action)) <0.8 && curiosity_motivation_list.get(allActionsList.indexOf(action)) >=0.2) {
                     curiosity_motivation_list.set(allActionsList.indexOf(action),curiosity_motivation_list.get(allActionsList.indexOf(action))-0.1);
                 }else if(curiosity_motivation_list.get(allActionsList.indexOf(action)) < 0.1 || curiosity_motivation_list.get(allActionsList.indexOf(action)) == 0.1) {
                     curiosity_motivation_list.set(allActionsList.indexOf(action), 0.0);

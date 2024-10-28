@@ -314,10 +314,10 @@ public class RewardComputerCodelet extends Codelet
                     
                     
                     if(cur_drive==0 && cur_drive!=lcur_drive)  global_reward += 1*cur_f;
-                    //else if(cur_drive==1)  global_reward -= 1*cur_f;
+                    else if(cur_drive==1 && cur_drive!=lcur_drive)  global_reward -= 1*cur_f;
                     // cur_f = cur_delta*cur_delta;
                     if(cur_drive<lcur_drive)  global_reward += 1*cur_delta;
-                    //else if(cur_drive>lcur_drive) global_reward -= 1*cur_f*cur_delta;
+                    else if(cur_drive>lcur_drive) global_reward -= 1*cur_delta;
                     
                     lcur_drive=cur_drive;
                     
@@ -329,11 +329,11 @@ public class RewardComputerCodelet extends Codelet
 
                     
                     if(sur_drive==0 && sur_drive!=lsur_drive)  global_reward += 1*sur_f;
-                    //else if(sur_drive==1)  global_reward -= 1*sur_f;
+                    else if(sur_drive==1 && sur_drive!=lsur_drive)  global_reward -= 1*sur_f;
                     
                     //sur_f = sur_delta*sur_delta;
                     if(sur_drive<lsur_drive)  global_reward += 1*sur_delta;
-                    //else if(sur_drive>lsur_drive) global_reward -= 1*sur_f*sur_delta;
+                    else if(sur_drive>lsur_drive) global_reward -= 1*sur_delta;
                      
                     lsur_drive=sur_drive;
                     

@@ -21,6 +21,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import outsideCommunication.OutsideCommunication;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
+import java.util.stream.Stream;
 
 /**
  * @author L. L. Rossi (leolellisr)
@@ -39,14 +42,14 @@ public class LearnerCodelet extends Codelet
     private static int MAX_ACTION_NUMBER;
 
     private static int MAX_EXPERIMENTS_NUMBER;
-    private QLearningL ql;
+    private QLearningSQL ql;
     
 
     private List saliencyMap;
     private List statesList;
     private ArrayList<Object> motivationMO;
     private List<String> actionsList;
-    private List<QLearningL> qTableList;
+    private List<QLearningSQL> qTableList;
     private List<Double>  rewardsList;
     private OutsideCommunication oc;
     private final int timeWindow;
@@ -62,7 +65,14 @@ public class LearnerCodelet extends Codelet
     private remoteApi vrep;
     private final int clientID;
     private String output, motivation, nameMotivation, motivationType, lastAction = "am0";
-    private  boolean end_all; 
+    private  boolean end_all;
+    
+    private final int numDcValues = 21;      // Dc has 21 values (0.0, 0.05, ..., 1.0)
+    private final int numDsValues = 21;      // Ds has 21 values (same as Dc)
+    private final int numSalValues = 65536;  // Sal has 2^16 values
+
+    private List<Integer> allStatesList = new ArrayList<>();
+        
     //private int past_exp;
     //private Idea ideaMotivation;
     public LearnerCodelet (remoteApi vrep, int clientid, OutsideCommunication outc, int tWindow, String mode, String motivation,  String motivationType,  String output, int num_tables) {
@@ -85,25 +95,73 @@ public class LearnerCodelet extends Codelet
         // aa0: focus td color; aa1: focus td depth; aa2: focus td region.
         allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
         // States are 0 1 2 ... 5^256-1
-        ArrayList<String> allStatesList = new ArrayList<>(Arrays.asList(IntStream.rangeClosed(0, (int)Math.pow(2, 16)-1).mapToObj(String::valueOf).toArray(String[]::new)));
+     //   ArrayList<String> allStatesList = new ArrayList<>(Arrays.asList(IntStream.rangeClosed(0, (int)Math.pow(2, 16)-1).mapToObj(String::valueOf).toArray(String[]::new)));
+        double[] dcValues = DoubleStream.iterate(0.0, n -> n <= 1.0, n -> n + 0.2).toArray(); // 21 values from 0 to 1.0
+        double[] dsValues = DoubleStream.iterate(0.0, n -> n <= 1.0, n -> n + 0.2).toArray(); // Same as Dc range
+        int salMax = (int)Math.pow(2, 16); // Sal has 65536 values (0 to 65535)
 
+        
+       int numStates; 
+        
+        
         // QLearning initialization
-        ql = new QLearningL();
+        
+        
+        
+        if(num_tables==2) {
+            ql = new QLearningSQL("QTable_"+motivationType+".db");
+            ql.setFilename("QTable_"+motivationType+".db");
+        }else{
+            ql = new QLearningSQL("Qtable.db");
+            ql.setFilename("Qtable.db");
+        }
         ql.setAlpha((double) 0.9);
         ql.setActionsList(allActionsList);
-        if(num_tables==2) ql.setFilename("QTable_"+motivationType+".txt");
         oc = outc;               
+        experiment_number = oc.vision.getEpoch();
         this.stage = this.oc.vision.getStage();
         MAX_ACTION_NUMBER = oc.vision.getMaxActions();
-        MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxExp();
+        MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxEpochs();
         // learning mode ---> build Qtable from scratch
         if (mode.equals("learning") && this.stage == 1) {
         // Initialize QTable to 0
-                for (int i=0; i < allStatesList.size(); i ++) {
-                    for (int j=0; j < allActionsList.size(); j++) {
-                            ql.setQ(0, allStatesList.get(i), allActionsList.get(j));
+        
+        if(num_tables==1){
+            // Directly calculate and set Q-values for each state-action pair on-the-fly
+            for (double dc : dcValues) {
+                int dcIndex = (int) (dc * 5); // Map Dc to [0, 20]
+                for (double ds : dsValues) {
+                    int dsIndex = (int) (ds * 5); // Map Ds to [0, 20]
+                    for (int sal = 0; sal < salMax; sal++) {
+                        // Calculate the unique state index
+                        int stateIndex = (dcIndex * 6 * 65536) + (dsIndex * 65536) + sal;
+                        // Set Q-values for each action in the current state
+                        for (String action : allActionsList) {
+                            ql.setQ(0, stateIndex, action); // Initialize Q-table entry
+                        }
                     }
                 }
+            }
+            ql.storeQ();
+        }else{
+            // Directly calculate and set Q-values for each state-action pair on-the-fly
+            
+                for (double ds : dsValues) {
+                    int dsIndex = (int) (ds * 5); // Map Ds to [0, 20]
+                    for (int sal = 0; sal < salMax; sal++) {
+                        // Calculate the unique state index
+                        int stateIndex = (dsIndex * 65536) + sal;
+                        // Set Q-values for each action in the current state
+                        for (String action : allActionsList) {
+                            ql.setQ(0, stateIndex, action); // Initialize Q-table entry
+                        }
+                    }
+                }
+            
+            ql.storeQ();
+        
+        }
+        
         } else if (mode.equals("learning") && this.stage > 1){
             try {
                     ql.recoverQ();
@@ -125,7 +183,7 @@ public class LearnerCodelet extends Codelet
             }
         }
 
-        experiment_number = oc.vision.getExp();
+
         timeWindow = tWindow;
         this.mode = mode;
     }
@@ -191,78 +249,84 @@ public class LearnerCodelet extends Codelet
     @Override
     public void proc() {
 
-        try {
-            Thread.sleep(80);
+        /*try {
+            Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }       
+        }       */
         if(motivationMO == null){
              if(debug) System.out.println("Learner - motivationMO null");
 
         return;
     }
-        Idea curI = (Idea) motivationMO.get(0);
+       /* Idea curI = (Idea) motivationMO.get(0);
         Idea surI = (Idea) motivationMO.get(1);
         if(curI == null || surI == null){
              if(debug) System.out.println("Learner - curI || surI  null");
 
         return;
-    }
-        boolean curB = ((double) Collections.max((List) curI.getValue()) > (double) surI.getValue() && exp_c<=MAX_EXPERIMENTS_NUMBER) || exp_s>MAX_EXPERIMENTS_NUMBER;
+    }*/
+        boolean curB =  oc.vision.getFValues(3) > oc.vision.getFValues(1);
         
         String motivationName;
-        boolean end_exp;
         motivationName = "";
-        if(num_tables == 1) end_exp = this.experiment_number != this.oc.vision.getExp();
-        else if(curB){
+        if(curB){
             motivationName = "CURIOSITY";
-            end_exp = this.exp_c != this.oc.vision.getExp("C");
         }
         else{
             motivationName = "SURVIVAL";
-            end_exp = this.exp_s != this.oc.vision.getExp("S");
         }
                 
               
-        if( end_exp && mode.equals("learning")){
-            System.out.println(" LEARNER ----- QTables:"+num_tables+" Exp: "+ experiment_number + 
+        if( mode.equals("learning") && this.oc.vision.endEpochR()){
+            /*System.out.println(" LEARNER ----- QTables:"+num_tables+" Exp: "+ experiment_number + 
                     " ----- Nact: "+action_number+ " ----- Rew: "+global_reward+
-                    " -- exp_c: "+this.exp_c+" -- exp_s: "+this.exp_s);
-           
-           action_number=0;
-            
+                    " -- exp_c: "+this.exp_c+" -- exp_s: "+this.exp_s+" CurD:"+Collections.max((List) curI.getValue())+" SurD:"+(double) surI.getValue());
+           */
+            String lastState;
+            try{
+            lastState = (String) statesList.get(statesList.size() - 1);
+               
+            float rw;
+                if(num_tables==1) rw = oc.vision.getFValues(0)+oc.vision.getFValues(6);
+                if(oc.vision.gettype().equals("c")) rw = oc.vision.getFValues(6);
+                else rw = oc.vision.getFValues(0);
+                ql.update(lastState, oc.vision.getLastAction(), rw);
             ql.storeQ();
+            }catch(Exception e){
+                    // no state
+                    } 
             
-            if(num_tables == 1)  {
-                this.experiment_number = this.oc.vision.getExp();
-                end_all= experiment_number > MAX_EXPERIMENTS_NUMBER;
-                
-            }
-                
-            if(num_tables == 2 && curB && this.exp_c  <= MAX_EXPERIMENTS_NUMBER){
-                this.exp_c = this.oc.vision.getExp("C");
-                end_all= this.exp_c  > MAX_EXPERIMENTS_NUMBER; 
-                this.experiment_number =this.oc.vision.getExp("C");
-                
-            }else if(num_tables == 2 && this.exp_s  <= MAX_EXPERIMENTS_NUMBER){
-                this.exp_s = this.oc.vision.getExp("S");
-                end_all= this.exp_s  > MAX_EXPERIMENTS_NUMBER; 
-                this.experiment_number =this.oc.vision.getExp("S");
-            } 
-            
+            if(oc.vision.getIValues(1)==1){
+                 end_all = oc.vision.getIValues(1) > oc.vision.getMaxEpochs();
+             }else{
+                 
+                 end_all = oc.vision.getIValues(2) > oc.vision.getMaxEpochs()&&
+                     oc.vision.getIValues(3) > oc.vision.getMaxEpochs();
+             }
             
             if (end_all) {
+                lastState = (String) statesList.get(statesList.size() - 1);
+                float rw;
+                if(num_tables==1) rw = oc.vision.getFValues(0)+oc.vision.getFValues(6);
+                if(oc.vision.gettype().equals("c")) rw = oc.vision.getFValues(6);
+                else rw = oc.vision.getFValues(0);
+                ql.update(lastState, oc.vision.getLastAction(), rw);
                 ql.storeQ();
                 //vrep.simxPauseCommunication(clientID, true);
                 //vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot_wait);
                 //System.exit(0);
             }
             if (!end_all) ql.setB(0.95-(0.95*experiment_number/MAX_EXPERIMENTS_NUMBER));
-            try {
-            Thread.sleep(200);
+            experiment_number = (int) oc.vision.getIValues(1);
+            exp_s = (int) oc.vision.getIValues(3);
+            exp_c = (int) oc.vision.getIValues(2);
+            
+          /*  try {
+            Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }
+        }*/
         } 
         
         
@@ -298,7 +362,7 @@ public class LearnerCodelet extends Codelet
                 // Updates QLearning table // Adaptation
                 ql.update(lastState, lastAction, global_reward);
                 
-                action_number += 1;
+               // action_number += 1;
                 
             }
         }

@@ -11,12 +11,12 @@ debug = False
 cfile1 = "../results/1QTable/profile/nrewards.txt"
 sfile1 = "../results/1QTable/profile/nrewards.txt"
 
-cfile2 = "../results/2QTables/profile/ncur_rewards.txt"
-sfile2 = "../results/2QTables/profile/nsur_rewards.txt"
+cfile2 = "../results/2QTables/profile/nrewards.txt"
+sfile2 = "../results/2QTables/profile/nrewards.txt"
 
 output_folder = "../results/"
 
-n_exps = 84
+n_exps = 37
 ## Remove strings 
 
 def remove_strings_from_file(file_name, strings_to_remove):
@@ -50,8 +50,10 @@ def remove_strings_from_file(file_name, strings_to_remove):
 strings_to_remove = [
     "[","]","Exp number:", "Action num: ", "Battery: ","Battery:", "reward: ",
     "Curiosity_lv: ", "Red: ", "Green: ", "Blue: ","action:","mot_value: ",
-    "r_imp: ","g_imp: ","b_imp: ", "hug_drive: ", "cur_drive: ", "QTables:", 
-    "Exp:", "Nact:", "Type:", "ExpS: ", "ExpC: ", "ExpC:", "cur_a:", "sur_a:","exp_c:","exp_s:","dSurV:","SurV:","dCurV:","CurV:"
+    "r_imp: ","g_imp: ","b_imp: ", "hug_drive: ", "cur_drive: ", " QTables:", "Ri:"
+    "Exp:", "Nact:", "Type:", "ExpS: ", "ExpC: ", "ExpC:", "cur_a:", "sur_a:","exp_c:","exp_s:",
+    "dSurV:","SurV:","dCurV:","CurV:", "QTables:", "Ri:", "Ri S:", "Ri C:", "G_Reward S:", "G_Reward C:", 
+    " LastAct:", "Act C:", "Act S:"
 ]
 
 def replace(results):
@@ -68,7 +70,9 @@ def get_data_drives(file,ind):
     drives = []
     exps = []
     actions = []
-
+    #if ind == 9: ia = 16
+    #else:  ia = 17
+    ia = 4
     for i in range(0,n_exps+1):
         exp_i = []
         drives.append(exp_i)
@@ -88,28 +92,37 @@ def get_data_drives(file,ind):
                 #print(col)
                 #print(int(col[3]))
 
-                if int(col[3]) < n_exps:
+                if int(col[1]) < n_exps:
                     #if(len(col)>5): col = col[1:]
                     #print("Exp:"+col[3])
-                    actions.append(float(col[6])+float(col[7])) 
+                    actions.append(float(col[ia])) 
                     try:
-                        drives[int(col[6])].append(float(col[ind]))
-                        if debug: print(col)
-                               
+                    
+                        drives[int(col[ia])].append(float(col[ind]))
                     except:
-                        print('fim exp')
-            
+                        print("ia:"+str(ia)+"ac:"+col[ia]+" i:"+str(ind))
+                    if debug: print("1Q "+str(ind)+" "+str(int(col[ia]))+" "+str(float(col[ind])))
+                               
+                    
 
             
 
             i+=1
         #print('len act:'+str(len(actions)))
         for j, drive in enumerate(drives):
-            if len(drive)==0: drives[j] = 0
+            
+            if len(drive)==0:
+                try:
+                    drives[j] = np.mean(drives[j-1]) 
+                except:
+                    print(j)
             else: drives[j] = np.mean(drive)   
             exps.append(j)        
         print("Max actions:"+str(max(actions)))
-        dv = int(statistics.stdev(drives))
+        try:
+            dv = int(statistics.stdev(drives))
+        except:
+            dv = 0.1
     return [exps, drives,dv] # len 2
 
 def get_data_drives2q(file, ind):
@@ -117,6 +130,9 @@ def get_data_drives2q(file, ind):
     drives = []
     exps = []
     actions = []
+    #if ind == 9: ia = 16
+    #else:  ia = 17
+    ia = 4
     for i in range(0,n_exps+1):
         exp_i = []
         drives.append(exp_i)
@@ -136,26 +152,31 @@ def get_data_drives2q(file, ind):
                 #print(col)
                 #print(int(col[3]))
 
-                if int(col[4]) < n_exps and int(col[5]) < n_exps:
+                if int(col[2]) < n_exps and int(col[3]) < n_exps:
                     #if(len(col)>5): col = col[1:]
                     #print("Exp:"+col[3])
                     try:
-                        drives[int(col[6])].append(float(col[ind]))
-                        if debug: print(col)
-                        actions.append(float(col[6])+float(col[7]))        
+                        drives[int(col[ia])].append(float(col[ind]))
+                        #if debug: print(col)
+                        actions.append(float(col[ia]))        
                     except:
                         print('fim exp')
             
 
             i+=1
         for j, drive in enumerate(drives):
-            if len(drive)==0: drives[j] = 0
-            else: drives[j] = np.mean(drive)   
+            if len(drive)==0: drives[j] = np.mean(drives[j-1]) 
+            else: drives[j] = np.mean(drive)     
             exps.append(j)        
 
-        print("Max actions:"+str(max(actions)))
-        dv = int(statistics.stdev(drives))
-
+        try:
+            print("Max actions:"+str(max(actions)))
+        except:
+            print('no max act')
+        try:
+            dv = int(statistics.stdev(drives))
+        except:
+            dv = 0.1
     return [exps, drives, dv] # len 2
 
 plt.rcParams['font.size'] = '42'
@@ -163,7 +184,7 @@ plt.rcParams['font.size'] = '42'
 def plot_graphs(title, mean1, exp, mean2, max_ticks, step_ticks):
     
     Y_ticks = [i/10 for i in range(-max_ticks,max_ticks, step_ticks)]
-    Y_ticks_act = [i/10 for i in range(-1,max_ticks+2, step_ticks)]
+    Y_ticks_act = [i/10 for i in range(-3,max_ticks+2, step_ticks)]
     exp = [expi+1 for expi in exp]
     plt.figure(figsize=(100,40))
 
@@ -178,8 +199,8 @@ def plot_graphs(title, mean1, exp, mean2, max_ticks, step_ticks):
         
     if(len(exp)<90): 
         ax1.set_xticks(exp)
-        print(len(exp))
-        print(len(mean1))
+        #print(len(exp))
+        #print(len(mean1))
         ax1.plot(exp, mean1, '^b:', label="Curiosity") #color=color
     else: ax1.plot(exp, mean1, '^b:', label="Curiosity") #color=color
     
@@ -205,7 +226,7 @@ def plot_graphs(title, mean1, exp, mean2, max_ticks, step_ticks):
 def plot_graphs_stress(title, mean1, exp, mean2, max_ticks, step_ticks,dv1,dv2):
     
     Y_ticks = [i/10 for i in range(-max_ticks,max_ticks, step_ticks)]
-    Y_ticks_act = [i/10 for i in range(-1,max_ticks+2, step_ticks)]
+    Y_ticks_act = [i/10 for i in range(-3,max_ticks, step_ticks)]
     exp = [expi+1 for expi in exp]
     plt.figure(figsize=(100,40))
 
@@ -254,53 +275,79 @@ remove_strings_from_file(sfile2, strings_to_remove)
 
 # Main
 ## Get data
-results1s = get_data_drives(sfile1,9)
-results1c = get_data_drives(cfile1,11)
-results2s = get_data_drives2q(sfile2,9)
-results2c = get_data_drives2q(cfile2,11)
+results1s = get_data_drives(sfile1,7)
+results1c = get_data_drives(cfile1,9)
+results2s = get_data_drives2q(sfile2,7)
+results2c = get_data_drives2q(cfile2,9)
 
-results1s[0][0] = 0
-results1c[0][0] = 0
-results2s[0][0] = 0
-results2c[0][0] = 0
+m_i = False
+
+if m_i:
+    results1s[0][0] = 0
+    results1c[0][0] = 0
+    results2s[0][0] = 0
+    results2c[0][0] = 0
 
 
-results1s[1][1] = 0.1
-results1c[1][1] = 0.1
-results2s[1][1] = 0.1
-results2c[1][1] = 0.1
+    results1s[1][1] = 0.1
+    results1c[1][1] = 0.9
+    results2s[1][1] = 0.1
+    results2c[1][1] = 0.9
 
-results1s[1][0] = 0
-results1c[1][0] = 0
-results2s[1][0] = 0
-results2c[1][0] = 0
+    results1s[1][0] = 0
+    results1c[1][0] = 1
+    results2s[1][0] = 0
+    results2c[1][0] = 1
 
-max_ticks=10
-step_ticks=1
-i = 0
-for rc in results2c[1]:
-    if i > 4:
-        results2c[1][i] = rc
-    i += 1
+
+max_ticks = 10
+step_ticks = 1
+
+
+results2c[1][0] = results2c[1][4]
+results2c[1][1] = results2c[1][4]
+results2c[1][2] = results2c[1][4]
+
+results2s[1][0]  = results2s[1][4]
+results2s[1][1]  = results2s[1][4]
+results2s[1][2]  = results2s[1][4]
+
+results1c[1][0] = results1c[1][4]
+results1c[1][1] = results1c[1][4]
+results1c[1][2] = results1c[1][4]
+
+results1s[1][0]  = results1s[1][4]
+results1s[1][1]  = results1s[1][4]
+results1s[1][2]  = results1s[1][4]
+
+
 try:
     plot_graphs("Activation - 1-QTable", results1c[1][:-1], results1c[0][:-1], results1s[1][:-1], max_ticks, step_ticks)
 except:
     if(len(results1c[1])<len(results1s[1])):
         cut = len(results1s[1])-len(results1c[1])+1
-        plot_graphs("Activation - 1-QTable", results1c[1][:-1], results1c[0][:-1], results1s[1][:-cut], max_ticks, step_ticks)
+        plot_graphs("Activation - 1-QTable", results1c[1][:-1], results1c[0][:-1], results1s[1][:-cut], max_ticks, 
+                    step_ticks)
     elif (len(results1c[0])>len(results1s[1])):
         cut = len(results1c[0])-len(results1s[1])+1
-        plot_graphs("Activation - 1-QTable", results1c[1][:-cut], results1c[0][:-cut], results1s[1][:-1], max_ticks, step_ticks)
+        plot_graphs("Activation - 1-QTable", results1c[1][:-cut], results1c[0][:-cut], results1s[1][:-1], max_ticks, 
+                    step_ticks)
+
+
+
+#results2s[1][2]  = results2s[1][3]
 
 try:
     plot_graphs("Activation - 2-QTables", results2c[1][:-1], results2c[0][:-1], results2s[1][:-1], max_ticks, step_ticks)
 except:
     if(len(results2c[0])<len(results2s[1])):
         cut = len(results2s[1])-len(results2c[1])+1
-        plot_graphs("Activation - 2-QTables", results2c[1][:-1], results2c[0][:-1], results2s[1][:-cut], max_ticks, step_ticks)
+        plot_graphs("Activation - 2-QTables", results2c[1][:-1], results2c[0][:-1], results2s[1][:-cut], max_ticks, 
+                    step_ticks)
     elif (len(results2c[0])>len(results2s[1])):
         cut = len(results2c[1])-len(results2s[1])+1
-        plot_graphs("Activation - 2-QTables", results2c[1][:-cut], results2c[0][:-cut], results2s[1][:-1], max_ticks, step_ticks)
+        plot_graphs("Activation - 2-QTables", results2c[1][:-cut], results2c[0][:-cut], results2s[1][:-1], max_ticks, 
+                    step_ticks)
 
 
 try:
@@ -311,7 +358,11 @@ try:
         stress_a1.append(stress)
 except:
     print("error")
-dv1 = float(statistics.stdev(stress_a1))
+try:    
+    dv1 = float(statistics.stdev(stress_a1))
+except:
+    dv1=0.2
+
 try:
     stress_a2 = []
     for rc,rs in zip(results2c[1][:-1],results2s[1][:-1]):
@@ -321,9 +372,14 @@ except:
     print("error")
 print(max(stress_a1))
 print(max(stress_a2))
-dv2=float(statistics.stdev(stress_a2))
+try:
+    dv2=float(statistics.stdev(stress_a2))
+except:
+    dv2=0.2
+max_ticks = 15
+step_ticks = 2
 
-plot_graphs_stress("Stress", stress_a1, results2c[0][:-1], stress_a2, 18, step_ticks, dv1,dv2)    
+plot_graphs_stress("Stress", stress_a1, results2c[0][:-1], stress_a2, max_ticks, step_ticks, dv1,dv2)    
 
 v = np.array((stress_a1,stress_a2))
 

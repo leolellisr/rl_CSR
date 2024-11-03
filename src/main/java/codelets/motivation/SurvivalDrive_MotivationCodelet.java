@@ -44,7 +44,7 @@ public class SurvivalDrive_MotivationCodelet extends MotivationalCodelet
     private int stage, nActions;
     private Idea survival_motivation_idea;
     private List battReadings;
-    private double activation = 0.0;
+    private double activation = 0.0, aactivation = 0.0, lactivation = 0.0;
     private int max_lv = 100, index = -1;
     private boolean debug = false;
     private int experiment_number, action_number, exp_s, num_tables;
@@ -53,10 +53,11 @@ public class SurvivalDrive_MotivationCodelet extends MotivationalCodelet
         super(id, level, priority, urgencyThreshold);
         this.oc = outc;
         MAX_ACTION_NUMBER = oc.vision.getMaxActions();
-        MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxExp();
+        MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxEpochs();
         this.num_tables = num_tables;
-        exp_s = oc.vision.getExp();
+        exp_s = oc.vision.getEpoch();
 
+             
         
     }
     
@@ -78,19 +79,27 @@ public class SurvivalDrive_MotivationCodelet extends MotivationalCodelet
     @Override
     public void calculateActivation() {
        if(debug) System.out.println("before calc activation Survival: "+this.activation);
-       if(!battReadings.isEmpty()){
-            MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
-            if(debug) System.out.println("battery lv"+battery_lv.getI()+" type:"+battery_lv.getI().getClass().toString());
-            if("class java.lang.Integer".equals(battery_lv.getI().getClass().toString())){
-                int battery_lvint = (int)battery_lv.getI();
-                if(debug) System.out.println("battery lv before calc activation Survival: "+battery_lvint);
-
-                int inv_bat = 100-battery_lvint;
-                this.activation = (double)inv_bat/(double)max_lv;
-
-                if(debug) System.out.println("inv_bat "+inv_bat+" act_bat "+this.activation);
-            }
-       }	
+       int inv_bat = (int) (100-oc.vision.getIValues(5));
+                
+        this.activation = (double)inv_bat/(double)max_lv;
+                /*if(this.aactivation > this.lactivation && this.aactivation < 1.0) this.activation = this.activation+0.1;
+                if (this.activation == 1.0) this.activation = 1.0;
+                if (this.activation > 1.0) this.activation = 1.0;
+                
+                if(this.aactivation < this.lactivation && this.aactivation > 0.0) this.activation = this.activation-0.1;
+                if (this.activation == 0.0) this.activation = 0.0;
+                if(this.activation < 0.0) this.activation = 0.0;
+                this.lactivation = this.aactivation;*/
+        if(debug) System.out.println("inv_bat "+inv_bat+" act_bat "+this.activation);
+        
+        /*try {
+            Thread.sleep(50);
+        } catch (Exception e) {
+            Thread.currentThread().interrupt();
+        }
+          */      
+            
+       	
        if(debug) System.out.println("after calc activation Survival: "+this.activation);
 
     }
@@ -101,7 +110,7 @@ public class SurvivalDrive_MotivationCodelet extends MotivationalCodelet
         this.calculateActivation();
 
         if(debug) System.out.println("after get activation Survival: "+this.activation);
-
+        
         return this.activation;
 
     }
@@ -115,12 +124,16 @@ public class SurvivalDrive_MotivationCodelet extends MotivationalCodelet
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }
-
-        if(!battReadings.isEmpty()) this.activation = getActivation();
-
+        if((boolean)oc.battery.getCharge() && (int)oc.vision.getIValues(5)<100) oc.battery.setData((int)oc.vision.getIValues(5)+5);
+        else if((int)oc.vision.getIValues(5)>0) oc.battery.setData((int)oc.vision.getIValues(5)-5);
+        oc.vision.setIValues(5, (int) oc.battery.getData());
+        this.activation = getActivation();
+        activation = (double) Math.round(activation*10)/10;
+        if(debug) System.out.println("Battery activation: "+this.activation);
+        oc.vision.setFValues(1, (float) this.activation);
         survival_motivation_idea = new Idea("SURVIVAL", this.activation);
 
-        if(debug) System.out.println("Battery activation: "+this.activation);
+        
         if(index == -1) index = motivationMC.setI(survival_motivation_idea, activation);
         else motivationMC.setI(survival_motivation_idea, activation, index);
        // printToFile(activation,"survival_drive.txt", action_number);
@@ -130,16 +143,16 @@ public class SurvivalDrive_MotivationCodelet extends MotivationalCodelet
         
         
         
-        boolean exp_b = false;
-        if(num_tables == 1) exp_b = this.experiment_number != this.oc.vision.getExp();
-        else exp_b = this.exp_s != this.oc.vision.getExp("S");
+        /*boolean exp_b = false;
+        if(num_tables == 1) exp_b = this.experiment_number != this.oc.vision.getEpoch();
+        else exp_b = this.exp_s != this.oc.vision.getEpoch("S");
         
         
         if(exp_b){
-           this.experiment_number = this.oc.vision.getExp();
-           this.exp_s = this.oc.vision.getExp("S");
+           this.experiment_number = this.oc.vision.getEpoch();
+           this.exp_s = this.oc.vision.getEpoch("S");
            action_number=0;
-        }
+        }*/
     }
 
     @Override

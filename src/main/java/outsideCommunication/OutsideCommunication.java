@@ -24,6 +24,7 @@ import coppelia.CharWA;
 import coppelia.FloatWA;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 //import outsideCommunication.OrientationVrep;
 
 /**
@@ -49,9 +50,9 @@ public class OutsideCommunication {
         private List<FloatWA> objsPositions;
         private ArrayList<FloatWA> allobjsPositions;
         private ArrayList<FloatWA> objsOrientations;
-
+        private String mode;
   
-	public OutsideCommunication(int max_epochs) {
+	public OutsideCommunication(int max_epochs, String mode) {
 		vrep = new remoteApi();
 		vision_orientations = new ArrayList<>();
                 obj_handle = new IntW[nObjs];
@@ -59,6 +60,7 @@ public class OutsideCommunication {
                 allobjsPositions = new ArrayList<>();
                 objsOrientations = new ArrayList<>();
                 this.max_epochs = max_epochs;
+                this.mode = mode;
 
 	}
 
@@ -121,7 +123,7 @@ public class OutsideCommunication {
 		
 
 		vision = new VisionVrep(vrep, clientID, vision_handles, max_epochs);
-                battery = new VirtualBattery();
+                battery = new VirtualBattery(this, this.mode);
                 depth = new DepthVrep(vrep, clientID, vision_handles, vision.getStage(), vision);    
 		try {
 			Thread.sleep(1000);
@@ -202,6 +204,10 @@ public class OutsideCommunication {
         }
         
          public void reset_battery(){
-             battery.setData(100);
+             Random random = new Random();
+             int battery_i; 
+             if("learning".equals(mode)) battery_i = random.nextInt(71) + 30;
+             else battery_i = 100;
+             battery.setData(battery_i);
          }
 }

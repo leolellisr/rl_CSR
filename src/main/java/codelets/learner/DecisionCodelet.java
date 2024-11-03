@@ -41,13 +41,13 @@ private static final float CRASH_TRESHOLD = 0.28f;
 private static int MAX_ACTION_NUMBER;
 
 private static int MAX_EXPERIMENTS_NUMBER;
-private QLearningL ql;
+private QLearningSQL ql;
 private ArrayList<Object> motivationMO;
 private MemoryObject motorActionMO, reward_stringMO, action_stringMO;
 private MemoryObject neckMotorMO;
 private MemoryObject headMotorMO;
 private List<String> actionsList, allStatesList;
-private List<QLearningL> qTableList, qTableSList, qTableCList;
+private List<QLearningSQL> qTableList, qTableSList, qTableCList;
 private List<Double>  rewardList, rewardSList, rewardCList;
 private OutsideCommunication oc;
 private final int timeWindow;
@@ -95,16 +95,21 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
 
 
     angle_step = 0.1f;
-    experiment_number = oc.vision.getExp();
+    experiment_number = oc.vision.getEpoch();
 
     timeWindow = tWindow;
     sensorDimension = sensDim;
     this.mode = mode;
     MAX_ACTION_NUMBER = oc.vision.getMaxActions();
-    MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxExp();
-    exp_s = oc.vision.getExp();
-        exp_c = oc.vision.getExp();
-        
+    MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxEpochs();
+    exp_s = oc.vision.getEpoch();
+        exp_c = oc.vision.getEpoch();
+              /*try {
+                Thread.sleep(200);
+            } catch (Exception e) {
+                Thread.currentThread().interrupt();
+            }
+   */
     }
 
     // This method is used in every Codelet to capture input, broadcast 
@@ -169,30 +174,31 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
     @Override
     public void proc() {
                 //System.out.println("yawPos: "+yawPos+" headPos: "+headPos);
-	try {
-            Thread.sleep(80);
+	/*try {
+            Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }       
-        QLearningL ql = null;
+        }  */     
+        QLearningSQL ql = null;
         
         if(motivationMO == null){
             if(sdebug) System.out.println("DECISION -----  motivationMO is null");
                 return;
             }
         
-        Idea curI = (Idea) motivationMO.get(0);
-        Idea surI = (Idea) motivationMO.get(1);
-        boolean curB = (double) Collections.max((List) curI.getValue()) > (double) surI.getValue();
         
         
+       boolean curB =  oc.vision.getFValues(3) > oc.vision.getFValues(1);
+        
+        String motivationName;
+        motivationName = "";
         if(curB){
             motivationName = "CURIOSITY";
         }
         else{
             motivationName = "SURVIVAL";
         }
-        
+            
         if(this.num_tables == 2 && motivationName.equals("SURVIVAL")){
             if(qTableSList.isEmpty()){
                 return;
@@ -220,9 +226,9 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
 
         
         String state = "-1";
-        state = getStateFromSalMap();
+        if(!saliencyMap.isEmpty() ) state = getStateFromSalMap();
         String actionToTake = ql.getAction(state);
-
+        
                 // Select best action to take
 
         
@@ -238,31 +244,38 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
                 
         allStatesList.add(state);
         action_number += 1;
-        printToFile(actionToTake,"actions.txt", action_number);
-        
-        boolean surB = ((double) surI.getValue() > (double) Collections.max((List) curI.getValue())  && exp_s<MAX_EXPERIMENTS_NUMBER) || exp_c>MAX_EXPERIMENTS_NUMBER;
-        
+        oc.vision.addAction(actionToTake);
+        oc.vision.setLastAction(actionToTake);
+        //oc.vision.setIValues(4, (int) oc.vision.getIValues(4)+1);
+       // printToFile(actionToTake,"actions.txt", action_number);
+/*        boolean surB;
+        try{
+        surB = ((double) surI.getValue() > (double) Collections.max((List) curI.getValue())  && exp_s<MAX_EXPERIMENTS_NUMBER) || exp_c>MAX_EXPERIMENTS_NUMBER;
+        }
+        catch(Exception e){
+        surB = true;
+        }
         boolean exp_b = false;
-        if(num_tables == 1) exp_b = this.experiment_number != this.oc.vision.getExp();
-        else if(!surB) exp_b = this.exp_c != this.oc.vision.getExp("C");
-        else exp_b = this.exp_s != this.oc.vision.getExp("S");
+        if(num_tables == 1) exp_b = this.experiment_number != this.oc.vision.getEpoch();
+        else if(!surB) exp_b = this.exp_c != this.oc.vision.getEpoch("C");
+        else exp_b = this.exp_s != this.oc.vision.getEpoch("S");
         
         if(exp_b){
             System.out.println("DECISION ----- Exp: "+ experiment_number + 
                     " ----- N act: "+action_number+" ----- Act: "+actionToTake+
                     " ----- Type: "+motivationName);
 	
-            if(num_tables == 1) this.experiment_number = this.oc.vision.getExp();
-            else if(!surB) this.exp_c = this.oc.vision.getExp("C");
-            else this.exp_s = this.oc.vision.getExp("S");
+            if(num_tables == 1) this.experiment_number = this.oc.vision.getEpoch();
+            else if(!surB) this.exp_c = this.oc.vision.getEpoch("C");
+            else this.exp_s = this.oc.vision.getEpoch("S");
             action_number=0;
             try {
-            Thread.sleep(200);
+            Thread.sleep(20);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }
-            
-        }
+  */          
+        //}
     }
 	
 	
@@ -342,32 +355,37 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
             stateVal += (int) Math.pow(2, i)*discreteVal;
         }
         
-        Idea curI = (Idea) motivationMO.get(0);
-        Idea surI = (Idea) motivationMO.get(1);
-        boolean curB = (double) Collections.max((List) curI.getValue()) > (double) surI.getValue();
+        boolean surB = oc.vision.getFValues(1) > oc.vision.getFValues(3);
         
-        
-        
-        if(curB){
+       
+        //System.out.println("Rewardcomputer SurB:"+surB);
+        if(!surB){
             motivationName = "CURIOSITY";
         }
         else{
             motivationName = "SURVIVAL";
         }
         double mot_value;
-        if(motivationName.equals("SURVIVAL"))  mot_value = (double) surI.getValue();
+        int stateIndex = -1;
+        if(motivationName.equals("SURVIVAL"))  mot_value = (double) oc.vision.getFValues(1);
         else{
-            mot_value = (double)Collections.max((List) curI.getValue());
+            mot_value = (double) oc.vision.getFValues(3);
             
         } 
         if(num_tables==1){
-            return (double)Collections.max((List) curI.getValue())+" "+
-                (double) surI.getValue()+" "+stateVal.toString();
+        try{
+            stateIndex = (int) ((oc.vision.getFValues(3) * 6 * 65536) + (oc.vision.getFValues(1) * 65536) + stateVal);
+            }
+        catch(Exception e){
+        return "["+0.0+","+
+                oc.vision.getFValues(1)+","+stateVal.toString()+ "]";
+        }
         }
         else if(num_tables==2){
-            return mot_value+" "+stateVal.toString();
+            stateIndex = (int) (mot_value * 65536) + stateVal;
+            
         }
-        return null;
+        return String.valueOf(stateIndex);
     }
 		
 	
@@ -383,15 +401,20 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
 
         return sum / list.size();
     }
-
+/*
     private void printToFile(Object object,String filename, int action_num){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();
         boolean exp_b = false;
         Idea curI = (Idea) motivationMO.get(0);
         Idea surI = (Idea) motivationMO.get(1);
-        boolean surB = ((double) surI.getValue() > (double) Collections.max((List) curI.getValue())  && exp_s<MAX_ACTION_NUMBER) || exp_c>MAX_ACTION_NUMBER;
-        
+        boolean surB;
+        try{
+        surB = ((double) surI.getValue() > (double) Collections.max((List) curI.getValue())  && exp_s<MAX_ACTION_NUMBER) || exp_c>MAX_ACTION_NUMBER;
+        }
+        catch(Exception e){
+        surB = true;
+        }
         if(num_tables == 1) exp_b = this.experiment_number < MAX_EXPERIMENTS_NUMBER;
         else if(!surB) exp_b = this.exp_c < MAX_EXPERIMENTS_NUMBER;
         else exp_b = this.exp_s < MAX_EXPERIMENTS_NUMBER;
@@ -412,5 +435,5 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
 
     }
 
-
+*/
 }

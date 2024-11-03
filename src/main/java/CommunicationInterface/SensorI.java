@@ -12,22 +12,36 @@
  
 package CommunicationInterface;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author L. M. Berto
  * @author L. L. Rossi (leolellisr)
  */
 public interface SensorI {
-    public void setExp(int exp);
-    public void setExp(int exp, String s);
-    public int getExp();
-    public int getExp(String s);
+     public String gettype();
+    public String getLastAction();
+    public void setLastAction(String a);
+    public boolean endEpochR();
+    public ArrayList<String> getExecutedAct();
+     public void addAction(String a);
+    public float getFValues(int i);
+    public void setFValues(int i, float f);
+    public float getIValues(int i);
+    public void setIValues(int i, int f);     
+    public void setEpoch(int exp);
+    public void setEpoch(int exp, String s);
+    public int getEpoch();
+    public int getEpoch(String s);
     public Object getData();
     public void resetData();
     public int getMaxActions();
-    public int getMaxExp();
-    public boolean endExp();
+    public int getMaxEpochs();
+    public boolean endEpoch();
     public int getStage();
 public int getAux();
+public int getnAct();
+public void setnAct(int a);
     public void setStage(int stage);
 }

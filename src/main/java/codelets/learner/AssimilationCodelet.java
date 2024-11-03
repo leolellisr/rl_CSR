@@ -108,8 +108,13 @@ public class AssimilationCodelet extends Codelet
             Idea curI = (Idea) motivationMO.get(0);
                 Idea surI = (Idea) motivationMO.get(1);
                 String nameMotivation;
-                boolean curB = (double) Collections.max((List) curI.getValue()) > (double) surI.getValue();
-
+                boolean curB;
+try{
+                curB = (double) Collections.max((List) curI.getValue()) > (double) surI.getValue();
+}
+        catch(Exception e){
+        curB = false;
+        }
 
                 if(curB){
                     nameMotivation = "CURIOSITY";

@@ -73,7 +73,7 @@ public class ActionExecCodelet extends Codelet
     private int[] fovea2 = {8, 9, 12, 13};
     private int[] fovea3 = {10, 11, 14, 15};    
    
-    private int action_number, action_index;
+    private int action_index;
     private int experiment_number, exp_s, exp_c;
     private int stage, fovea;
     
@@ -119,10 +119,11 @@ public class ActionExecCodelet extends Codelet
         green_c = 0;
         blue_c =0;
         MAX_ACTION_NUMBER = oc.vision.getMaxActions();
-        MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxExp();
-        experiment_number = oc.vision.getExp();
-        exp_s = oc.vision.getExp("S");
-        exp_c = oc.vision.getExp("C");
+        MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxEpochs();
+        experiment_number = oc.vision.getEpoch();
+        exp_s = oc.vision.getEpoch("S");
+        exp_c = oc.vision.getEpoch("C");
+        
     }
 
     // This method is used in every Codelet to capture input, broadcast 
@@ -187,11 +188,11 @@ public class ActionExecCodelet extends Codelet
         yawPos = oc.NeckYaw_m.getSpeed();
         headPos = oc.HeadPitch_m.getSpeed(); 
         //System.out.println("yawPos: "+yawPos+" headPos: "+headPos);
-        try {
-            Thread.sleep(200);
+        /*try {
+            Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }       
+        }    */   
         
         if(actionsList.size()<1 || winnersList.size()<1 || battReadings.size()<1){
             if(debug){
@@ -204,28 +205,28 @@ public class ActionExecCodelet extends Codelet
         }
         String actionToTake = actionsList.get(actionsList.size() - 1);
         if(sdebug) System.out.println("ACT_EXEC -----  Exp: "+ experiment_number 
-                +" ----- Act: "+ actionToTake+" ----- N_act: "+action_number+" Curiosity_lv: "
+                +" ----- Act: "+ actionToTake+" ----- N_act: "+oc.vision.getExecutedAct()+" Curiosity_lv: "
                 +curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
         
         Winner lastWinner = (Winner) winnersList.get(winnersList.size() - 1);
         winnerIndex = lastWinner.featureJ;
-        action_number += 1;
+       
         
-        Idea curI = (Idea) motivationMO.get(0);
-        Idea surI = (Idea) motivationMO.get(1);
-        boolean curB = (double) Collections.max((List) curI.getValue()) > (double) surI.getValue();
+       boolean surB = oc.vision.getFValues(1) > oc.vision.getFValues(3);
         
-        
-        if(curB){
+       
+        //System.out.println("Rewardcomputer SurB:"+surB);
+        if(!surB){
             nameMotivation = "CURIOSITY";
         }
         else{
             nameMotivation = "SURVIVAL";
         }
         
-        if(nameMotivation.equals("CURIOSITY")) cur_a +=1;
-        else if(nameMotivation.equals("SURVIVAL")) sur_a += 1;
-                        
+        if(nameMotivation.equals("CURIOSITY")) oc.vision.setIValues(6, (int) (oc.vision.getIValues(6)+1));
+        else if(nameMotivation.equals("SURVIVAL")) oc.vision.setIValues(7, (int) (oc.vision.getIValues(7)+1));
+        oc.vision.setIValues(4, (int) (oc.vision.getIValues(4)+1));
+        
         if(!executedActions.contains(actionToTake)) executedActions.add(actionToTake);
             
             // AM1 - Move neck to left
@@ -454,7 +455,7 @@ public class ActionExecCodelet extends Codelet
             
 
             check_stop_experiment();
-            printToFile("object_count.txt");
+            //printToFile("object_count.txt");
     } 
 
     
@@ -468,29 +469,42 @@ public class ActionExecCodelet extends Codelet
             crashed = true;
         }*/
         
-        MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
+       /* MemoryObject battery_lv = (MemoryObject) battReadings.get(battReadings.size()-1);
         int battery_lvint = (int)battery_lv.getI();
         boolean action;
+        oc.vision.setnAct(action_number);
         if(num_tables == 1){
             action=action_number >= MAX_ACTION_NUMBER;
         }else{
             action= cur_a>MAX_ACTION_NUMBER || sur_a>MAX_ACTION_NUMBER;            
-        }
-        if(this.oc.vision.endExp() || battery_lvint==0){
+        }*/
+       //|| battery_lvint==0|| battery_lvint<0
+        if(this.oc.vision.endEpoch() ){
              crashed = true;
-             
+             this.oc.vision.setIValues(4, (int) 0);
+             if(this.oc.vision.getFValues(3)>this.oc.vision.getFValues(1)) this.oc.vision.setIValues(6, (int) (this.oc.vision.getIValues(6)+1));
+             else this.oc.vision.setIValues(7, (int) (this.oc.vision.getIValues(7)+1));
+        } else{
+            this.oc.vision.setIValues(4, (int) (this.oc.vision.getIValues(7)+this.oc.vision.getIValues(6)));
         }
-        if (mode.equals("learning") && (action || crashed ) ){
-            printToFile("object_count_end.txt");
+        
+/*        try {
+			Thread.sleep(20);
+		} catch (Exception e) {
+			Thread.currentThread().interrupt();
+		}
+        */
+        if (mode.equals("learning") &&  crashed  ){
+//            printToFile("object_count_end.txt");
             oc.shuffle_positions();
             oc.reset_positions();
 
             
-            System.out.println("ACT EXEC Max number of actions or crashed. Exp: "+ experiment_number +
-                    " exp_c:"+exp_c+" exp_s:"+exp_s+" ----- N_act: "+action_number+"\n----- cur_a: "+cur_a+"----- sur_a: "+sur_a+
+           /* System.out.println("ACT EXEC Max number of actions or crashed. Exp: "+ experiment_number +
+                    " exp_c:"+exp_c+" exp_s:"+exp_s+" ----- N_act: "+oc.vision.getnAct()+"\n----- cur_a: "+cur_a+"----- sur_a: "+sur_a+
                     " Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
             System.out.println("crashed: "+crashed);
-            System.out.println("battery_lvint: "+battery_lvint);
+            System.out.println("battery_lvint: "+oc.vision.getIValues(5));*/
             curiosity_lv = 0;
             red_c = 0;
             green_c = 0;
@@ -501,47 +515,48 @@ public class ActionExecCodelet extends Codelet
             neckMotorMO.setI(0f);
             yawPos = 0f;
             headPos = 0f;
-            experiment_number++;
+/*            experiment_number++;
             if(nameMotivation.equals("CURIOSITY") && exp_c <= MAX_EXPERIMENTS_NUMBER ) exp_c +=1;
             else if(exp_s > MAX_EXPERIMENTS_NUMBER && exp_c <= MAX_EXPERIMENTS_NUMBER )   exp_c += 1;
             
             if(nameMotivation.equals("SURVIVAL")  && exp_s <= MAX_EXPERIMENTS_NUMBER) exp_s += 1;
             else if(exp_c > MAX_EXPERIMENTS_NUMBER && exp_s <= MAX_EXPERIMENTS_NUMBER )   exp_s += 1;
             
-            if(num_tables == 1) oc.vision.setExp(experiment_number);
+            if(num_tables == 1) oc.vision.setEpoch(experiment_number);
             else  {
-                oc.vision.setExp(exp_c+exp_s);
-                oc.vision.setExp(exp_c,"C");
-                oc.vision.setExp(exp_s,"S");
-            }
+                oc.vision.setEpoch(exp_c+exp_s);
+                oc.vision.setEpoch(exp_c,"C");
+                oc.vision.setEpoch(exp_s,"S");
+            }*/
             //experiment_number = printToFile(global_reward, "rewards.txt", experiment_number, false, action_number);
 //                        stringOutput.clear();
 //                       stringOutput.add("rewards.txt");
-            action_number = 0;
+            /*action_number = 0;
             cur_a=0;
-            sur_a=0;
+            sur_a=0;*/
             oc.reset_battery();
+            
             executedActions.clear();
-            if (num_tables == 1 && experiment_number > MAX_EXPERIMENTS_NUMBER) {
+           /* if (num_tables == 1 && experiment_number > MAX_EXPERIMENTS_NUMBER) {
 
                 System.exit(0);
             } else if (num_tables == 2 && exp_c > MAX_EXPERIMENTS_NUMBER && exp_s > MAX_EXPERIMENTS_NUMBER) {
 
                 System.exit(0);
             }
-
+*/
             //oc.marta_position.resetData();
-            try {
-                Thread.sleep(200);
+            /*try {
+                Thread.sleep(50);
             } catch (Exception e) {
                 Thread.currentThread().interrupt();
-            }
-        } else if (mode.equals("exploring") && (action_number >= MAX_ACTION_NUMBER ) || crashed ) {
-            System.out.println("Max number of actions or crashed. Exp: "+ experiment_number +
+            }*/
+        } else if (mode.equals("exploring") &&  crashed ) {
+            /*System.out.println("Max number of actions or crashed. Exp: "+ experiment_number +
                     " exp_c:"+exp_c+" exp_s:"+exp_s+
-                    " ----- N_act: "+action_number+"\n Curiosity_lv: "+curiosity_lv+
-                    " Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);
-            aux_crash = 0;
+                    " ----- N_act: "+oc.vision.getnAct()+"\n Curiosity_lv: "+curiosity_lv+
+                    " Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c);/*/
+            //aux_crash = 0;
             oc.shuffle_positions();
             oc.reset_positions();
 
@@ -550,24 +565,29 @@ public class ActionExecCodelet extends Codelet
             yawPos = 0f;
             headPos = 0f;
             //experiment_number = printToFile(global_reward, "rewards.txt", experiment_number, false, action_number);
-            experiment_number++;
+            /*experiment_number++;
             if(nameMotivation.equals("CURIOSITY") && exp_c <= MAX_EXPERIMENTS_NUMBER) exp_c +=1;
                
             if(nameMotivation.equals("SURVIVAL") && exp_s <= MAX_EXPERIMENTS_NUMBER) exp_s += 1;
             
-            if(num_tables == 1) oc.vision.setExp(experiment_number);
+            if(num_tables == 1) oc.vision.setEpoch(experiment_number);
             else {
-                oc.vision.setExp(exp_c+exp_s);
-                oc.vision.setExp(exp_c,"C");
-                oc.vision.setExp(exp_s,"S");
-            }
+                oc.vision.setEpoch(exp_c+exp_s);
+                oc.vision.setEpoch(exp_c,"C");
+                oc.vision.setEpoch(exp_s,"S");
+            }*/
             oc.reset_battery();
-            action_number = 0;
+            //action_number = 0;
             executedActions.clear();
-            if (experiment_number > MAX_EXPERIMENTS_NUMBER) {
+            /*if (experiment_number > MAX_EXPERIMENTS_NUMBER) {
 
                 System.exit(0);
             } 
+            try {
+            Thread.sleep(50);
+        } catch (Exception e) {
+            Thread.currentThread().interrupt();
+        } */
         }
     }
 
@@ -587,7 +607,7 @@ public static float calculateMean(ArrayList<Float> list) {
 
             return sum / list.size();
         } 
-    private void printToFile(String filename){
+   /* private void printToFile(String filename){
     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
     LocalDateTime now = LocalDateTime.now();
     boolean bool_d = false;
@@ -617,5 +637,5 @@ public static float calculateMean(ArrayList<Float> list) {
 
     }
 		
-
+*/
 }

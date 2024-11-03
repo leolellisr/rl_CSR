@@ -112,14 +112,14 @@ public class disSalMap extends Codelet {
     }
     
     private void printToFile(Object object,String filename){
-        if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
+        if(this.vision.getEpoch() == 1 || this.vision.getEpoch()%print_step == 0){
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
             LocalDateTime now = LocalDateTime.now();
             try(FileWriter fw = new FileWriter("profile/"+filename,true);
                 BufferedWriter bw = new BufferedWriter(fw);
                 PrintWriter out = new PrintWriter(bw))
             {
-                out.println(dtf.format(now)+"_"+vision.getExp()+"_"+time_graph+" "+ object);
+                out.println(dtf.format(now)+"_"+vision.getEpoch()+"_"+time_graph+" "+ object);
                 time_graph++;
                 out.close();
             } catch (IOException e) {

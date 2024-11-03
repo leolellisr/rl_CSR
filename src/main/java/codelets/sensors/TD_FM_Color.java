@@ -214,14 +214,14 @@ public class TD_FM_Color extends FeatMapCodelet {
     
     /*private void printToFile(ArrayList<Float> arr){
         // if(time_graph%2 == 0 ){
-        if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
+        if(this.vision.getEpoch() == 1 || this.vision.getEpoch()%print_step == 0){
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
             LocalDateTime now = LocalDateTime.now(); 
             try(FileWriter fw = new FileWriter("profile/vision_top_color_FM.txt", true);
                 BufferedWriter bw = new BufferedWriter(fw);
                 PrintWriter out = new PrintWriter(bw))
             {
-                out.println(dtf.format(now)+"_"+vision.getExp()+"_"+time_graph+" "+ arr);
+                out.println(dtf.format(now)+"_"+vision.getEpoch()+"_"+time_graph+" "+ arr);
                 time_graph++;
                 out.close();
             } catch (IOException e) {

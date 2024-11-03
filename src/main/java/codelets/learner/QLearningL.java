@@ -26,10 +26,10 @@ import org.json.JSONObject;
 public class QLearningL extends QLearning{
     
     private boolean showDebugMessages=false;
-    private ArrayList<String> statesList;
+    private ArrayList<Integer> statesList;
     private ArrayList<String> actionsList;
     private String fileName="QTable.txt";
-    private HashMap<String, HashMap<String,Double>> Q;
+    private HashMap<Integer, HashMap<String,Double>> Q;
 
 
     private double e=0.1; //Probability of choosing the best action instead of a random one
@@ -37,15 +37,16 @@ public class QLearningL extends QLearning{
     private double gamma=0.9; //discount factor
     private double b=0.95; // probability of random action choice deciding for the previous action instead of randomly choosing one from the action list
     //	private int statesCount,actionsCount;
-    private String s="",a="",sl="",al="";
+    private String a="",al="";
+    private int s=-1,sl=-1;
     private double reward=0;
     private Random r=new Random();
 
     
     public QLearningL(){
-		statesList=new ArrayList<String>();
+		statesList=new ArrayList<Integer>();
 		actionsList=new ArrayList<String>();
-		Q = new HashMap<String, HashMap<String,Double>>(); // Q learning
+		Q = new HashMap<Integer, HashMap<String,Double>>(); // Q learning
 	}
     
     public void setFilename(String file){
@@ -66,7 +67,7 @@ public class QLearningL extends QLearning{
          * @param state
          * @param action 
          */
-	public void setQ(double Qval, String state, String action){
+	public void setQ(double Qval, int state, String action){
 		HashMap<String,Double> tempS=this.Q.get(state);
 		if(tempS!=null){
 			//This state already exists, So I have to check if it already contains this action
@@ -95,7 +96,7 @@ public class QLearningL extends QLearning{
         * @param action
         * @return
         */
-	public double getQ(String state,String action){
+	public double getQ(int state,String action){
 		double dQ=0;
 		if(!(Q.get(state)==null || Q.get(state).get(action)==null)){
 			dQ=Q.get(state).get(action);
@@ -108,7 +109,7 @@ public class QLearningL extends QLearning{
         * @param sl
         * @return Q Value
         */
-	public double maxQsl(String sl){
+	public double maxQsl(int sl){
 		double maxQinSl=0;
 		String maxAl="";
 		double val=0;
@@ -140,12 +141,12 @@ public class QLearningL extends QLearning{
         * @param actionIDid action I did while at the previous state
         * @param rewardIGot reward I got after moving from previous state to the present one
         */
-	public void update(String stateIWas,String actionIDid, double rewardIGot) {
+	public void update(int stateIWas,String actionIDid, double rewardIGot) {
 		//which is calculated whenever action a is executed in state s leading to state s'
 		this.sl=stateIWas;
 		this.al=actionIDid;
 
-		if(!a.equals("")&& !s.equals("")){
+		if(!a.equals("")&& s !=-1){
 			//			if(!s.equals(sl)){//Updates only if state changes, is this correct?
 			double Qas=this.getQ(s, a);
 			double MaxQ=this.maxQsl(this.sl);
@@ -169,9 +170,9 @@ public class QLearningL extends QLearning{
         */
 	public void printQ() {
 		System.out.println("------ Printed Q -------");
-		Iterator<Map.Entry<String, HashMap<String, Double>>> itS = this.Q.entrySet().iterator(); 
+		Iterator<Map.Entry<Integer, HashMap<String, Double>>> itS = this.Q.entrySet().iterator(); 
 		while (itS.hasNext()) { 
-			Map.Entry<String, HashMap<String, Double>> pairs = itS.next(); 			
+			Map.Entry<Integer, HashMap<String, Double>> pairs = itS.next(); 			
 			HashMap<String,Double> tempA = pairs.getValue(); 
 			Iterator<Map.Entry<String, Double>> itA = tempA.entrySet().iterator();
 			double val=0;
@@ -189,51 +190,46 @@ public class QLearningL extends QLearning{
         
     @Override
     public void storeQ(){
-            String textQ="";
-            //		JSONArray actionValueArray=new JSONArray();
-            JSONObject actionValuePair = new JSONObject();
+            try (FileWriter writer = new FileWriter(this.fileName)) {
+            writer.write("{"); // Start of JSON object
+            Iterator<Map.Entry<Integer, HashMap<String, Double>>> itS = Q.entrySet().iterator();
 
-            JSONObject actionsStatePair = new JSONObject();
-            //		JSONArray statesArray= new JSONArray();
-            try {
-                    Iterator<Map.Entry<String, HashMap<String, Double>>> itS = this.Q.entrySet().iterator(); 
-                    while (itS.hasNext()) { 
-                            Map.Entry<String, HashMap<String, Double>> pairs = itS.next(); 			
-                            HashMap<String,Double> tempA = pairs.getValue(); 
-                            Iterator<Map.Entry<String, Double>> itA = tempA.entrySet().iterator();
-                            double val=0;
-                            //				System.out.print("State("+pairs.getKey()+") actions: ");
-                            actionValuePair=new JSONObject();
-                            while(itA.hasNext()){
-                                    Map.Entry<String, Double> pairsA = itA.next();
-                                    val=pairsA.getValue();
-                                    actionValuePair.put(pairsA.getKey(), val);
-                            }		
-                            //				System.out.println(actionsStatePair+" "+pairs.getKey()+" "+actionValuePair);
-                            actionsStatePair.put(pairs.getKey(),actionValuePair);
-                    } 
+            while (itS.hasNext()) {
+                Map.Entry<Integer, HashMap<String, Double>> pairs = itS.next();
+                int state = pairs.getKey();
+                HashMap<String, Double> actions = pairs.getValue();
 
-            } catch (JSONException e) {e.printStackTrace();}
+                writer.write("\"" + state + "\": {"); // Write state as JSON object
 
-            //use buffering
-            Writer output;
-            try {
-                    output = new BufferedWriter(new FileWriter(fileName));
+                Iterator<Map.Entry<String, Double>> itA = actions.entrySet().iterator();
+                while (itA.hasNext()) {
+                    Map.Entry<String, Double> actionPair = itA.next();
+                    String action = actionPair.getKey();
+                    double value = actionPair.getValue();
 
-                    try {
-                            //FileWriter always assumes default encoding is OK!
-                            output.write( actionsStatePair.toString() );
+                    // Write action-value pair as JSON key-value pair
+                    writer.write("\"" + action + "\":" + value);
+
+                    // Add a comma if this is not the last action-value pair
+                    if (itA.hasNext()) {
+                        writer.write(",");
                     }
-                    finally {
-                            output.close();
-                    }
+                }
 
-            } catch (IOException e) {e.printStackTrace();}
+                writer.write("}"); // End of state JSON object
 
+                // Add a comma if this is not the last state
+                if (itS.hasNext()) {
+                    writer.write(",");
+                }
+            }
 
-            //		System.out.println("------ Stored Q -------");
-            //		System.out.println("Q: "+actionsStatePair.toString());
-            //		System.out.println("----------------------------");
+            writer.write("}"); // End of JSON object
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    
     }
 
     /**
@@ -282,9 +278,9 @@ public class QLearningL extends QLearning{
 
                     Iterator itS = actionsStatePairs.keys(); 
                     while (itS.hasNext()) { 
-                            String state=itS.next().toString();
+                            int state=(int) itS.next();
                             //				System.out.println("itS.next(): "+state);
-                            JSONObject pairAS =  (JSONObject) actionsStatePairs.get(state); 	
+                            JSONObject pairAS =  (JSONObject) actionsStatePairs.get(String.valueOf(state)); 	
 
                             Iterator itA = pairAS.keys();
                             while(itA.hasNext()){

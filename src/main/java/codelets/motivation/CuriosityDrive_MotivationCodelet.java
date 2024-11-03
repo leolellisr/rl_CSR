@@ -34,7 +34,7 @@ import outsideCommunication.OutsideCommunication;
  * @author leolellisr
  */
 public class CuriosityDrive_MotivationCodelet extends MotivationalCodelet 
-{   private Idea curiosity_motivation_id = new Idea("CURIOSITY", null);
+{   private Idea curiosity_motivation_id;
     private List actions, rewards;
     private ArrayList<Object> motivationMO;
     private MemoryObject activationMO;
@@ -51,6 +51,7 @@ public class CuriosityDrive_MotivationCodelet extends MotivationalCodelet
 private List<String> allStatesList;	
     private static int MAX_EXPERIMENTS_NUMBER;   
     private MemoryContainer proceduralMemoryMO;
+    private float exp_fact = (float) 0.15;
     public CuriosityDrive_MotivationCodelet(String id, double level, double priority, double urgencyThreshold, 
             OutsideCommunication outc, int num_tables){
         super(id, level, priority, urgencyThreshold);
@@ -58,9 +59,9 @@ private List<String> allStatesList;
         this.stage = this.oc.vision.getStage();
         this.activation = 0.0;
         MAX_ACTION_NUMBER = oc.vision.getMaxActions();
-        MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxExp();
+        MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxEpochs();
         this.num_tables = num_tables;
-        exp_c = oc.vision.getExp();
+        exp_c = oc.vision.getEpoch();
          if(stage == 1 || stage == 2){
             nActions = 10;
             allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
@@ -68,7 +69,8 @@ private List<String> allStatesList;
             nActions = 20;
             allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
         }
-        curiosity_motivation_list = new ArrayList<>(Collections.nCopies(nActions, 0.0));
+        //curiosity_motivation_list = new ArrayList<>(Collections.nCopies(nActions, 0.0));
+
 
     }
     
@@ -97,7 +99,7 @@ private List<String> allStatesList;
         
     @Override
     public void calculateActivation() {
-        if(actions.isEmpty()) this.activation = (double) 1.0;
+        if(actions.isEmpty()) this.activation = (double) 1.0-Math.pow(exp_fact, oc.vision.getnAct());
 
     }
 
@@ -120,9 +122,27 @@ private List<String> allStatesList;
             return exists;
         }
     
+    public static double calculateMean(ArrayList<Double> list) {
+            if (list == null) {
+                return 0; // Return 0 if the list is empty or handle it as required
+            }
+            
+            if (list.isEmpty()) {
+                return 0; // Return 0 if the list is empty or handle it as required
+            }
+
+            double sum = 0;
+            for (double value : list) {
+                sum += value;
+            }
+
+            return sum / list.size();
+        } 
+    
    // Main Codelet function, to be implemented in each subclass.
     @Override
     public void proc() {
+        
         getActivation();
        
         
@@ -132,18 +152,41 @@ private List<String> allStatesList;
             Thread.currentThread().interrupt();
         }
 
-        if(allStatesList == null || stage > 1){
-            return;
-        } else if (stage > 1){
+        if(actions.isEmpty()){
+             this.activation = 1.0;
+            }
+       
+        /*} else if (stage > 1 && !allStatesList.isEmpty()){
             String lastState = allStatesList.get(allStatesList.size()-1);
             boolean verify_memory = verify_if_memory_exists(lastState);
-            curiosity_motivation_list = (ArrayList<Double>) curiosity_motivation_id.getValue();
+            if(curiosity_motivation_id.getValue()!=null) curiosity_motivation_list = 
+                    (ArrayList<Double>) curiosity_motivation_id.getValue();
             for(String action : allActionsList){
                 if(!verify_memory){
-                    curiosity_motivation_list.set(allActionsList.indexOf(action), 0.8);
-                }else if(curiosity_motivation_list.get(allActionsList.indexOf(action)) <0.8 && curiosity_motivation_list.get(allActionsList.indexOf(action)) >=0.2) {
-                    curiosity_motivation_list.set(allActionsList.indexOf(action),curiosity_motivation_list.get(allActionsList.indexOf(action))-0.1);
-                }else if(curiosity_motivation_list.get(allActionsList.indexOf(action)) < 0.1 || curiosity_motivation_list.get(allActionsList.indexOf(action)) == 0.1) {
+                    if(!actions.contains(action) ) {
+                        //System.out.println("curiosity actions doesnt conatins action");
+                        curiosity_motivation_list.set(allActionsList.indexOf(action), 1.0-
+                                        0.1*oc.vision.getnAct());
+                    }
+                    if(actions.contains(action) && curiosity_motivation_id.getValue()!=null){
+                       if(debug) System.out.println("actions conatins action "+
+                               Collections.frequency(actions, action) );
+                        curiosity_motivation_list.set(allActionsList.indexOf(action),  
+                                curiosity_motivation_list.get(allActionsList.indexOf(action))-
+                                        0.1*(Collections.frequency(actions, action)));
+                    }else if(actions.contains(action) && curiosity_motivation_id.getValue()==null){
+                       if(debug) System.out.println("actions conatins action "+
+                               Collections.frequency(actions, action) );
+                        curiosity_motivation_list.set(allActionsList.indexOf(action), 
+                                1-0.1*(Collections.frequency(actions, action)));
+                    }
+                    
+                }else if(curiosity_motivation_list.get(allActionsList.indexOf(action)) <1 &&
+                        curiosity_motivation_list.get(allActionsList.indexOf(action)) >=0.2) {
+                    curiosity_motivation_list.set(allActionsList.indexOf(action),
+                            curiosity_motivation_list.get(allActionsList.indexOf(action))-0.1);
+                }else if(curiosity_motivation_list.get(allActionsList.indexOf(action)) < 0.1 || 
+                        curiosity_motivation_list.get(allActionsList.indexOf(action)) == 0.1) {
                     curiosity_motivation_list.set(allActionsList.indexOf(action), 0.0);
                 }
             }
@@ -151,25 +194,36 @@ private List<String> allStatesList;
 
 
 
-        curiosity_motivation_id.setValue(curiosity_motivation_list);
-        if(actions.isEmpty()) activation = (double) 1.0;
-        else activation = (double) Collections.max(curiosity_motivation_list);
+        curiosity_motivation_id.setValue(curiosity_motivation_list);*/
+        else{
+            int count_cur = 0;
+            ArrayList<String> getExecutedAct = oc.vision.getExecutedAct();
+            for(String action : allActionsList){
+                if(!getExecutedAct.contains(action)) count_cur+=1;
+            }
+        activation = (double) count_cur/allActionsList.size();
+        activation = (double) Math.round(activation*10)/10;
+        if(debug) System.out.println("curiosity a: "+activation+"count_cur: "+count_cur);
+        }
+        oc.vision.setFValues(3, (float) this.activation);
+        curiosity_motivation_id = new Idea("CURIOSITY", this.activation);
         if(debug) System.out.println("curiosity_motivation_list: "+curiosity_motivation_list);
         if(index == -1) index = motivationMC.setI(curiosity_motivation_id, activation);
         else motivationMC.setI(curiosity_motivation_id, activation, index);
        // printToFile(activation,"curiosity_drive.txt", action_number);
-        action_number+=1;    
-        boolean exp_b = false;
-        if(num_tables == 1) exp_b = this.experiment_number != this.oc.vision.getExp();
-        else exp_b = this.exp_c != this.oc.vision.getExp("C");
+        //action_number+=1;    
+       /* boolean exp_b = false;
+        if(num_tables == 1) exp_b = this.experiment_number != this.oc.vision.getEpoch();
+        else exp_b = this.exp_c != this.oc.vision.getEpoch("C");
+        */
         
-        
-        if(exp_b){
-           this.experiment_number = this.oc.vision.getExp();
-           this.exp_c = this.oc.vision.getExp("C");
+        /*if(exp_b){
+           this.experiment_number = this.oc.vision.getEpoch();
+           this.exp_c = this.oc.vision.getEpoch("C");
            
             action_number=0;
-        }
+        }*/
+        //}
     }
 
     @Override

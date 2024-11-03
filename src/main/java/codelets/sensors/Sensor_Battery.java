@@ -46,13 +46,12 @@ public class Sensor_Battery extends Codelet {
 
     @Override
     public void proc() {
-        try {
-            Thread.sleep(200);
+        /*try {
+            Thread.sleep(10);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }       
-        if((boolean)battery.getCharge() && (int)battery.getData()<100) battery.setData((int)battery.getData()+5);
-        else if((int)battery.getData()>0) battery.setData((int)battery.getData()-5);
+        }       */
+        
         battery_read.setI(battery.getData());
         if(debug) System.out.println("proc battery:"+(int)battery.getData());
 

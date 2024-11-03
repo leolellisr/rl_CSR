@@ -34,6 +34,7 @@ import javax.imageio.ImageIO;
 
 import java.time.format.DateTimeFormatter;  
 import java.time.LocalDateTime;    
+import java.util.Random;
 
 /**
  *
@@ -45,12 +46,14 @@ public class VirtualBattery implements SensorI{
     private Integer battery_data;   
     private final int max_time_graph=100;
     private boolean charging;
-
-    public VirtualBattery() {
+private OutsideCommunication oc;
+    public VirtualBattery(OutsideCommunication outc, String mode) {
         this.time_graph = 0;
-        this.battery_data = 100;
+        Random random = new Random();
+        if("learning".equals(mode)) this.battery_data = random.nextInt(71) + 30;
+        else this.battery_data = 100;
         this.charging = false;
-
+        oc = outc;
     }
     
     public Object getCharge() {
@@ -69,34 +72,39 @@ public class VirtualBattery implements SensorI{
         
     @Override
     public Object getData() {
-       /*try {
-            Thread.sleep(100);
+       /*if(battery_data==0 || battery_data<0)
+       {   try {
+            Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }*/
+        }}*/
+       
         return  battery_data;
     }
 
     public void setData(int data) {
         this.battery_data = data;
-        printToFile(battery_data);        
+       
+        
+        
+       // printToFile(battery_data);        
 
     }
     
-    private void printToFile(Object object){
+   /* private void printToFile(Object object){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();  
         try(FileWriter fw = new FileWriter("profile/battery.txt", true);
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw)){
-            out.println(dtf.format(now)+"_"+time_graph+" "+ object);
+            out.println(dtf.format(now)+"_"+oc.vision.getEpoch()+"_"+time_graph+" "+ object);
             time_graph++;
             out.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
         
-    }
+    }*/
 
 	@Override
 	public void resetData() {
@@ -105,12 +113,12 @@ public class VirtualBattery implements SensorI{
 	}
 
     @Override
-    public void setExp(int exp) {
+    public void setEpoch(int exp) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public int getExp() {
+    public int getEpoch() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
@@ -135,22 +143,82 @@ public class VirtualBattery implements SensorI{
     }
 
     @Override
-    public int getMaxExp() {
+    public int getMaxEpochs() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public int getExp(String s) {
+    public int getEpoch(String s) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public void setExp(int exp, String s) {
+    public void setEpoch(int exp, String s) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public boolean endExp() {
+    public boolean endEpoch() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public int getnAct() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void setnAct(int a) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public float getFValues(int i) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void setFValues(int i, float f) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public float getIValues(int i) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void setIValues(int i, int f) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public ArrayList<String> getExecutedAct() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void addAction(String a) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public boolean endEpochR() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public String getLastAction() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void setLastAction(String a) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public String gettype() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
     

@@ -641,7 +641,7 @@ if(stringOutput!=null && action_stringMO != null)                action_stringMO
                             stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+" reward: "+global_reward+" mot_value: "+mot_value+" r_imp: "+(float) (r_imp/mot_value*100)+" g_imp: "+(float) (g_imp/mot_value*100)+" b_imp: "+(float) (b_imp/mot_value*100);
                         }
                         if(stringOutput!=null && reward_stringMO != null)   reward_stringMO.setI(stringOutput);
-                        oc.vision.setExp(experiment_number);
+                        oc.vision.setEpoch(experiment_number);
                         action_number = 0;
                         global_reward = 0;
                         curiosity_lv = 0;
@@ -686,7 +686,7 @@ if(stringOutput!=null && action_stringMO != null)                action_stringMO
                             stringOutput = time_graph+" Exp number:"+experiment_number+" Action num: "+action_number+ " Battery: "+battery_lvint+" Curiosity_lv: "+curiosity_lv+" Red: "+red_c+" Green: "+green_c+" Blue: "+blue_c+" reward: "+global_reward+" mot_value: "+mot_value+" r_imp: "+(float) (r_imp/mot_value*100)+" g_imp: "+(float) (g_imp/mot_value*100)+" b_imp: "+(float) (b_imp/mot_value*100);
                         }
                       if(stringOutput!=null && reward_stringMO != null)    reward_stringMO.setI(stringOutput);
-                        oc.vision.setExp(experiment_number);
+                        oc.vision.setEpoch(experiment_number);
                         oc.reset_battery();
 			curiosity_lv = 0;
                         action_number = 0;

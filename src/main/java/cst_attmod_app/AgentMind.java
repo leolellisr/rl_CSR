@@ -74,6 +74,7 @@ public class AgentMind extends Mind {
     public AgentMind(OutsideCommunication oc, String mode, String motivation, 
             int num_tables, int print_step) throws IOException{
         super();
+        oc.vision.setIValues(0, num_tables);
         this.print_step = print_step;
         
         //System.out.println("AgentMind");

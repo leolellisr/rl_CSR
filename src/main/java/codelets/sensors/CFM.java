@@ -147,7 +147,7 @@ private boolean debug = false;
     
       
    /* private void printToFile(Object object,String filename){
-        if(this.sensor.getExp() == 1 || this.sensor.getExp()%print_step == 0){
+        if(this.sensor.getEpoch() == 1 || this.sensor.getEpoch()%print_step == 0){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
         LocalDateTime now = LocalDateTime.now();
         //if(time_graph%2 == 0 ){
@@ -155,7 +155,7 @@ private boolean debug = false;
                 BufferedWriter bw = new BufferedWriter(fw);
                 PrintWriter out = new PrintWriter(bw))
             {
-                out.println(dtf.format(now)+"_"+this.sensor.getExp()+"_"+time_graph+" "+ object);
+                out.println(dtf.format(now)+"_"+this.sensor.getEpoch()+"_"+time_graph+" "+ object);
                 //if(time_graph == max_time_graph-1) System.out.println(filename+": "+time_graph);          
                 time_graph++;
                 out.close();

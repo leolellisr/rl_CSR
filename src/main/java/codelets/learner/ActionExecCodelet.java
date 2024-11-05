@@ -103,7 +103,7 @@ public class ActionExecCodelet extends Codelet
         // am5: fovea 0; am6: fovea 1; am7: fovea 2; am8: fovea 3; am9: fovea 4; 
         // am10: neck tofocus; am11: head tofocus; am12: neck awayfocus; am13: head awayfocus
         // aa0: focus td color; aa1: focus td depth; aa2: focus td region.
-        allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
+        allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "am14", "am15", "am16")); //"aa1", "aa2", 
         // States are 0 1 2 ... 5^256-1
 
         oc = outc;
@@ -149,7 +149,7 @@ public class ActionExecCodelet extends Codelet
         greenReadings = (List) MO.getI();
         MO = (MemoryObject) this.getInput("VISION_BLUE_FM");
         blueReadings = (List) MO.getI();*/
-        MO = (MemoryObject) this.getInput("DEPTH_FM");
+        //MO = (MemoryObject) this.getInput("DEPTH_FM");
         distReadings = (List) MO.getI();
 
         MO = (MemoryObject) this.getInput("ACTIONS");
@@ -160,8 +160,8 @@ public class ActionExecCodelet extends Codelet
         headMotorMO = (MemoryObject) this.getOutput("HEAD_PITCH");
 
         desFC = (MemoryObject) this.getOutput("DESFEAT_C");
-        desFD = (MemoryObject) this.getOutput("DESFEAT_D");
-        desFR = (MemoryObject) this.getOutput("DESFEAT_R");
+        //desFD = (MemoryObject) this.getOutput("DESFEAT_D");
+        //desFR = (MemoryObject) this.getOutput("DESFEAT_R");
     }
 
     // This abstract method must be implemented by the user. 
@@ -432,7 +432,7 @@ public class ActionExecCodelet extends Codelet
             } 
 
             // AA1 - Define desired distance
-            else if (actionToTake.equals("aa1") && this.stage == 3) {
+            /*else if (actionToTake.equals("aa1") && this.stage == 3) {
                    List desired_feat_dist = (List) desFD.getI();        
                 if(desired_feat_dist.size() == timeWindow){
                     desired_feat_dist.remove(0);
@@ -451,7 +451,7 @@ public class ActionExecCodelet extends Codelet
                 desired_feat_reg_t.add(8);
                 desired_feat_reg_t.add(8);
                 
-            }
+            }*/
             
 
             check_stop_experiment();

@@ -38,7 +38,7 @@ public class AssimilationCodelet extends Codelet
     private OutsideCommunication oc;
     private int stage, nActions, num_tables;
     private String motivation;
-    private List<String> allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
+    private List<String> allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0",  "am14", "am15", "am16")); //"aa1", "aa2",
     private ArrayList<Object> motivationMO;
     private boolean debug = false;
     

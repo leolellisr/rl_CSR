@@ -72,10 +72,10 @@ public class LearnerCodelet extends Codelet
     private final int numSalValues = 65536;  // Sal has 2^16 values
 
     private List<Integer> allStatesList = new ArrayList<>();
-        
     //private int past_exp;
     //private Idea ideaMotivation;
-    public LearnerCodelet (remoteApi vrep, int clientid, OutsideCommunication outc, int tWindow, String mode, String motivation,  String motivationType,  String output, int num_tables) {
+    public LearnerCodelet (remoteApi vrep, int clientid, OutsideCommunication outc, int tWindow, 
+            String mode, String motivation,  String motivationType,  String output, int num_tables) {
         super();
         this.vrep=vrep;
 
@@ -83,7 +83,7 @@ public class LearnerCodelet extends Codelet
 
         action_number = 0;
 
-        
+        this.oc = outc;
         clientID = clientid;
         this.num_tables = num_tables;
         this.output = output;
@@ -93,76 +93,42 @@ public class LearnerCodelet extends Codelet
         // am5: fovea 0; am6: fovea 1; am7: fovea 2; am8: fovea 3; am9: fovea 4; 
         // am10: neck tofocus; am11: head tofocus; am12: neck awayfocus; am13: head awayfocus
         // aa0: focus td color; aa1: focus td depth; aa2: focus td region.
-        allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
+        allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16")); //
         // States are 0 1 2 ... 5^256-1
      //   ArrayList<String> allStatesList = new ArrayList<>(Arrays.asList(IntStream.rangeClosed(0, (int)Math.pow(2, 16)-1).mapToObj(String::valueOf).toArray(String[]::new)));
         double[] dcValues = DoubleStream.iterate(0.0, n -> n <= 1.0, n -> n + 0.2).toArray(); // 21 values from 0 to 1.0
         double[] dsValues = DoubleStream.iterate(0.0, n -> n <= 1.0, n -> n + 0.2).toArray(); // Same as Dc range
         int salMax = (int)Math.pow(2, 16); // Sal has 65536 values (0 to 65535)
-
+        int batteryMax =21;
         
        int numStates; 
-        
-        
-        // QLearning initialization
-        
-        
-        
-        if(num_tables==2) {
-            ql = new QLearningSQL("QTable_"+motivationType+".db");
-            ql.setFilename("QTable_"+motivationType+".db");
-        }else{
-            ql = new QLearningSQL("Qtable.db");
-            ql.setFilename("Qtable.db");
-        }
-        ql.setAlpha((double) 0.9);
-        ql.setActionsList(allActionsList);
-        oc = outc;               
         experiment_number = oc.vision.getEpoch();
         this.stage = this.oc.vision.getStage();
-        MAX_ACTION_NUMBER = oc.vision.getMaxActions();
-        MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxEpochs();
-        // learning mode ---> build Qtable from scratch
-        if (mode.equals("learning") && this.stage == 1) {
-        // Initialize QTable to 0
         
-        if(num_tables==1){
-            // Directly calculate and set Q-values for each state-action pair on-the-fly
-            for (double dc : dcValues) {
-                int dcIndex = (int) (dc * 5); // Map Dc to [0, 20]
-                for (double ds : dsValues) {
-                    int dsIndex = (int) (ds * 5); // Map Ds to [0, 20]
-                    for (int sal = 0; sal < salMax; sal++) {
-                        // Calculate the unique state index
-                        int stateIndex = (dcIndex * 6 * 65536) + (dsIndex * 65536) + sal;
-                        // Set Q-values for each action in the current state
-                        for (String action : allActionsList) {
-                            ql.setQ(0, stateIndex, action); // Initialize Q-table entry
-                        }
-                    }
-                }
-            }
-            ql.storeQ();
+        // QLearning initialization
+        if(num_tables==2) {
+            ql = new QLearningSQL("QTable_"+motivationType+".db",allActionsList);
+            ql.setFilename("QTable_"+motivationType+".db");
         }else{
-            // Directly calculate and set Q-values for each state-action pair on-the-fly
-            
-                for (double ds : dsValues) {
-                    int dsIndex = (int) (ds * 5); // Map Ds to [0, 20]
-                    for (int sal = 0; sal < salMax; sal++) {
-                        // Calculate the unique state index
-                        int stateIndex = (dsIndex * 65536) + sal;
-                        // Set Q-values for each action in the current state
-                        for (String action : allActionsList) {
-                            ql.setQ(0, stateIndex, action); // Initialize Q-table entry
-                        }
-                    }
-                }
-            
-            ql.storeQ();
-        
+            ql = new QLearningSQL("Qtable.db",allActionsList);
+            ql.setFilename("Qtable.db");
         }
+         ql.setAlpha((double) 0.9);
+        ql.setE(1);
+        ql.setB(1.0-ql.getE());
         
-        } else if (mode.equals("learning") && this.stage > 1){
+        if (mode.equals("learning") && this.stage == 1) {
+            System.out.println("init Learner");
+            // Initialize QTable to 0 with bulk insertion
+            if (num_tables == 1) {
+                ql.initializeQTableBulk(allActionsList, 1, batteryMax, salMax, dsValues, dcValues);
+            } else {
+                ql.initializeQTableBulk(allActionsList, 2, batteryMax, salMax, dsValues, new double[0]);
+            }
+
+        
+        } else if (mode.equals("learning") ){
+            
             try {
                     ql.recoverQ();
                 }
@@ -173,9 +139,11 @@ public class LearnerCodelet extends Codelet
         }
 
         // exploring mode ---> reloads Qtable 
-        else {
+        else if (mode.equals("exploring")) {
             try {
                 ql.recoverQ();
+                ql.setE(0);
+                ql.setB(1.0-ql.getE());
             }
             catch (Exception e) {
                 System.out.println("ERROR LOADING QTABLE");
@@ -183,9 +151,12 @@ public class LearnerCodelet extends Codelet
             }
         }
 
-
+if(debug) System.out.println("init learner");
         timeWindow = tWindow;
         this.mode = mode;
+        
+        MAX_ACTION_NUMBER = oc.vision.getMaxActions();
+        MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxEpochs();
     }
 
     // This method is used in every Codelet to capture input, broadcast 
@@ -253,7 +224,7 @@ public class LearnerCodelet extends Codelet
             Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }       */
+        }  */     
         if(motivationMO == null){
              if(debug) System.out.println("Learner - motivationMO null");
 
@@ -266,6 +237,7 @@ public class LearnerCodelet extends Codelet
 
         return;
     }*/
+       if(debug) System.out.println("pre motivation");
         boolean curB =  oc.vision.getFValues(3) > oc.vision.getFValues(1);
         
         String motivationName;
@@ -277,22 +249,23 @@ public class LearnerCodelet extends Codelet
             motivationName = "SURVIVAL";
         }
                 
-              
-        if( mode.equals("learning") && this.oc.vision.endEpochR()){
-            /*System.out.println(" LEARNER ----- QTables:"+num_tables+" Exp: "+ experiment_number + 
+           boolean  endEpochR =   this.oc.vision.endEpochR();
+        if( mode.equals("learning") && endEpochR){
+           /* System.out.println(" LEARNER ----- QTables:"+num_tables+" Exp: "+ experiment_number + 
                     " ----- Nact: "+action_number+ " ----- Rew: "+global_reward+
-                    " -- exp_c: "+this.exp_c+" -- exp_s: "+this.exp_s+" CurD:"+Collections.max((List) curI.getValue())+" SurD:"+(double) surI.getValue());
+                    " -- exp_c: "+this.exp_c+" -- exp_s: "+this.exp_s);
            */
-            String lastState;
+            int lastState;
             try{
-            lastState = (String) statesList.get(statesList.size() - 1);
+            lastState = (int) statesList.get(statesList.size() - 1);
                
             float rw;
-                if(num_tables==1) rw = oc.vision.getFValues(0)+oc.vision.getFValues(6);
-                if(oc.vision.gettype().equals("c")) rw = oc.vision.getFValues(6);
-                else rw = oc.vision.getFValues(0);
-                ql.update(lastState, oc.vision.getLastAction(), rw);
+            if(num_tables==1) rw = oc.vision.getFValues(0)+oc.vision.getFValues(6);
+            else if(oc.vision.gettype().equals("c")) rw = oc.vision.getFValues(6);
+            else rw = oc.vision.getFValues(0);
+            ql.update(lastState, oc.vision.getLastAction(), rw);
             ql.storeQ();
+            
             }catch(Exception e){
                     // no state
                     } 
@@ -306,7 +279,7 @@ public class LearnerCodelet extends Codelet
              }
             
             if (end_all) {
-                lastState = (String) statesList.get(statesList.size() - 1);
+                lastState = (int) statesList.get(statesList.size() - 1);
                 float rw;
                 if(num_tables==1) rw = oc.vision.getFValues(0)+oc.vision.getFValues(6);
                 if(oc.vision.gettype().equals("c")) rw = oc.vision.getFValues(6);
@@ -317,7 +290,10 @@ public class LearnerCodelet extends Codelet
                 //vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot_wait);
                 //System.exit(0);
             }
-            if (!end_all) ql.setB(0.95-(0.95*experiment_number/MAX_EXPERIMENTS_NUMBER));
+            else {
+                ql.setE(0.95-(0.95*experiment_number/MAX_EXPERIMENTS_NUMBER));
+                ql.setB(1.0-ql.getE());
+            }
             experiment_number = (int) oc.vision.getIValues(1);
             exp_s = (int) oc.vision.getIValues(3);
             exp_c = (int) oc.vision.getIValues(2);
@@ -344,9 +320,9 @@ public class LearnerCodelet extends Codelet
         // Use the Random class to generate a random index
         Random random = new Random();
 
-        String state = "-1";
+        int state = -1;
 
-        if (!end_all && !saliencyMap.isEmpty() &&  mode.equals("learning")) {
+        if (!end_all && !saliencyMap.isEmpty() &&  mode.equals("learning")){
 
             if (!statesList.isEmpty() && !rewardsList.isEmpty() && !actionsList.isEmpty() && mode.equals("learning")) {
 
@@ -355,9 +331,9 @@ public class LearnerCodelet extends Codelet
 
                 // Gets last action taken
                 lastAction = actionsList.get(actionsList.size() - 1);
-
+                if(debug) System.out.println("Learner lastAct"+lastAction);
                 // Gets last state that was in
-                String lastState = (String) statesList.get(statesList.size() - 1);
+                int lastState = (int) statesList.get(statesList.size() - 1);
 
                 // Updates QLearning table // Adaptation
                 ql.update(lastState, lastAction, global_reward);

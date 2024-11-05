@@ -206,7 +206,10 @@ public class OutsideCommunication {
          public void reset_battery(){
              Random random = new Random();
              int battery_i; 
-             if("learning".equals(mode)) battery_i = random.nextInt(71) + 30;
+             if("learning".equals(mode)){
+                 int bt = random.nextInt(71) + 30;
+                 battery_i = Math.round(bt/ 5.0f) * 5;
+             }
              else battery_i = 100;
              battery.setData(battery_i);
          }

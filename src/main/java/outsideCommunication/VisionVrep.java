@@ -62,7 +62,7 @@ public class VisionVrep implements SensorI{
         vision_data = Collections.synchronizedList(new ArrayList<>(res*res*3));
         this.vrep = vrep;
         this.stage =3;
-       this.num_epoch = 1;
+       this.num_epoch = 295;
         this.num_exp_c = num_epoch;
         this.num_exp_s =num_epoch;
         this.nact = 0;
@@ -323,6 +323,9 @@ public class VisionVrep implements SensorI{
     
     @Override
     public void setnAct(int a){
+        if(a>this.lastLinei.get(4)+1){
+            a+=1;
+        }
         this.lastLinei.set(4, a);
     }
     @Override
@@ -347,12 +350,15 @@ public class VisionVrep implements SensorI{
         
         CharWA image_RGB = new CharWA(res*res*3);           //CharWA that returns RGB data of Vision Sensor
         IntWA resolution = new IntWA(2);            //Array to get resolution of Vision Sensor
-        
+        int ret_RGB;
         long startTime = System.currentTimeMillis();
-        
-        int ret_RGB = vrep.simxGetVisionSensorImage(clientID, vision_handles.getValue(), resolution, 
+        try {
+        ret_RGB = vrep.simxGetVisionSensorImage(clientID, vision_handles.getValue(), resolution, 
                 image_RGB, 0, vrep.simx_opmode_streaming); 
-        
+         }
+        catch(Exception e){
+        System.out.println("error vision ");
+    }
         while (System.currentTimeMillis()-startTime < 2000)
         {
             ret_RGB = vrep.simxGetVisionSensorImage(clientID, vision_handles.getValue(), resolution, image_RGB, 0, 

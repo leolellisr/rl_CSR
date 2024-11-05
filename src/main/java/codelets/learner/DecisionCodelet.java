@@ -46,7 +46,8 @@ private ArrayList<Object> motivationMO;
 private MemoryObject motorActionMO, reward_stringMO, action_stringMO;
 private MemoryObject neckMotorMO;
 private MemoryObject headMotorMO;
-private List<String> actionsList, allStatesList;
+private List<String> actionsList;
+private List<Integer> allStatesList;
 private List<QLearningSQL> qTableList, qTableSList, qTableCList;
 private List<Double>  rewardList, rewardSList, rewardCList;
 private OutsideCommunication oc;
@@ -85,9 +86,9 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
     // am5: fovea 0; am6: fovea 1; am7: fovea 2; am8: fovea 3; am9: fovea 4; 
     // am10: neck tofocus; am11: head tofocus; am12: neck awayfocus; am13: head awayfocus
     // aa0: focus td color; aa1: focus td depth; aa2: focus td region.
-    allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
+    allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16")); //"aa1", "aa2", 
     // States are 0 1 2 ... 5^256-1
-    ArrayList<String> allStatesList = new ArrayList<>(Arrays.asList(IntStream.rangeClosed(0, (int)Math.pow(2, 16)-1).mapToObj(String::valueOf).toArray(String[]::new)));
+    //ArrayList<String> allStatesList = new ArrayList<>(Arrays.asList(IntStream.rangeClosed(0, (int)Math.pow(2, 16)-1).mapToObj(String::valueOf).toArray(String[]::new)));
 
     oc = outc;
 
@@ -178,7 +179,7 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
             Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }  */     
+        }   */  
         QLearningSQL ql = null;
         
         if(motivationMO == null){
@@ -187,7 +188,7 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
             }
         
         
-        
+       if(debug) System.out.println("  Decision proc"); 
        boolean curB =  oc.vision.getFValues(3) > oc.vision.getFValues(1);
         
         String motivationName;
@@ -213,6 +214,7 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
 
         }else if(this.num_tables == 1){
             if(qTableList.isEmpty()){
+                if(debug) System.out.println("  qtable empty"); 
                 return;
             }
             ql = qTableList.get(qTableList.size()-1);
@@ -223,10 +225,12 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
         if(ql==null){
             return;
         }
-
         
-        String state = "-1";
+        if(debug) System.out.println("  post first qtable"); 
+        
+        int state = -1;
         if(!saliencyMap.isEmpty() ) state = getStateFromSalMap();
+        if(debug) System.out.println("  Decision state:"+state); 
         String actionToTake = ql.getAction(state);
         
                 // Select best action to take
@@ -241,7 +245,7 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
         if(allStatesList.size() == timeWindow){
                     allStatesList.remove(0);
         } 
-                
+        if(debug)  System.out.println("  Decision actionToTake:"+actionToTake);      
         allStatesList.add(state);
         action_number += 1;
         oc.vision.addAction(actionToTake);
@@ -285,7 +289,7 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
 	// Normalize and transform a salience map into one state
 		// Normalized values between 0 and 1 can be mapped into 0, 1, 2, 3 or 4
 		// Them this values are computed into one respective state
-    public String getStateFromSalMap() {
+    public int getStateFromSalMap() {
         ArrayList<Float> mean_lastLine = new ArrayList<>();
         for(int i=0; i<16;i++) mean_lastLine.add(0f);
         
@@ -373,19 +377,14 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
             
         } 
         if(num_tables==1){
-        try{
-            stateIndex = (int) ((oc.vision.getFValues(3) * 6 * 65536) + (oc.vision.getFValues(1) * 65536) + stateVal);
-            }
-        catch(Exception e){
-        return "["+0.0+","+
-                oc.vision.getFValues(1)+","+stateVal.toString()+ "]";
-        }
-        }
-        else if(num_tables==2){
-            stateIndex = (int) (mot_value * 65536) + stateVal;
+        stateIndex = (int) ((oc.vision.getIValues(5) * 6 * 6 * 65536) + (oc.vision.getFValues(3) * 6 * 65536) + (oc.vision.getFValues(1) * 65536) + stateVal);
             
         }
-        return String.valueOf(stateIndex);
+        else if(num_tables==2){
+            stateIndex = (int) (oc.vision.getIValues(5) * 6 * 65536 + mot_value * 65536) + stateVal;
+            
+        }
+        return stateIndex;
     }
 		
 	

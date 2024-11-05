@@ -105,7 +105,9 @@ public class RewardComputerCodelet extends Codelet
     // am5: fovea 0; am6: fovea 1; am7: fovea 2; am8: fovea 3; am9: fovea 4; 
     // am10: neck tofocus; am11: head tofocus; am12: neck awayfocus; am13: head awayfocus
     // aa0: focus td color; aa1: focus td depth; aa2: focus td region.
-    allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16"));
+    allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", 
+            "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0",  "aa1", "aa2", "am14", "am15", 
+            "am16")); //"aa1", "aa2",
     this.oc = outc;   
     MAX_ACTION_NUMBER = oc.vision.getMaxActions();
     MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxEpochs();
@@ -527,15 +529,15 @@ public class RewardComputerCodelet extends Codelet
         
                 if(this.oc.vision.endEpochR()){
              //System.out.println("MORREU");
-                    reward_i -= 100;
+                    reward_i -= 10;
             }
                 //Math.pow(Math.E,*0.05/350)
         //reward_i += 0.00006*oc.vision.getnAct()*oc.vision.getEpoch();
         if(motivationType.equals("SURVIVAL") ) global_reward = oc.vision.getFValues(0) + reward_i;
         else global_reward = oc.vision.getFValues(6) + reward_i;
         
-        if(global_reward < -120) global_reward = -120;
-        
+        if(global_reward < -20) global_reward = -20;
+        if(reward_i < -20) global_reward = -20;
         rewardsList.add(global_reward);
         if(motivationType.equals("SURVIVAL") ){
             oc.vision.setFValues(0, (float) global_reward);

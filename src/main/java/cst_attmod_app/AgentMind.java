@@ -175,11 +175,13 @@ public class AgentMind extends Mind {
         // Weight list
         
         List weights = Collections.synchronizedList(new ArrayList<Float>(7));
-        weights.add(1.0f);
-        weights.add(1.0f);
-        weights.add(1.0f);
-        weights.add(1.0f);
-        weights.add(1.0f);
+        weights.add(1.0f); // Red
+        weights.add(0.5f); // Green
+        weights.add(1.0f); // Blue
+        weights.add(1.0f); // Depth
+        weights.add(1.0f); // Color Top
+        weights.add(1.0f); // Depth Top
+        weights.add(1.0f); // Region Top
     
         MemoryObject weightsMO = createMemoryObject("FM_WEIGHTS",weights);
         
@@ -362,7 +364,8 @@ public class AgentMind extends Mind {
         FMnames.add("REGION_TOP_FM");
         
         //CFM
-        Codelet comb_fm_c = new CFM(oc.vision, FMnames.size(), FMnames,Buffersize,Sensor_dimension, print_step);
+        Codelet comb_fm_c = new CFM(oc.vision, FMnames.size(), FMnames,Buffersize,Sensor_dimension, 
+                print_step, oc);
         comb_fm_c.addInput(vision_color_fmMO);
         comb_fm_c.addInput(depth_fmMO);
         comb_fm_c.addInput(vision_color_top_fmMO);

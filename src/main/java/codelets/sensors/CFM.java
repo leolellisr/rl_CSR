@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import outsideCommunication.OutsideCommunication;
 
 
 /**
@@ -38,13 +39,15 @@ private  int time_graph;
 private SensorI sensor;
 private int stage, print_step;
 private boolean debug = false;
+OutsideCommunication oc;
     public CFM(SensorI sensor, int numfeatmaps, ArrayList<String> featmapsnames, 
-            int timeWin, int CFMdim, int print_step) {
+            int timeWin, int CFMdim, int print_step, OutsideCommunication outc) {
         super(numfeatmaps, featmapsnames,timeWin,CFMdim);
         this.time_graph = 0;
         this.sensor = sensor;
         this.stage = sensor.getStage();
         this.print_step = print_step;
+        this.oc = outc;
     }
 
      
@@ -59,6 +62,30 @@ private boolean debug = false;
             Thread.currentThread().interrupt();
         }
         
+         ArrayList FMk_c = new ArrayList<>();
+        for (int k = 0; k < num_feat_maps; k++) {
+                MemoryObject FMkMO;
+                FMkMO = (MemoryObject) feature_maps.get(k);
+
+                List FMk;
+                FMk = (List) FMkMO.getI();
+                
+                
+                if(FMk.size() < 1){
+                    return;
+                }
+                
+                if(k==0){
+                    for (Object FMk_color : FMk) {
+                        FMk_c.add(FMk_color);
+                    }
+                }else{
+                    FMk_c.add(FMk);
+                }
+                
+               
+        }
+                
         List weight_values = (List) weights.getI();
         
         List combinedFM = (List) comb_feature_mapMO.getI();
@@ -81,44 +108,39 @@ private boolean debug = false;
         winners_row = (List) winnersTypeList.get(t);
         
         for(int j = 0; j < CFMdimension; j++){
-            CFMrow.add(new Float(0));
+            CFMrow.add((float) 0);
             winners_row.add(0);
         }
         
+        if(oc.vision.getIValues(5)>50){
+            weight_values.set(0, 0.2f); // Red
+           
+            weight_values.set(2, 1.0f); //Blue
+        }else{
+            weight_values.set(0, 1.0f); // Red
+            
+            weight_values.set(2, 0.2f); // Blue
+        }
         
         for (int j = 0; j < CFMrow.size(); j++) {
             float ctj;
             float sum_top=0, sum_bottom=0;
             ctj = 0;
-            if(debug) System.out.println("num_feat_maps: "+num_feat_maps);
-            for (int k = 0; k < num_feat_maps; k++) {
-                MemoryObject FMkMO;
-                FMkMO = (MemoryObject) feature_maps.get(k);
-
+            if(debug) System.out.println("num_feat_maps: "+FMk_c.size());
+            for (int k = 0; k < FMk_c.size(); k++) {
                 List FMk;
-                FMk = (List) FMkMO.getI();
-                
+                FMk = (List) FMk_c.get(k);
                 
                 if(FMk.size() < 1){
                     return;
                 }
-                if(debug) System.out.println("k: "+k+" FMk: "+FMk.size());
+                
+                if(debug) System.out.println("k: "+k+" FMk: "+FMk_c.size());
                 List FMk_t = null;
                 
-                if(k==0){
-                    if(FMk.size() < 3){
-                    return;
-                    }
-                    for(int i = 0; i<FMk.size();i++){
-                        List FMk_i = (List) FMk.get(i);
-                        if(debug) System.out.println("k: "+k+"i: "+i+"  FMk_i: "+FMk_i.size());
-                        FMk_t = (List) FMk_i.get(FMk_i.size()-1); 
-                        if(debug) System.out.println("k: "+k+"i: "+i+"t: "+t+" FMk_t if: "+FMk_t.size());
-                    }
-                } else{
-                    FMk_t = (List) FMk.get(FMk.size()-1);
-                    if(debug) System.out.println("k: "+k+"FMk_t else: "+FMk_t.size());
-                }
+                FMk_t = (List) FMk.get(FMk.size()-1);
+                if(debug) System.out.println("k: "+k+"FMk_t : "+FMk_t.size());
+                
                 Float weight_val, fmkt_val;
 
                 if(FMk_t.size()>j) fmkt_val = (Float) FMk_t.get(j); 

@@ -50,7 +50,10 @@ private OutsideCommunication oc;
     public VirtualBattery(OutsideCommunication outc, String mode) {
         this.time_graph = 0;
         Random random = new Random();
-        if("learning".equals(mode)) this.battery_data = random.nextInt(71) + 30;
+        if("learning".equals(mode)) {
+            int bt = random.nextInt(71) + 30;
+            this.battery_data = Math.round(bt/ 5.0f) * 5;
+        }
         else this.battery_data = 100;
         this.charging = false;
         oc = outc;
@@ -79,11 +82,11 @@ private OutsideCommunication oc;
             Thread.currentThread().interrupt();
         }}*/
        
-        return  battery_data;
+        return  Math.round(battery_data/ 5.0f) * 5;
     }
 
     public void setData(int data) {
-        this.battery_data = data;
+        this.battery_data = Math.round(data);
        
         
         

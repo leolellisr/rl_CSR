@@ -102,6 +102,7 @@ public class AcommodationCodelet extends Codelet
                 Object state = (Object) states.get(states.size() - 1);
                 String action = (String) actions.get(actions.size() - 1);
                 int action_n = allActionsList.indexOf(action);
+                if(action_n>-1){
                 double reward = 0;
                 Idea curI = (Idea) motivationMO.get(0);
                 Idea surI = (Idea) motivationMO.get(1);
@@ -153,6 +154,7 @@ try{
                         }
                         proceduralMemoryMO.setI(info, activation , state.toString());
                     }
+                }
                 }
         }
         

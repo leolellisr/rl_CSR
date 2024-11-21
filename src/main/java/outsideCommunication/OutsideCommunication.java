@@ -45,14 +45,14 @@ public class OutsideCommunication {
 	public ArrayList<SensorI> vision_orientations;
         public static final int Resolution = 256;
         public IntW[] obj_handle;
-        private int nObjs = 4, max_epochs;
+        private int nObjs = 4, max_epochs, n_tables;
         private final boolean debug = false;
         private List<FloatWA> objsPositions;
         private ArrayList<FloatWA> allobjsPositions;
         private ArrayList<FloatWA> objsOrientations;
         private String mode;
   
-	public OutsideCommunication(int max_epochs, String mode) {
+	public OutsideCommunication(int max_epochs, String mode, int n_tables) {
 		vrep = new remoteApi();
 		vision_orientations = new ArrayList<>();
                 obj_handle = new IntW[nObjs];
@@ -61,7 +61,7 @@ public class OutsideCommunication {
                 objsOrientations = new ArrayList<>();
                 this.max_epochs = max_epochs;
                 this.mode = mode;
-
+                this.n_tables = n_tables;
 	}
 
 	public void start() {
@@ -122,8 +122,9 @@ public class OutsideCommunication {
 				System.out.println("Connected to sensor ");
 		
 
-		vision = new VisionVrep(vrep, clientID, vision_handles, max_epochs);
+		vision = new VisionVrep(vrep, clientID, vision_handles, max_epochs,n_tables);
                 battery = new VirtualBattery(this, this.mode);
+                System.out.println("hdept clientID "+clientID+"vision_handles "+vision_handles.getValue());
                 depth = new DepthVrep(vrep, clientID, vision_handles, vision.getStage(), vision);    
 		try {
 			Thread.sleep(1000);
@@ -155,6 +156,7 @@ public class OutsideCommunication {
 		vrep.simxStartSimulation(clientID, remoteApi.simx_opmode_blocking);
 
 		// Vision initialization reading
+                System.out.println("vision clientID "+clientID+"vision_handles "+vision_handles.getValue());
 		int ret = vrep.simxGetVisionSensorImage(clientID, vision_handles.getValue(), null, null, 1,
 					remoteApi.simx_opmode_streaming);
 		if (ret == remoteApi.simx_return_ok  || ret == remoteApi.simx_return_novalue_flag) {

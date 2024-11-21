@@ -49,6 +49,12 @@ dependencies {
 testImplementation group: 'junit', name: 'junit', version:versionJunit
 
 implementation 'com.github.CST-Group:cst-desktop:1.0.5'
+
+
+// Neptune
+implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+
 }
 
 task uberJar(type: Jar) {

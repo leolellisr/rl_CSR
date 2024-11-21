@@ -37,11 +37,12 @@ public class CST_CSR_RL {
     			f.delete();
     		}
     	}
-        String mode = "learning";
-        OutsideCommunication oc = new OutsideCommunication(300,mode);
+        String mode = "exploring";
+        int n_tables = 2;
+        OutsideCommunication oc = new OutsideCommunication(50,mode,n_tables);
         oc.start(); 
         //  (OutsideCommunication oc, String mode, String motivation, int num_tables, int print_step)
-        AgentMind am = new AgentMind(oc, mode, "drives",2, 10); // OC, mode, Num. QTables,  PrintStep
+        AgentMind am = new AgentMind(oc, mode, "drives",n_tables, 10); // OC, mode, Num. QTables,  PrintStep
 
     }
     

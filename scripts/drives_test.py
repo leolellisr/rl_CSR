@@ -16,7 +16,7 @@ sfile2 = "../results/2QTables/profile/nrewards.txt"
 
 output_folder = "../results/"
 
-n_exps = 36
+n_exps = 50
 ## Remove strings 
 
 def remove_strings_from_file(file_name, strings_to_remove):
@@ -226,12 +226,12 @@ def plot_graphs(title, mean1, exp, mean2, max_ticks, step_ticks):
 def plot_graphs_stress(title, mean1, exp, mean2, max_ticks, step_ticks,dv1,dv2):
     
     Y_ticks = [i/10 for i in range(-max_ticks,max_ticks, step_ticks)]
-    Y_ticks_act = [i/10 for i in range(-3,max_ticks, step_ticks)]
+    Y_ticks_act = [i/10 for i in range(6,max_ticks, step_ticks)]
     exp = [expi+1 for expi in exp]
     plt.figure(figsize=(100,40))
 
     fig, ax1 = plt.subplots(figsize=(100, 40))
-    ax1.set_ylim([0, max_ticks/10])
+    ax1.set_ylim([6/10, max_ticks/10])
     color = 'tab:blue'
     ax1.set_xlabel('Action')
     
@@ -376,8 +376,8 @@ try:
     dv2=float(statistics.stdev(stress_a2))
 except:
     dv2=0.2
-max_ticks = 15
-step_ticks = 2
+max_ticks = 20
+step_ticks = 1
 
 plot_graphs_stress("Stress", stress_a1, results2c[0][:-1], stress_a2, max_ticks, step_ticks, dv1,dv2)    
 

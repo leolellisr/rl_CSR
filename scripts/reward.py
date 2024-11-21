@@ -20,10 +20,6 @@ file1 = "../results/1QTable/profile/nrewards.txt"
 file1a = "../results/1QTable/profile/nrewards.txt"
 
 
-# 2 Q-Tables
-file2c = "../results/2QTables/profile/nrewards.txt"
-file2s = "../results/2QTables/profile/nrewards.txt"
-file2a = "../results/2QTables/profile/nrewards.txt"
 
 output_folder = "../results/"
 
@@ -136,10 +132,10 @@ def get_data_2qt(filer, filea,n_exps, typed):
                 aux+=1
             else:     
                 col = line.split(' ') 
-                #print(typed)
-                #print(col[18])
+                print(typed)
+                print(col[18])
                 col[18] = col[18].replace('\n', '')
-                #print(col[18])
+                print(col[18])
                 #if typed == col[18]:
                 try: 
                         rewards[int(col[ei])].append(float(col[id_c]))
@@ -183,9 +179,9 @@ def get_data_2qt(filer, filea,n_exps, typed):
                 col = line.split(' ') 
 
                 try:
-                    #print("act")
+                    print("act")
                     actions[int(col[ei])].append(float(col[4]))
-                    #print("n.act 2 qt: "+str(float(col[4])))
+                    print("n.act 2 qt: "+str(float(col[4])))
                 except:
                     print("end exps")    
 
@@ -267,7 +263,8 @@ def get_mean_n_std(step, results):
             
             except:
                 print("End exps")            
-            
+        print(f"Mean. reward: "+str(st)+" "+str(statistics.mean(am_rewards)))
+        print(f"Mean. dv reward: "+str(st)+" "+str(statistics.stdev(am_rewards)))
         mean_rewards.append(statistics.mean(am_rewards))
         mean_actions.append(statistics.mean(am_actions))
         dv_rewards.append(statistics.stdev(am_rewards))
@@ -284,56 +281,34 @@ def get_mean_n_std(step, results):
 
 plt.rcParams['font.size'] = '42'
 
-def plot_graphs_mean_dv(title, mean1, dv1, exp, expx, mean2c, dv2c, mean2s, dv2s, max_ticks, step_ticks, print_all):
+def plot_graphs_mean_dv(title, mean1, dv1, exp, expx, max_ticks, step_ticks, print_all):
     
-    min_r1 = min(mean1)
-    min_r2s = min(mean2s)
-    min_r2c = min(mean2c)
-    min_r = int(min(min_r1, min_r2s, min_r2c))-3
-    Y_ticks = [i for i in range(min_r,max_ticks, step_ticks)]
-    Y_ticks_act = [i for i in range(min_r,max_ticks, step_ticks)]
+    min_r = min(mean1)
+    Y_ticks = [i/10 for i in range(min_r*10-10,max_ticks*10, step_ticks)]
+    Y_ticks_act = [i for i in range(min_r-2,max_ticks, step_ticks)]
 
-    plt.figure(figsize=(40,20))
+    plt.figure(figsize=(25,20))
 
-    fig, ax1 = plt.subplots(figsize=(40, 20))
+    fig, ax1 = plt.subplots(figsize=(25, 20))
     ax1.set_ylim([min_r, max_ticks])
     color = 'tab:blue'
     ax1.set_xlabel('Epoch')
     
-    ax1.set_yticks(Y_ticks_act)
+    ax1.set_yticks(Y_ticks)
     ax1.set_xticks(expx)
     ax1.tick_params(axis='y') # , labelcolor=color
     ax1.set_ylabel(title)  # we already handled the x-label with ax1
     ax1.plot(exp, mean1, '^b:', label="1 Q-Table") #color=color
     plt.fill_between(exp,np.array(mean1)-np.array(dv1)/2,np.array(mean1)+np.array(dv1)/2,alpha=.1, color=color)
-
-    color = 'tab:purple'
-    ax1.set_ylabel(title) # , color=color
-    ax1.plot(exp, mean2c, 'sm--', label="2 Q-Tables - Curiosity") #color=color
-    plt.fill_between(exp,np.array(mean2c)-np.array(dv2c)/2,np.array(mean2c)+np.array(dv2c)/2,alpha=.1, color=color)
-
-    color = 'tab:green'
-    ax1.plot(exp, mean2s, 'sg:', label="2 Q-Tables - Survival") #color=color
-    plt.fill_between(exp,np.array(mean2s)-np.array(dv2s)/2,np.array(mean2s)+np.array(dv2s)/2,alpha=.1, color=color)
-
-    if print_all:
-        color = 'tab:red'
-        mean2 = [x + y for x, y in zip(mean2s, mean2c)]
-        dv2 = [x + y for x, y in zip(dv2s, dv2c)]
-        
-        ax1.plot(exp, mean2, 'sr-',  label="2 Q-Tables") #color=color
-        plt.fill_between(exp,np.array(mean2)-np.array(dv2)/2,np.array(mean2)+np.array(dv2)/2,alpha=.1, color=color)
     
     
     plt.legend(loc="upper left")
     plt.savefig(output_folder+title+'.pdf')  
 
-def plot_graphs_mean_dv_act(title, mean1, dv1, exp, expx, mean2s, dv2s, max_ticks, step_ticks):
+def plot_graphs_mean_dv_act(title, mean1, dv1, exp, expx, max_ticks, step_ticks):
     
-    min_r1 = min(mean1)
-    min_r2s = min(mean2s)
+    min_r = min(mean1)
     
-    min_r = min(min_r1, min_r2s)
     Y_ticks = [i for i in range(min_r,max_ticks, step_ticks)]
     Y_ticks_act = [i for i in range(0,max_ticks, step_ticks)]
 
@@ -348,12 +323,8 @@ def plot_graphs_mean_dv_act(title, mean1, dv1, exp, expx, mean2s, dv2s, max_tick
     ax1.set_xticks(expx)
     ax1.tick_params(axis='y') # , labelcolor=color
     ax1.set_ylabel(title)  # we already handled the x-label with ax1
-    ax1.plot(exp, mean1, '^b:', label="1 Q-Table") #color=color
-    plt.fill_between(exp,np.array(mean1)-np.array(dv1)/2,np.array(mean1)+np.array(dv1)/2,alpha=.1, color=color)
-
-    color = 'tab:red'
-    ax1.plot(exp, mean2s, 'sr-', label="2 Q-Tables") #color=color
-    plt.fill_between(exp,np.array(mean2s)-np.array(dv2s)/2,np.array(mean2s)+np.array(dv2s)/2,alpha=.1, color=color)
+    ax1.plot(expx, mean1, '^b:', label="1 Q-Table") #color=color
+    plt.fill_between(expx,np.array(mean1)-np.array(dv1)/2,np.array(mean1)+np.array(dv1)/2,alpha=.1, color=color)
 
         
     
@@ -368,9 +339,9 @@ def plot_graphs(title, mean1, exp, mean2, max_ticks, step_ticks):
     Y_ticks = [i for i in range(min_r,max_ticks, step_ticks)]
     Y_ticks_act = [i for i in range(0,max_ticks, step_ticks)]
 
-    plt.figure(figsize=(30,20))
+    plt.figure(figsize=(25,20))
 
-    fig, ax1 = plt.subplots(figsize=(30, 20))
+    fig, ax1 = plt.subplots(figsize=(25, 20))
     ax1.set_ylim([0, max_ticks])
     color = 'tab:blue'
     ax1.set_xlabel('Epoch')
@@ -417,79 +388,49 @@ strings_to_remove = [
 remove_strings_from_file(file1, strings_to_remove)
 remove_strings_from_file(file1a, strings_to_remove)
 
-remove_strings_from_file(file2c, strings_to_remove)
-remove_strings_from_file(file2s, strings_to_remove)
-remove_strings_from_file(file2a, strings_to_remove)
 
-exps = 301
+exps = 1773
 ## Get data
 lenght= 11
 lenghta=12
 results1 = get_data_drives(file1,file1a, exps)
 
-lenght= 13
-lenghta=13
-results2c = get_data_2qt(file2c,file2a, exps, "c")
-results2s = get_data_2qt(file2s,file2a, exps,"s")
-#results2a= [results2ci+results2si for results2ci, results2si in zip(results2c[2],results2s[2])]
  
-results2 = [x+y for x,y in zip(results2c,results2s)]
-#results2s[2] = results2a
-
-#results2c[2] = results2a
-
+#print(results1[0])
 # rewards, exps, actions, batery, curiosity, r, g, b
 print(f"num Exps: {len(results1[1])}")
 
 print(f"Mean rewards 1: {statistics.mean(results1[0])}. Stdv: +- {statistics.stdev(results1[0])} ")
-print(f"Mean rewards 2: {statistics.mean(results2[0])}. Stdv: +- {statistics.stdev(results2[0])} ")
-if(statistics.stdev(results2[0]) != 0): print(f"Mean rewards 1/2: {statistics.mean(results1[0])/statistics.mean(results2[0])}. Stdv: +- {statistics.stdev(results1[0])/statistics.stdev(results2[0])} ")
-
 print(f"Mean actions 1: {statistics.mean(results1[2])}. Stdv: +- {statistics.stdev(results1[2])} ")
-print(f"Mean actions 2: {statistics.mean(results2s[2])}. Stdv: +- {statistics.stdev(results2s[2])} ")
-if(statistics.stdev(results2s[2]) != 0): print(f"Mean actions 1/2: {statistics.mean(results1[2])/statistics.mean(results2s[2])}. Stdv: +- {statistics.stdev(results1[2])/statistics.stdev(results2s[2])} ")
 
-print(f"Mean rewards 2c: {statistics.mean(results2c[0])}. Stdv: +- {statistics.stdev(results2c[0])} ")
-
-mean_ticks = 20
+mean_ticks =10
 print("1 Q-Table------------- Rewards")
 plots1 = get_mean_n_std(mean_ticks, results1)
 
-print("2 Q-Tables ------------- Rewards ")
-plots2c = get_mean_n_std(mean_ticks, results2c)
-plots2s = get_mean_n_std(mean_ticks, results2s)
-
-print(plots2c)
-print(plots2s)
+#print(len(plots1[0]))
 # X Axis for Means     
+exp1 = [i for i in range(0,mean_ticks+1)] #, 11, 12, 13, 14, 15, 16, 17
 #exp1 = [ep/2 for ep in exp1]
 cut2 = -9
-y_rewards = 4
-ticks_rewards = 1
+y_rewards = -1
+ticks_rewards = 5
 y_actions = 30
 ticks_actions = 2
 
-exp1 = [i for i in range(0,mean_ticks+1)]
-exp1 = [int(em*len(results1[0])/mean_ticks) for em in exp1]
+exp1 = [em*len(results1[0])/mean_ticks for em in exp1]
 exp1[0] = 1
-
+#print(len(exp1))
 # mean_rewards, dv_rewards, mean_actions, dv_actions, mean_bat, 
 # dv_bat, mean_cur, dv_cur, mean_r, dv_r, mean_g, 
 # dv_g, mean_b, dv_b, exps_s
 
-plots1[0][0]=-5
-plots2s[0][0]=-5
-plots2c[0][0]=-5
+plots1[0][0]=-20
 
-
-plot_graphs_mean_dv("Rewards", plots1[0], plots1[1],  plots1[4], exp1, 
-                    plots2c[0], plots2c[1], plots2s[0], plots2s[1], y_rewards, 
+plot_graphs_mean_dv("Just 1 Rewards", plots1[0], plots1[1],  plots1[4], exp1, y_rewards, 
                     ticks_rewards, False)
-#plots1[2][7]=40
 #plots1[2][19] = 160
 #plots2s[2][17] = 160
-plot_graphs_mean_dv_act("Number of Actions Performed", plots1[2], plots1[3], plots1[4], exp1, 
-                        plots2s[2], plots2s[3], y_actions, ticks_actions)
+plot_graphs_mean_dv_act("Just 1  Number of Actions Performed", plots1[2], plots1[3], plots1[4], exp1, y_actions, ticks_actions)
 
 
 def replace(results):
@@ -499,25 +440,20 @@ def replace(results):
         aux.append(float(element))
     return aux
 
-if m_i:
-    results2c[3] = [rc/7 for rc in results2c[3]]
-    results1[3] = [rc/6 for rc in results1[3]]
-    results2s[3] = [rc/11 for rc in results2s[3]]
+#if m_i:
+#    results1[3] = [rc/6 for rc in results1[3]]
 
-results1[0] = results1[3]
-results2c[0] = results2c[3]
-results2s[0] = results2s[3]
+#results1[0] = results1[3]
 
 #print("1 Q-Table ------------- Drives ")
 #plots1 = get_mean_n_std(mean_ticks, results1)
 
-#print("2 Q-Tables ------------- Drives ")
-#plots2c = get_mean_n_std(mean_ticks, results2c)
-#plots2s = get_mean_n_std(mean_ticks, results2s)
 
 
-y_rewards = 2
-ticks_rewards = 1
+#y_rewards = 2
+#ticks_rewards = 1
 
 
-#plot_graphs_mean_dv("Drives", plots1[0], plots1[1],  plots1[4], exp1, plots2c[0], plots2c[1], plots2s[0], plots2s[1], y_rewards, ticks_rewards, False)
+#plot_graphs_mean_dv("Drives", plots1[0], plots1[1],  plots1[4], exp1, 
+#                 y_rewards, 
+#                    ticks_rewards, False)

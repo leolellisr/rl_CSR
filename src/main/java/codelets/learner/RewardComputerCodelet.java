@@ -537,7 +537,7 @@ public class RewardComputerCodelet extends Codelet
         else global_reward = oc.vision.getFValues(6) + reward_i;
         
         if(global_reward < -20) global_reward = -20;
-        if(reward_i < -20) global_reward = -20;
+        if(reward_i < -20) reward_i = -20;
         rewardsList.add(global_reward);
         if(motivationType.equals("SURVIVAL") ){
             oc.vision.setFValues(0, (float) global_reward);

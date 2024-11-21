@@ -15,6 +15,7 @@ package outsideCommunication;
 import CommunicationInterface.SensorI;
 import br.unicamp.cst.core.entities.MemoryObject;
 import br.unicamp.cst.representation.idea.Idea;
+import codelets.support.MLflowLogger;
 import coppelia.CharWA;
 import coppelia.FloatWA;
 import coppelia.IntWA;
@@ -35,6 +36,10 @@ import javax.imageio.ImageIO;
 
 import java.time.format.DateTimeFormatter;  
 import java.time.LocalDateTime;    
+
+import java.lang.management.ManagementFactory;
+import com.sun.management.OperatingSystemMXBean;
+
 
 /**
  *
@@ -57,12 +62,13 @@ public class VisionVrep implements SensorI{
     private ArrayList<Integer> lastLinei;
     private ArrayList<String> executedActions;
     private String mtype, lastAction;
-    public VisionVrep(remoteApi vrep, int clientid, IntW vision_handles, int max_epochs) {
+    private String runId="f3481a5ca1744c18af61e5fceb58b990";
+    public VisionVrep(remoteApi vrep, int clientid, IntW vision_handles, int max_epochs, int num_tables) {
         this.time_graph = 0;
         vision_data = Collections.synchronizedList(new ArrayList<>(res*res*3));
         this.vrep = vrep;
         this.stage =3;
-       this.num_epoch = 295;
+       this.num_epoch = 1;
         this.num_exp_c = num_epoch;
         this.num_exp_s =num_epoch;
         this.nact = 0;
@@ -87,7 +93,15 @@ public class VisionVrep implements SensorI{
         lastLinei.set(3, num_exp_s);
         lastLinei.set(1, num_epoch);
         
-    }
+// Step 1: Start a new experiment run
+    if(this.num_epoch==1){
+        runId = MLflowLogger.startRun(num_tables+"QTable"+num_epoch);
+        if (runId == null) {
+            System.out.println("Failed to start an MLflow run. Exiting...");
+            return;
+        }
+    }}
+    
     
     @Override
     public String gettype(){
@@ -131,6 +145,9 @@ public class VisionVrep implements SensorI{
     
     @Override
     public void setIValues(int i, int f) {
+        if(i==4 && f>this.lastLinei.get(i)+1){
+            f-=1;
+        }
        lastLinei.set(i, f);
     }
     
@@ -178,6 +195,7 @@ public class VisionVrep implements SensorI{
 		} catch (Exception e) {
 			Thread.currentThread().interrupt();
 		}*/
+        
         FloatWA position = new FloatWA(3);
 	vrep.simxGetObjectPosition(clientID, vision_handles.getValue(), -1, position,
         vrep.simx_opmode_streaming);
@@ -188,6 +206,35 @@ public class VisionVrep implements SensorI{
         //if(debug) System.out.println("Marta on exp "+this.getEpoch()+" with z = "+position.getArray()[2]);        
         if (this.getEpoch() > 1 && (position.getArray()[2] < 0.35 || position.getArray()[0] > 0.2  || m_act) || 
                 (lastLinei.get(4)>1 && (lastLinei.get(5)==0 || lastLinei.get(5)<0))) {
+            
+             MLflowLogger.logMetric(runId, "Total_Actions", lastLinei.get(4), lastLinei.get(1));
+            MLflowLogger.logMetric(runId, "Battery", lastLinei.get(5), lastLinei.get(1));
+            MLflowLogger.logMetric(runId, "ActionsC", lastLinei.get(6), lastLinei.get(1));
+            MLflowLogger.logMetric(runId, "ActionsS", lastLinei.get(7), lastLinei.get(1));
+            MLflowLogger.logMetric(runId, "GlobalRewardS", lastLinef.get(0), lastLinei.get(1));
+            MLflowLogger.logMetric(runId, "GlobalRewardC", lastLinef.get(6), lastLinei.get(1));
+            MLflowLogger.logMetric(runId, "InstantRewardS", lastLinef.get(5), lastLinei.get(1));
+            MLflowLogger.logMetric(runId, "InstantRewardC", lastLinef.get(7), lastLinei.get(1));
+            MLflowLogger.logMetric(runId, "Sur Drive", lastLinef.get(1), lastLinei.get(1));
+            MLflowLogger.logMetric(runId, "Cur_Drive", lastLinef.get(3), lastLinei.get(1));
+            
+            OperatingSystemMXBean osBean =
+            (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+
+            double systemCpuLoad = osBean.getSystemCpuLoad() * 100; // CPU load in percentage
+        double processCpuLoad = osBean.getProcessCpuLoad() * 100;
+        long freeMemory = osBean.getFreePhysicalMemorySize(); // Free memory in bytes
+        long totalMemory = osBean.getTotalPhysicalMemorySize();
+
+           
+
+ // Log metrics to MLflow
+        MLflowLogger.logMetric(runId, "system_cpu_load", systemCpuLoad, lastLinei.get(1));
+        MLflowLogger.logMetric(runId, "process_cpu_load", processCpuLoad, lastLinei.get(1));
+        MLflowLogger.logMetric(runId, "free_memory", freeMemory / (1024 * 1024), lastLinei.get(1)); // Convert to MB
+        MLflowLogger.logMetric(runId, "total_memory", totalMemory / (1024 * 1024), lastLinei.get(1)); // Convert to MB
+
+        
             System.out.println("Marta crashed on exp "+this.getEpoch()+" with z = "+position.getArray()[2]+
                     " and battery"+lastLinei.get(5));
                             
@@ -229,12 +276,14 @@ public class VisionVrep implements SensorI{
             executedActions.clear();
             aux_a = false;
             if (lastLinei.get(0) == 1 && lastLinei.get(1)  > this.getMaxEpochs()) {
-
+                   
                 System.exit(0);
             } else if (lastLinei.get(0) == 2 && lastLinei.get(2) > this.getMaxEpochs() && lastLinei.get(3)  > this.getMaxEpochs()) {
 
                 System.exit(0);
             }
+           
+
             
             return true;
         }
@@ -255,7 +304,19 @@ public class VisionVrep implements SensorI{
                 
                 mtype = "s";
             }}
-        return false;
+
+            /*MLflowLogger.logMetric(runId, "Total_Actions", lastLinei.get(4), lastLinei.get(4));
+            MLflowLogger.logMetric(runId, "Battery", lastLinei.get(5), lastLinei.get(4));
+            MLflowLogger.logMetric(runId, "ActionsC", lastLinei.get(6), lastLinei.get(4));
+            MLflowLogger.logMetric(runId, "ActionsS", lastLinei.get(7), lastLinei.get(4));
+            MLflowLogger.logMetric(runId, "GlobalRewardS", lastLinef.get(0), lastLinei.get(4));
+            MLflowLogger.logMetric(runId, "GlobalRewardC", lastLinef.get(6), lastLinei.get(4));
+            MLflowLogger.logMetric(runId, "InstantRewardS", lastLinef.get(5), lastLinei.get(4));
+            MLflowLogger.logMetric(runId, "InstantRewardC", lastLinef.get(7), lastLinei.get(4));
+            MLflowLogger.logMetric(runId, "Sur Drive", lastLinef.get(1), lastLinei.get(4));
+            MLflowLogger.logMetric(runId, "Cur_Drive", lastLinef.get(3), lastLinei.get(4));
+*/
+            return false;
     }
     
     @Override
@@ -272,15 +333,9 @@ public class VisionVrep implements SensorI{
         if(lastLinei.get(0)==1)  m_act = lastLinei.get(4)>this.getMaxActions();
         else m_act = lastLinei.get(6)>this.getMaxActions() && lastLinei.get(7)>this.getMaxActions();
 //	printToFile(position.getArray()[2], "positions.txt");
-        //if(debug) System.out.println("Marta on exp "+this.getEpoch()+" with z = "+position.getArray()[2]);        
-        if (this.getEpoch() > 1 && (position.getArray()[2] < 0.35 || position.getArray()[0] > 0.2  || m_act) || 
-                (lastLinei.get(4)>1 && (lastLinei.get(5)==0 || lastLinei.get(5)<0))) {
-            
-            
-            return true;
-        }
-           
-        return false;
+        //if(debug) System.out.println("Marta on exp "+this.getEpoch()+" with z = "+position.getArray()[2]);
+        return this.getEpoch() > 1 && (position.getArray()[2] < 0.35 || position.getArray()[0] > 0.2  || m_act) || 
+                (lastLinei.get(4)>1 && (lastLinei.get(5)==0 || lastLinei.get(5)<0));
     }
     
     @Override
@@ -324,7 +379,7 @@ public class VisionVrep implements SensorI{
     @Override
     public void setnAct(int a){
         if(a>this.lastLinei.get(4)+1){
-            a+=1;
+            a-=1;
         }
         this.lastLinei.set(4, a);
     }
@@ -346,15 +401,39 @@ public class VisionVrep implements SensorI{
             Thread.currentThread().interrupt();
         }
 */
+        if ( vision_handles.getValue() == 0) {
+                        System.err.println("Vision Invalid clientID or vision handle. Exiting...");
+                        return vision_data; // Exit if critical values are uninitialized
+                    }
+        
         char temp_RGB[];                            //char Array to get RGB data of Vision Sensor
         
         CharWA image_RGB = new CharWA(res*res*3);           //CharWA that returns RGB data of Vision Sensor
         IntWA resolution = new IntWA(2);            //Array to get resolution of Vision Sensor
         int ret_RGB;
         long startTime = System.currentTimeMillis();
+        
+        int retries = 3;
+        while (retries > 0) {
+            try {
+                        ret_RGB = vrep.simxGetVisionSensorImage(clientID, vision_handles.getValue(), resolution, 
+                        image_RGB, 0, vrep.simx_opmode_streaming); 
+
+                if (ret_RGB == remoteApi.simx_return_ok) {
+                    break;  // Exit loop if call is successful
+                }
+            } catch (Exception e) {
+                //System.out.println("Error retrieving vision buffer, retrying...");
+                retries--;
+                if (retries == 0) {
+                    System.out.println("Failed to retrieve vision buffer after retries. Exiting gracefully.");
+                    break;
+                }
+            }
+        }
+
+
         try {
-        ret_RGB = vrep.simxGetVisionSensorImage(clientID, vision_handles.getValue(), resolution, 
-                image_RGB, 0, vrep.simx_opmode_streaming); 
          }
         catch(Exception e){
         System.out.println("error vision ");
@@ -426,7 +505,7 @@ public class VisionVrep implements SensorI{
         try(FileWriter fw = new FileWriter("profile/vision.txt", true);
             BufferedWriter bw = new BufferedWriter(fw);
             PrintWriter out = new PrintWriter(bw)){
-            out.println(dtf.format(now)+"_"+time_graph+" "+ object);
+            out.println(dtf.format(now)+""+time_graph+" "+ object);
             time_graph++;
             out.close();
         } catch (IOException e) {
@@ -448,7 +527,7 @@ public class VisionVrep implements SensorI{
             }
             BufferedImage convertedGrayscale = new BufferedImage(res, res, BufferedImage.TYPE_BYTE_GRAY);
             convertedGrayscale.getRaster().setDataElements(0, 0, res, res, byteMama);
-            String outputimage = "data/"+dtf.format(now)+"_"+this.num_epoch+"_"+time_graph+".jpg";
+            String outputimage = "data/"+dtf.format(now)+""+this.num_epoch+""+time_graph+".jpg";
             try{
                 ImageIO.write(convertedGrayscale, "jpg", new File(outputimage) );
             }

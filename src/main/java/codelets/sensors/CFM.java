@@ -144,7 +144,7 @@ OutsideCommunication oc;
                 Float weight_val, fmkt_val;
 
                 if(FMk_t.size()>j) fmkt_val = (Float) FMk_t.get(j); 
-                else fmkt_val = fmkt_val = (Float) FMk_t.get(j-1);
+                else fmkt_val = (Float) FMk_t.get(j-1);
                 weight_val = (Float) weight_values.get(k);
                 ctj += weight_val*fmkt_val;
                 

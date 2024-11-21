@@ -58,7 +58,7 @@ public class LearnerCodelet extends Codelet
     private double global_reward;
     private int action_number, num_tables;
     private int experiment_number,exp_s, exp_c;;
-    private int stage;
+    private int stage,convergenceCounter=0;
     private String mode;
     private boolean debug = false;
     private ArrayList<String> allActionsList;
@@ -67,10 +67,11 @@ public class LearnerCodelet extends Codelet
     private String output, motivation, nameMotivation, motivationType, lastAction = "am0";
     private  boolean end_all;
     
-    private final int numDcValues = 21;      // Dc has 21 values (0.0, 0.05, ..., 1.0)
-    private final int numDsValues = 21;      // Ds has 21 values (same as Dc)
+    
     private final int numSalValues = 65536;  // Sal has 2^16 values
 
+    private final double Q_CHANGE_THRESHOLD = 0.001;
+    private final int CONVERGENCE_EPOCHS = 100;
     private List<Integer> allStatesList = new ArrayList<>();
     //private int past_exp;
     //private Idea ideaMotivation;
@@ -114,20 +115,21 @@ public class LearnerCodelet extends Codelet
             ql.setFilename("Qtable.db");
         }
          ql.setAlpha((double) 0.9);
-        ql.setE(1);
-        ql.setB(1.0-ql.getE());
+         //ql.setGamma((double) 0.99);
+        ql.setE(0.95);
         
-        if (mode.equals("learning") && this.stage == 1) {
+        if (mode.equals("learning") && this.stage == 3 && oc.vision.getIValues(1) == 1) {
             System.out.println("init Learner");
             // Initialize QTable to 0 with bulk insertion
+           /* int totalStates;
             if (num_tables == 1) {
-                ql.initializeQTableBulk(allActionsList, 1, batteryMax, salMax, dsValues, dcValues);
+                totalStates = 65536*21*21*21; // State - Battery - Dc - Ds
             } else {
-                ql.initializeQTableBulk(allActionsList, 2, batteryMax, salMax, dsValues, new double[0]);
+                totalStates = 65536*21*21; // State - Battery - D 
             }
-
+            ql.initializeQTableBulk(totalStates, allActionsList );*/
         
-        } else if (mode.equals("learning") ){
+        } else if (mode.equals("learning") && oc.vision.getIValues(1) > 1 ){
             
             try {
                     ql.recoverQ();
@@ -142,8 +144,8 @@ public class LearnerCodelet extends Codelet
         else if (mode.equals("exploring")) {
             try {
                 ql.recoverQ();
+                
                 ql.setE(0);
-                ql.setB(1.0-ql.getE());
             }
             catch (Exception e) {
                 System.out.println("ERROR LOADING QTABLE");
@@ -216,133 +218,61 @@ if(debug) System.out.println("init learner");
         return null;
     }
 
-    // Main Codelet function, to be implemented in each subclass.
+    
     @Override
     public void proc() {
+        if (mode.equals("learning") && oc.vision.endEpochR()) {
+            double totalDeltaQ = 0.0;
+            int updatesCount = 0;
 
-        /*try {
-            Thread.sleep(50);
-        } catch (Exception e) {
-            Thread.currentThread().interrupt();
-        }  */     
-        if(motivationMO == null){
-             if(debug) System.out.println("Learner - motivationMO null");
+            try {
+                int lastState = (int) statesList.get(statesList.size() - 1);
+                float reward = num_tables == 1 ? oc.vision.getFValues(0) + oc.vision.getFValues(6) 
+                                               : (oc.vision.gettype().equals("c") ? oc.vision.getFValues(6) 
+                                                                                  : oc.vision.getFValues(0));
 
-        return;
-    }
-       /* Idea curI = (Idea) motivationMO.get(0);
-        Idea surI = (Idea) motivationMO.get(1);
-        if(curI == null || surI == null){
-             if(debug) System.out.println("Learner - curI || surI  null");
+                // Update Q-values and track Q-value changes
+                totalDeltaQ += ql.update(lastState, oc.vision.getLastAction(), reward);
+                updatesCount++;
 
-        return;
-    }*/
-       if(debug) System.out.println("pre motivation");
-        boolean curB =  oc.vision.getFValues(3) > oc.vision.getFValues(1);
-        
-        String motivationName;
-        motivationName = "";
-        if(curB){
-            motivationName = "CURIOSITY";
-        }
-        else{
-            motivationName = "SURVIVAL";
-        }
-                
-           boolean  endEpochR =   this.oc.vision.endEpochR();
-        if( mode.equals("learning") && endEpochR){
-           /* System.out.println(" LEARNER ----- QTables:"+num_tables+" Exp: "+ experiment_number + 
-                    " ----- Nact: "+action_number+ " ----- Rew: "+global_reward+
-                    " -- exp_c: "+this.exp_c+" -- exp_s: "+this.exp_s);
-           */
-            int lastState;
-            try{
-            lastState = (int) statesList.get(statesList.size() - 1);
-               
-            float rw;
-            if(num_tables==1) rw = oc.vision.getFValues(0)+oc.vision.getFValues(6);
-            else if(oc.vision.gettype().equals("c")) rw = oc.vision.getFValues(6);
-            else rw = oc.vision.getFValues(0);
-            ql.update(lastState, oc.vision.getLastAction(), rw);
-            ql.storeQ();
-            
-            }catch(Exception e){
-                    // no state
-                    } 
-            
-            if(oc.vision.getIValues(1)==1){
-                 end_all = oc.vision.getIValues(1) > oc.vision.getMaxEpochs();
-             }else{
-                 
-                 end_all = oc.vision.getIValues(2) > oc.vision.getMaxEpochs()&&
-                     oc.vision.getIValues(3) > oc.vision.getMaxEpochs();
-             }
-            
-            if (end_all) {
-                lastState = (int) statesList.get(statesList.size() - 1);
-                float rw;
-                if(num_tables==1) rw = oc.vision.getFValues(0)+oc.vision.getFValues(6);
-                if(oc.vision.gettype().equals("c")) rw = oc.vision.getFValues(6);
-                else rw = oc.vision.getFValues(0);
-                ql.update(lastState, oc.vision.getLastAction(), rw);
                 ql.storeQ();
-                //vrep.simxPauseCommunication(clientID, true);
-                //vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot_wait);
-                //System.exit(0);
+            } catch (Exception e) {
+                System.out.println("No state to update: " + e.getMessage());
             }
-            else {
-                ql.setE(0.95-(0.95*experiment_number/MAX_EXPERIMENTS_NUMBER));
-                ql.setB(1.0-ql.getE());
+
+            // Calculate average Q-value change per update in this epoch
+            double avgDeltaQ = updatesCount > 0 ? totalDeltaQ / updatesCount : 0;
+
+            // Log the average change for monitoring
+            if(debug) System.out.println("Average Q-value change for epoch " + experiment_number + ": " + avgDeltaQ);
+
+            // Early stopping condition
+            if (avgDeltaQ < Q_CHANGE_THRESHOLD && experiment_number > 100) {
+                convergenceCounter++;
+            } else {
+                convergenceCounter = 0; // Reset if significant Q-value changes occur
             }
-            experiment_number = (int) oc.vision.getIValues(1);
-            exp_s = (int) oc.vision.getIValues(3);
-            exp_c = (int) oc.vision.getIValues(2);
-            
-          /*  try {
-            Thread.sleep(50);
-        } catch (Exception e) {
-            Thread.currentThread().interrupt();
-        }*/
-        } 
-        
-        
-        
-        if(!motivationType.equals(motivationName) && num_tables==2){
-                 if(debug) System.out.println("Learner - motivationType diff from motivationMO");
-            return;
+
+            // Stop if Q-values have converged for several consecutive epochs
+            if (convergenceCounter >= CONVERGENCE_EPOCHS) {
+                end_all = true; // Set end flag to true to stop training
+                System.out.println("Convergence reached. Training stopped.");
+            }
+
+            if (end_all) {
+                ql.storeQ(); // Final save of Q-table
+                System.exit(0);
+            }
         }
-                
-                
+        
         if(qTableList.size() == timeWindow){
                 qTableList.remove(0);
             }
         qTableList.add(ql);
-        // Use the Random class to generate a random index
-        Random random = new Random();
-
-        int state = -1;
-
-        if (!end_all && !saliencyMap.isEmpty() &&  mode.equals("learning")){
-
-            if (!statesList.isEmpty() && !rewardsList.isEmpty() && !actionsList.isEmpty() && mode.equals("learning")) {
-
-                // Find reward of the current state, given previous  winner 
-                global_reward = (double) rewardsList.get(rewardsList.size() - 1);
-
-                // Gets last action taken
-                lastAction = actionsList.get(actionsList.size() - 1);
-                if(debug) System.out.println("Learner lastAct"+lastAction);
-                // Gets last state that was in
-                int lastState = (int) statesList.get(statesList.size() - 1);
-
-                // Updates QLearning table // Adaptation
-                ql.update(lastState, lastAction, global_reward);
-                
-               // action_number += 1;
-                
-            }
-        }
+        
     }
+
+
 
 
 		

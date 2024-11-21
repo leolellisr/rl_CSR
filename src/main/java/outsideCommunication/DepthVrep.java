@@ -13,12 +13,8 @@
 package outsideCommunication;
 
 import CommunicationInterface.SensorI;
-//import coppelia.BoolW;
 import coppelia.FloatWA;
-//import coppelia.FloatWAA;
-//import coppelia.CharWA;
 import coppelia.IntWA;
-
 import coppelia.IntW;
 import coppelia.remoteApi;
 import java.io.BufferedWriter;
@@ -26,206 +22,161 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
- import java.util.List;   
-import java.util.Collections; 
+import java.util.Collections;
+import java.util.List;
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 
-//import java.io.*;
-//import java.awt.image.BufferedImage;
-//import java.util.Arrays;
-//import javax.imageio.ImageIO;   
-
-import java.time.format.DateTimeFormatter;  
-import java.time.LocalDateTime;    
-
-/**
- *
- * @author L. M. Berto
- * @author L. L. Rossi (leolellisr)
- */
-public class DepthVrep implements SensorI{
+public class DepthVrep implements SensorI {
     private final IntW vision_handles;
-    private remoteApi vrep;
-    private final int clientID; 
-    private  int time_graph;
-    private List<Float> depth_data;    
-    private int stage;    
-    private final int res = 256, print_step=1;
-    private final int max_time_graph=100;
+    private final remoteApi vrep;
+    private final int clientID;
+    private int time_graph;
+    private List<Float> depth_data;
+    private int stage;
+    private final int res = 256, print_step = 1;
+    private final int max_time_graph = 100;
     private SensorI vision;
-    private boolean debug = false;
+    private boolean debug = false; // Enable debug logging
+
     public DepthVrep(remoteApi vrep, int clientid, IntW vision_handles, int stageVision, SensorI vision) {
         this.time_graph = 0;
-        depth_data = Collections.synchronizedList(new ArrayList<>(res*res));
+        depth_data = Collections.synchronizedList(new ArrayList<>(res * res));
         this.vrep = vrep;
         this.stage = stageVision;
         this.vision = vision;
         this.vision_handles = vision_handles;
-        clientID = clientid;
+        this.clientID = clientid;
 
-        for (int i = 0; i < res*res; i++) {
+        for (int i = 0; i < res * res; i++) {
             depth_data.add(0f);
-        }    
+        }
     }
 
     @Override
     public int getStage() {
-            return this.stage;    
+        return this.stage;
     }
-    
+
     @Override
     public void setStage(int newstage) {
-           this.stage = newstage;    
+        this.stage = newstage;
     }
-    
+
     @Override
     public Object getData() {
-       try {
+/*        try {
             Thread.sleep(200);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }
+        }*/
+        IntWA resolution = new IntWA(2);
+        FloatWA auxValues_WA = new FloatWA(res * res);
+        float[] temp_dep;
 
-        //CharWA image_RGB = new CharWA(res*res*3);           //CharWA that returns RGB data of Vision Sensor
-        IntWA resolution = new IntWA(2);            //Array to get resolution of Vision Sensor
-        FloatWA auxValues_WA = new FloatWA(res*res);
-        //FloatWA auxValues_WA[];
-        float temp_dep[];
-        
-        
         int read_depth;
         long startTime = System.currentTimeMillis();
-        try {
-         read_depth = vrep.simxGetVisionSensorDepthBuffer(clientID, vision_handles.getValue(), resolution, auxValues_WA, vrep.simx_opmode_streaming);     
-        }
-        catch(Exception e){
-        System.out.println("error depth ");
-    }
-        //int ret_RGB = vrep.simxGetVisionSensorImage(clientID, vision_handles.getValue(), resolution, image_RGB, 0, vrep.simx_opmode_streaming); 
-        while (System.currentTimeMillis()-startTime < 2000)
-        {
-try {
-            //ret_RGB = vrep.simxGetVisionSensorImage(clientID, vision_handles.getValue(), resolution, image_RGB, 0, remoteApi.simx_opmode_buffer);
-            read_depth = vrep.simxGetVisionSensorDepthBuffer(clientID, vision_handles.getValue(), resolution, auxValues_WA, remoteApi.simx_opmode_buffer );
-        
-            if (read_depth== remoteApi.simx_return_ok  || read_depth == remoteApi.simx_return_novalue_flag){
-                int count_aux = 0; 
-                temp_dep = auxValues_WA.getArray();
-                float[] depth_or = new float[res*res];
+        int retries = 3;
 
-                for(int y =0; y < res; y++){  
-                    for(int x =0; x < res; x++){  
-                        float depth_c= temp_dep[y*res+x];
-                        if(depth_c*10>10) depth_or[count_aux]=10;
-                        else if(depth_c*10<0.0009999) depth_or[count_aux]=0;
-                        else depth_or[count_aux]=depth_c*10;
-                        count_aux += 1;
+        synchronized (vrep) { // Ensure thread safety with remote API calls
+            while (retries > 0) {
+                try {
+                    if ( vision_handles.getValue() == 0) {
+                        System.err.println("Depth Invalid clientID or vision handle. Exiting...");
+                        return depth_data; // Exit if critical values are uninitialized
                     }
-                }
-                if(stage==3){
-                    for(int i =0; i < res*res; i++){
-                        depth_data.set(i, depth_or[i]);
-                        //System.out.println("Stage 3 - i: "+i+" r: "+ (float)pixels_red[i] + " g: "+ (float)pixels_green[i] +" b: "+ (float)pixels_blue[i]);
 
+                    read_depth = vrep.simxGetVisionSensorDepthBuffer(clientID, vision_handles.getValue(), resolution, auxValues_WA, vrep.simx_opmode_streaming);
+                    if (read_depth == remoteApi.simx_return_ok) {
+                        break; // Exit loop if call is successful
+                    } else {
+                        if (debug) System.out.println("Depth buffer retrieval failed, retrying...");
                     }
-                }
-                if(stage==2){
-                    float MeanValue = 0;
-                    
-                    for(int n = 0;n<res/2;n++){
-                        int ni = (int) (n*2);
-                        int no = (int) (2+n*2);
-                        for(int m = 0;m<res/2;m++){    
-                            int mi = (int) (m*2);
-                            int mo = (int) (2+m*2);
-                            for (int y = ni; y < no; y++) {
-                                for (int x = mi; x < mo; x++) {
-                                    float Fvalue_r = depth_or[y*res+x];                         
-                                    MeanValue += Fvalue_r;
-
-                                }
-                            }
-                            float correct_mean = MeanValue/4;
-                           
-                            for (int y = ni; y < no; y++) {
-                                for (int x = mi; x < mo; x++) {
-                                    depth_data.set(y*res+x, correct_mean);
-                                    
-                                }
-                            }
-                //System.out.println("Stage 2 - Mean_r: "+ correct_mean_r + " Mean_g: "+ correct_mean_g +" Mean_b: "+ correct_mean_b +" ni: "+ni+" no: "+no+" mi: "+mi+" mo: "+mo);
-                            MeanValue = 0;
-                    }
-                }       
-                
-                }                        
-                if(stage==1){
-                    float MeanValue = 0;
-                    for(int n = 0;n<res/4;n++){
-                        int ni = (int) (n*4);
-                        int no = (int) (4+n*4);
-                        for(int m = 0;m<res/4;m++){    
-                            int mi = (int) (m*4);
-                            int mo = (int) (4+m*4);
-                            for (int y = ni; y < no; y++) {
-                                for (int x = mi; x < mo; x++) {
-                                    float Fvalue = depth_or[y*res+x];                         
-                                    MeanValue += Fvalue;
-                                    
-                                }
-                            }
-                            float correct_mean = MeanValue/16;
-                         
-                            for (int y = ni; y < no; y++) {
-                                for (int x = mi; x < mo; x++) {
-                                    depth_data.set(y*res+x, correct_mean);
-                                   
-                                }
-                            }
-                //System.out.println("Stage 1 - Mean_r: "+ correct_mean_r + " Mean_g: "+ correct_mean_g +" Mean_b: "+ correct_mean_b +" ni: "+ni+" no: "+no+" mi: "+mi+" mo: "+mo);
-                            MeanValue = 0;
-                          
-                    }
-                }       
-                
-                }      
-            } else{
-                int count_aux = 0; 
-                for(int y =0; y < res; y++){  
-                    for(int x =0; x < res; x++){  
-                        depth_data.set(count_aux, new Float(0));
-                       
-                        count_aux += 1;
+                } catch (Exception e) {
+                    //System.err.println("Error retrieving depth buffer: " + e.getMessage());
+                    retries--;
+                    if (retries == 0) {
+                        System.out.println("Failed to retrieve depth buffer after retries. Exiting gracefully.");
+                        return depth_data;
                     }
                 }
             }
-             }
-        catch(Exception e){
-            System.out.println("Error depth");
+
+            while (System.currentTimeMillis() - startTime < 2000) {
+                try {
+                    read_depth = vrep.simxGetVisionSensorDepthBuffer(clientID, vision_handles.getValue(), resolution, auxValues_WA, remoteApi.simx_opmode_buffer);
+                    if (read_depth == remoteApi.simx_return_ok || read_depth == remoteApi.simx_return_novalue_flag) {
+                        temp_dep = auxValues_WA.getArray();
+                        float[] depth_or = new float[res * res];
+                        processDepthData(temp_dep, depth_or);
+                        return depth_data;
+                    } else {
+                        resetDepthData();
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error processing depth data: " + e.getMessage());
+                }
+            }
+        }
+        return depth_data;
+    }
+
+    private void processDepthData(float[] temp_dep, float[] depth_or) {
+        int count_aux = 0;
+        for (int y = 0; y < res; y++) {
+            for (int x = 0; x < res; x++) {
+                float depth_c = temp_dep[y * res + x];
+                depth_or[count_aux] = Math.min(Math.max(depth_c * 10, 0), 10);
+                count_aux++;
+            }
         }
 
-       }
-       
-       // printToFile(depth_data, "depth.txt");        
-        return  depth_data;
-    }
-    
-   /* private void printToFile(Object object, String filename){
-        if(this.vision.getEpoch() == 1 || this.vision.getEpoch()%print_step == 0){
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
-        LocalDateTime now = LocalDateTime.now();  
-        
-        try(FileWriter fwd = new FileWriter("profile/"+filename, true);
-            BufferedWriter bwd = new BufferedWriter(fwd);
-            PrintWriter outd = new PrintWriter(bwd)){
-            outd.println(dtf.format(now)+"_"+this.vision.getEpoch()+"_"+time_graph+" "+ object);
-            time_graph++;
-            outd.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        switch (stage) {
+            case 3:
+                for (int i = 0; i < res * res; i++) {
+                    depth_data.set(i, depth_or[i]);
+                }
+                break;
+            case 2:
+                downscaleData(depth_or, 2);
+                break;
+            case 1:
+                downscaleData(depth_or, 4);
+                break;
         }
     }
-*/
+
+    private void downscaleData(float[] depth_or, int factor) {
+        float meanValue;
+        for (int n = 0; n < res / factor; n++) {
+            int ni = n * factor;
+            int no = ni + factor;
+            for (int m = 0; m < res / factor; m++) {
+                int mi = m * factor;
+                int mo = mi + factor;
+                meanValue = 0;
+
+                for (int y = ni; y < no; y++) {
+                    for (int x = mi; x < mo; x++) {
+                        meanValue += depth_or[y * res + x];
+                    }
+                }
+
+                float correct_mean = meanValue / (factor * factor);
+                for (int y = ni; y < no; y++) {
+                    for (int x = mi; x < mo; x++) {
+                        depth_data.set(y * res + x, correct_mean);
+                    }
+                }
+            }
+        }
+    }
+
+    private void resetDepthData() {
+        for (int i = 0; i < res * res; i++) {
+            depth_data.set(i, 0f);
+        }
+    }
 	@Override
 	public void resetData() {
 		// TODO Auto-generated method stub

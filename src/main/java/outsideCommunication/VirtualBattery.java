@@ -47,9 +47,10 @@ public class VirtualBattery implements SensorI{
     private final int max_time_graph=100;
     private boolean charging;
 private OutsideCommunication oc;
-    public VirtualBattery(OutsideCommunication outc, String mode) {
+private Random random;
+    public VirtualBattery(OutsideCommunication outc, String mode, Random random) {
         this.time_graph = 0;
-        Random random = new Random();
+        this.random = random;
         if("learning".equals(mode)) {
             int bt = random.nextInt(71) + 30;
             this.battery_data = Math.round(bt/ 5.0f) * 5;

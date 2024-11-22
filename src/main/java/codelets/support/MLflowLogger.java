@@ -48,42 +48,71 @@ public class MLflowLogger {
         }
     }
 
-public static String startRun(String runName) {
-    try (CloseableHttpClient client = HttpClients.createDefault()) {
-        HttpPost post = new HttpPost(MLFLOW_TRACKING_URI + "/api/2.0/mlflow/runs/create");
-        post.setHeader("Content-Type", "application/json");
+    public static String startRun(String runName) {
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPost post = new HttpPost(MLFLOW_TRACKING_URI + "/api/2.0/mlflow/runs/create");
+            post.setHeader("Content-Type", "application/json");
 
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("experiment_id", EXPERIMENT_ID);
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("experiment_id", EXPERIMENT_ID);
 
-        // Add run name as a tag
-        Map<String, String> tags = new HashMap<>();
-        tags.put("mlflow.runName", runName);
-        payload.put("tags", tags);
-        
-        ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(payload);
+            // Add run name as a tag
+            Map<String, String> tags = new HashMap<>();
+            tags.put("mlflow.runName", runName);
+            payload.put("tags", tags);
 
-        post.setEntity(new StringEntity(json));
+            ObjectMapper mapper = new ObjectMapper();
+            String json = mapper.writeValueAsString(payload);
 
-        HttpResponse response = client.execute(post);
-        String responseBody = new String(response.getEntity().getContent().readAllBytes());
-        System.out.println("Start Run Response: " + responseBody);
+            post.setEntity(new StringEntity(json));
 
-        // Parse the response to extract the run ID
-        Map<String, Object> responseMap = mapper.readValue(responseBody, Map.class);
-        if (response.getStatusLine().getStatusCode() == 200) {
-            Map<String, Object> run = (Map<String, Object>) responseMap.get("run");
-            Map<String, Object> info = (Map<String, Object>) run.get("info");
-            return info.get("run_id").toString();
-        } else {
-            System.err.println("Failed to start run: " + responseBody);
+            HttpResponse response = client.execute(post);
+            String responseBody = new String(response.getEntity().getContent().readAllBytes());
+            System.out.println("Start Run Response: " + responseBody);
+
+            // Parse the response to extract the run ID
+            Map<String, Object> responseMap = mapper.readValue(responseBody, Map.class);
+            if (response.getStatusLine().getStatusCode() == 200) {
+                Map<String, Object> run = (Map<String, Object>) responseMap.get("run");
+                Map<String, Object> info = (Map<String, Object>) run.get("info");
+                return info.get("run_id").toString();
+            } else {
+                System.err.println("Failed to start run: " + responseBody);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        e.printStackTrace();
+        return null;
     }
-    return null;
-}
+
+    public static void endRun(String runId) {
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPost post = new HttpPost(MLFLOW_TRACKING_URI + "/api/2.0/mlflow/runs/update");
+            post.setHeader("Content-Type", "application/json");
+
+            // Prepare the payload
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("run_id", runId);
+            payload.put("status", "FINISHED"); // Mark the run as finished
+
+            ObjectMapper mapper = new ObjectMapper();
+            String json = mapper.writeValueAsString(payload);
+
+            post.setEntity(new StringEntity(json));
+
+            // Execute the request
+            HttpResponse response = client.execute(post);
+            String responseBody = new String(response.getEntity().getContent().readAllBytes());
+            System.out.println("End Run Response: " + responseBody);
+
+            if (response.getStatusLine().getStatusCode() != 200) {
+                System.err.println("Failed to end run: " + responseBody);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
 }

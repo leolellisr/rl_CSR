@@ -51,8 +51,10 @@ public class OutsideCommunication {
         private ArrayList<FloatWA> allobjsPositions;
         private ArrayList<FloatWA> objsOrientations;
         private String mode;
+        Random random;
+        long seed;
   
-	public OutsideCommunication(int max_epochs, String mode, int n_tables) {
+	public OutsideCommunication(int max_epochs, String mode, int n_tables,long seed) {
 		vrep = new remoteApi();
 		vision_orientations = new ArrayList<>();
                 obj_handle = new IntW[nObjs];
@@ -62,6 +64,9 @@ public class OutsideCommunication {
                 this.max_epochs = max_epochs;
                 this.mode = mode;
                 this.n_tables = n_tables;
+                this.random = new Random();
+                this.seed = seed;
+                random.setSeed(this.seed);
 	}
 
 	public void start() {
@@ -123,7 +128,7 @@ public class OutsideCommunication {
 		
 
 		vision = new VisionVrep(vrep, clientID, vision_handles, max_epochs,n_tables);
-                battery = new VirtualBattery(this, this.mode);
+                battery = new VirtualBattery(this, this.mode, random);
                 System.out.println("hdept clientID "+clientID+"vision_handles "+vision_handles.getValue());
                 depth = new DepthVrep(vrep, clientID, vision_handles, vision.getStage(), vision);    
 		try {
@@ -206,7 +211,6 @@ public class OutsideCommunication {
         }
         
          public void reset_battery(){
-             Random random = new Random();
              int battery_i; 
              if("learning".equals(mode)){
                  int bt = random.nextInt(71) + 30;

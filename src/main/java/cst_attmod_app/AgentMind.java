@@ -70,12 +70,13 @@ public class AgentMind extends Mind {
     public static final boolean saverCodelet = false;
     private int index_hunger, index_curiosity, print_step;
         private String stringOutputac = "", stringOutputreS = "", stringOutputreC = "";
-
+private long seed;
     public AgentMind(OutsideCommunication oc, String mode, String motivation, 
-            int num_tables, int print_step) throws IOException{
+            int num_tables, int print_step,long seed) throws IOException{
         super();
         oc.vision.setIValues(0, num_tables);
         this.print_step = print_step;
+        this.seed = seed;
         
         //System.out.println("AgentMind");
         //////////////////////////////////////////////
@@ -420,7 +421,8 @@ public class AgentMind extends Mind {
             insertCodelet(sur_reward_cod);
 
             //LEARNER CODELET
-            Codelet sur_learner_cod = new LearnerCodelet(oc.vrep, oc.clientID, oc, Buffersize, mode, motivation, "SURVIVAL", "QTABLES", num_tables);
+            Codelet sur_learner_cod = new LearnerCodelet(oc.vrep, oc.clientID, oc, Buffersize, mode,
+                    motivation, "SURVIVAL", "QTABLES", num_tables,this.seed );
             sur_learner_cod.addInput(salMapMO);
             sur_learner_cod.addInput(sur_rewardsMO);
             sur_learner_cod.addInput(battery_bufferMO);
@@ -432,7 +434,8 @@ public class AgentMind extends Mind {
             sur_learner_cod.addOutput(qtableSMO);
             insertCodelet(sur_learner_cod);
 
-            Codelet cur_learner_cod = new LearnerCodelet(oc.vrep, oc.clientID, oc, Buffersize, mode, motivation, "CURIOSITY", "QTABLEC", num_tables);
+            Codelet cur_learner_cod = new LearnerCodelet(oc.vrep, oc.clientID, oc, Buffersize, mode, 
+                    motivation, "CURIOSITY", "QTABLEC", num_tables,this.seed );
             cur_learner_cod.addInput(salMapMO);
             cur_learner_cod.addInput(cur_rewardsMO);
             cur_learner_cod.addInput(actionsMO);
@@ -458,7 +461,8 @@ public class AgentMind extends Mind {
             insertCodelet(reward_cod);
             
             
-            Codelet learner_cod = new LearnerCodelet(oc.vrep, oc.clientID, oc, Buffersize, mode, motivation, "", "QTABLE", num_tables);
+            Codelet learner_cod = new LearnerCodelet(oc.vrep, oc.clientID, oc, Buffersize, mode, motivation,
+                    "", "QTABLE", num_tables,this.seed );
             learner_cod.addInput(salMapMO);
             learner_cod.addInput(rewardsMO);
             learner_cod.addInput(actionsMO);

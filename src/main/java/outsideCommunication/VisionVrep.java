@@ -62,7 +62,7 @@ public class VisionVrep implements SensorI{
     private ArrayList<Integer> lastLinei;
     private ArrayList<String> executedActions;
     private String mtype, lastAction;
-    private String runId="f3481a5ca1744c18af61e5fceb58b990";
+    private String runId="578bcdb3b5d5478bac51e575c5cfc54d";
     public VisionVrep(remoteApi vrep, int clientid, IntW vision_handles, int max_epochs, int num_tables) {
         this.time_graph = 0;
         vision_data = Collections.synchronizedList(new ArrayList<>(res*res*3));
@@ -276,10 +276,11 @@ public class VisionVrep implements SensorI{
             executedActions.clear();
             aux_a = false;
             if (lastLinei.get(0) == 1 && lastLinei.get(1)  > this.getMaxEpochs()) {
-                   
+                   MLflowLogger.endRun(runId);
                 System.exit(0);
             } else if (lastLinei.get(0) == 2 && lastLinei.get(2) > this.getMaxEpochs() && lastLinei.get(3)  > this.getMaxEpochs()) {
 
+                MLflowLogger.endRun(runId);
                 System.exit(0);
             }
            

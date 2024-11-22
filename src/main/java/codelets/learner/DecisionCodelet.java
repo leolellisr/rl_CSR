@@ -24,7 +24,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import outsideCommunication.OutsideCommunication;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 /**
@@ -62,7 +61,6 @@ private int experiment_number, exp_s, exp_c;
 private int stage, action_number=0;
 int fovea; 
 private String mode;
-private Random gerador = new Random();
 
 
 private float yawPos = 0f, headPos = 0f;   
@@ -220,7 +218,6 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
             ql = qTableList.get(qTableList.size()-1);
         }
         
-        // Use the Random class to generate a random index
        
         if(ql==null){
             return;

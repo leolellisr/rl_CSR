@@ -23,7 +23,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import outsideCommunication.OutsideCommunication;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 /**
@@ -78,7 +77,6 @@ public class ActionExecCodelet extends Codelet
     private int stage, fovea;
     
     private String mode;
-    private Random gerador = new Random();
 
     
     private float yawPos = 0f, headPos = 0f;   

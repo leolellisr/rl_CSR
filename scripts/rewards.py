@@ -51,7 +51,7 @@ def get_data_drives(filer, filea, n_exps):
                 #if debug: print("rew 1Q: "+str(float(col[1])))
                 #if(col[18]== "c"): rewards[int(col[1])].append(float(col[13]))
                 #elif(col[18]== "s"): rewards[int(col[1])].append(float(col[11]))
-                rewards[int(col[1])].append(float(col[13])+float(col[11]))
+                rewards[int(col[1])].append(float(col[11]))
                 dr_c[int(col[1])].append(float(col[9]))
                 dr_s[int(col[1])].append(float(col[7]))
                 #if debug: print(col)
@@ -289,8 +289,8 @@ def plot_graphs_mean_dv(title, mean1, dv1, exp, expx, mean2c, dv2c, mean2s, dv2s
     min_r1 = min(mean1)
     min_r2s = min(mean2s)
     min_r2c = min(mean2c)
-    min_r = int(min(min_r1, min_r2s, min_r2c))-3
-    Y_ticks = [i for i in range(min_r,max_ticks, step_ticks)]
+    min_r = int(min(min_r1, min_r2s, min_r2c))-1
+    Y_ticks = [i for i in range(min_r,max_ticks+4, step_ticks)]
     Y_ticks_act = [i for i in range(min_r,max_ticks, step_ticks)]
 
     plt.figure(figsize=(40,20))
@@ -300,7 +300,7 @@ def plot_graphs_mean_dv(title, mean1, dv1, exp, expx, mean2c, dv2c, mean2s, dv2s
     color = 'tab:blue'
     ax1.set_xlabel('Epoch')
     
-    ax1.set_yticks(Y_ticks_act)
+    ax1.set_yticks(Y_ticks)
     ax1.set_xticks(expx)
     ax1.tick_params(axis='y') # , labelcolor=color
     ax1.set_ylabel(title)  # we already handled the x-label with ax1
@@ -477,9 +477,9 @@ exp1[0] = 1
 # dv_bat, mean_cur, dv_cur, mean_r, dv_r, mean_g, 
 # dv_g, mean_b, dv_b, exps_s
 
-plots1[0][0]=-5
-plots2s[0][0]=-5
-plots2c[0][0]=-5
+plots1[0][0]=-2
+plots2s[0][0]=-2
+plots2c[0][0]=-2
 
 
 plot_graphs_mean_dv("Rewards", plots1[0], plots1[1],  plots1[4], exp1, 

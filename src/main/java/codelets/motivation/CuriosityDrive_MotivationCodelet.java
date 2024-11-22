@@ -153,7 +153,7 @@ private List<String> allStatesList;
         }
 
         if(actions.isEmpty()){
-             this.activation = 1.0;
+             this.activation = 0.9;
             }
        
         /*} else if (stage > 1 && !allStatesList.isEmpty()){

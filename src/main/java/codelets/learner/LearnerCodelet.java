@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import outsideCommunication.OutsideCommunication;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
@@ -73,17 +72,19 @@ public class LearnerCodelet extends Codelet
     private final double Q_CHANGE_THRESHOLD = 0.001;
     private final int CONVERGENCE_EPOCHS = 100;
     private List<Integer> allStatesList = new ArrayList<>();
+    private long seed;
     //private int past_exp;
     //private Idea ideaMotivation;
     public LearnerCodelet (remoteApi vrep, int clientid, OutsideCommunication outc, int tWindow, 
-            String mode, String motivation,  String motivationType,  String output, int num_tables) {
+            String mode, String motivation,  String motivationType,  String output, int num_tables, 
+            long seed) {
         super();
         this.vrep=vrep;
 
         time_graph = 0;
 
         action_number = 0;
-
+        this.seed = seed;
         this.oc = outc;
         clientID = clientid;
         this.num_tables = num_tables;
@@ -108,10 +109,10 @@ public class LearnerCodelet extends Codelet
         
         // QLearning initialization
         if(num_tables==2) {
-            ql = new QLearningSQL("QTable_"+motivationType+".db",allActionsList);
+            ql = new QLearningSQL("QTable_"+motivationType+".db",allActionsList,this.seed);
             ql.setFilename("QTable_"+motivationType+".db");
         }else{
-            ql = new QLearningSQL("Qtable.db",allActionsList);
+            ql = new QLearningSQL("Qtable.db",allActionsList,this.seed);
             ql.setFilename("Qtable.db");
         }
          ql.setAlpha((double) 0.9);
@@ -227,8 +228,8 @@ if(debug) System.out.println("init learner");
 
             try {
                 int lastState = (int) statesList.get(statesList.size() - 1);
-                float reward = num_tables == 1 ? oc.vision.getFValues(0) + oc.vision.getFValues(6) 
-                                               : (oc.vision.gettype().equals("c") ? oc.vision.getFValues(6) 
+                float reward = num_tables == 1 ? oc.vision.getFValues(0) 
+                                               : (motivationType.equals("c") ? oc.vision.getFValues(6) 
                                                                                   : oc.vision.getFValues(0));
 
                 // Update Q-values and track Q-value changes

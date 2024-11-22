@@ -47,7 +47,7 @@ def get_data_drives(filer, filea, n_exps):
                 #if debug: print("rew 1Q: "+str(float(col[1])))
                 #if(col[18]== "c"): rewards[int(col[1])].append(float(col[13]))
                 #elif(col[18]== "s"): rewards[int(col[1])].append(float(col[11]))
-                rewards[int(col[1])].append(float(col[13])+float(col[11]))
+                rewards[int(col[1])].append(float(col[11]))
                 dr_c[int(col[1])].append(float(col[9]))
                 dr_s[int(col[1])].append(float(col[7]))
                 #if debug: print(col)

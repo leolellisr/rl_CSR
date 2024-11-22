@@ -16,14 +16,20 @@ public class QLearningSQL extends QLearning {
     private double gamma = 0.9; // Discount factor
     private final double UPDATE_THRESHOLD = 1e-6; // Minimal change threshold for updates
     private boolean showDebugMessages = false;
-
-    public QLearningSQL(String fileName, ArrayList<String> allActionsList) {
+    private long seed;
+    private Random rad;
+    public QLearningSQL(String fileName, ArrayList<String> allActionsList, long seed) {
         super();
         this.fileName = fileName;
         this.actionsList = allActionsList;
+        this.seed = seed;
         createTable();
         enableWALMode();
         initializeQTable();
+        
+        rad = new Random();
+        rad.setSeed(this.seed);
+        
     }
 
     public void setFilename(String fileName) {
@@ -194,14 +200,14 @@ public class QLearningSQL extends QLearning {
             return null;
         }
 
-        double rd = Math.random();
-
+        
+        double rd = rad.nextDouble();
         if (rd <= this.getE()) {
-            selectedAction = actionsList.get(new Random().nextInt(actionsList.size()));
+            selectedAction = actionsList.get(rad.nextInt(actionsList.size()));
         } else {
             HashMap<String, Double> actionsQ = Q.get(state);
             if (actionsQ == null) {
-                selectedAction = actionsList.get(new Random().nextInt(actionsList.size()));
+                selectedAction = actionsList.get(rad.nextInt(actionsList.size()));
             } else {
                 selectedAction = actionsQ.entrySet()
                         .stream()

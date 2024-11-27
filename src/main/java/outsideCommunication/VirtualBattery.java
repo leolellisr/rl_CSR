@@ -45,7 +45,7 @@ public class VirtualBattery implements SensorI{
     private  int time_graph;
     private Integer battery_data;   
     private final int max_time_graph=100;
-    private boolean charging;
+    private boolean charging, debug=false;
 private OutsideCommunication oc;
 private Random random;
     public VirtualBattery(OutsideCommunication outc, String mode, Random random) {
@@ -53,7 +53,7 @@ private Random random;
         this.random = random;
         if("learning".equals(mode)) {
             int bt = random.nextInt(71) + 30;
-            this.battery_data = Math.round(bt/ 5.0f) * 5;
+            this.battery_data = Math.round(bt/ 10.0f) * 10;
         }
         else this.battery_data = 100;
         this.charging = false;
@@ -82,8 +82,8 @@ private Random random;
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }}*/
-       
-        return  Math.round(battery_data/ 5.0f) * 5;
+      if(debug) System.out.println("proc battery:"+(int)Math.round(battery_data/ 10.0f) * 10);
+        return  Math.round(battery_data/ 10.0f) * 10;
     }
 
     public void setData(int data) {
@@ -223,6 +223,26 @@ private Random random;
 
     @Override
     public String gettype() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void setNextAct(boolean next_ac) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public boolean getNextAct() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public boolean getNextActR() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void setNextActR(boolean next_ac) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
     

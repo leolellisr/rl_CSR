@@ -268,7 +268,7 @@ public class RewardComputerCodelet extends Codelet
 
             
 
-
+                        if(oc.vision.getNextActR()){
            if(nrewards){ Double reward = 1d;
             reward_i += reward;
            }
@@ -285,6 +285,7 @@ public class RewardComputerCodelet extends Codelet
                
                     cur_drive = oc.vision.getFValues(3);
                     cur_delta = lcur_drive-cur_drive;
+                    cur_delta = Math.round(cur_delta * 10) / 10.0f;
                     oc.vision.setFValues(4,cur_delta);
                        
                     if(cur_drive<0) cur_drive = (float) 0.0;
@@ -295,6 +296,7 @@ public class RewardComputerCodelet extends Codelet
 
                     sur_drive = oc.vision.getFValues(1);
                     sur_delta = lsur_drive-sur_drive;
+                    sur_delta = Math.round(sur_delta * 10) / 10.0f;
                     oc.vision.setFValues(2,sur_delta);
                     float sur_f = 10;
 
@@ -303,37 +305,50 @@ public class RewardComputerCodelet extends Codelet
                     
                 if(motivationType.equals("CURIOSITY")||motivationType.equals("")){
                     
-                    
-                    if(cur_drive==0.0 && cur_drive!=lcur_drive)  reward_i += 1*cur_f;
-                    if(cur_drive>0.0 &&  cur_drive<0.1 && cur_drive!=lcur_drive)  reward_i += 1*cur_f*0.5;
-                    if(cur_drive==1.0 && cur_drive!=lcur_drive)  reward_i -= 1;
-                    if(cur_drive>0.9 &&  cur_drive<1 && cur_drive!=lcur_drive)  reward_i -= 1*0.5;
+                    if(cur_delta!=0){
+                        if(cur_drive==0.0)  reward_i += 1*cur_f;
+                        if(cur_drive>0.0 &&  cur_drive<0.1)  reward_i += 1*cur_f*0.5;
+                        if(cur_drive==1.0)  reward_i -= 1;
+                        if(cur_drive>0.9 &&  cur_drive<1.0)  reward_i -= 1*0.5;
+                    }
                     // cur_f = cur_delta*cur_delta;
-                    if(cur_drive<lcur_drive)  reward_i += 1*cur_delta;
-                    else if(cur_drive>lcur_drive) reward_i -= 1*cur_delta;
+                   // if(cur_delta!=0)  reward_i += 1*cur_delta;
+                    //else if(cur_drive>lcur_drive) 
+                    reward_i += 1*cur_delta;
                     
                     
                     
-                } else if(motivationType.equals("SURVIVAL")||motivationType.equals("")) {
+                } 
+                lcur_drive=cur_drive;
+                if(motivationType.equals("SURVIVAL")||motivationType.equals("")) {
                     
-                    
-                    if(sur_drive==0.0 && sur_drive!=lsur_drive)  reward_i += 1*sur_f;
-                    if(sur_drive>0.0 && sur_drive<0.1)  reward_i += 0.5*sur_f;
-                    if(sur_drive==1.0 && sur_drive!=lsur_drive)  reward_i -= 1*sur_f;
-                    if(sur_drive<1.0 && sur_drive>0.9)  reward_i -= 0.5*sur_f;
-                    
+                    if(sur_delta!=0){
+                        if(sur_drive==0.0)  reward_i += 1*sur_f;
+                        if(sur_drive>0.0 && sur_drive<0.1)  reward_i += 0.5*sur_f;
+                        if(sur_drive==1.0)  reward_i -= 1*sur_f;
+                        if(sur_drive<1.0 && sur_drive>0.9)  reward_i -= 0.5*sur_f;
+                    }
                     //sur_f = sur_delta*sur_delta;
-                    if(sur_drive<lsur_drive)  reward_i += 1*sur_delta;
-                    else if(sur_drive>lsur_drive) reward_i -= 1*sur_delta;
-                     
+                   // if(sur_drive<lsur_drive)  reward_i += 1*sur_delta;
+                    //else if(sur_drive>lsur_drive) reward_i += 1*sur_delta;
+                    //if(sur_delta!=0)  
+                    reward_i += 1*sur_delta; 
                     
                     
-                }                                
-                    lcur_drive=cur_drive;
-                    lsur_drive=sur_drive;
+                    
+                }
+                lsur_drive=sur_drive;
+ System.out.println("~~ REWARD - QTables:"+num_tables+"  Type:"+motivationType+
+                        " SurV:"+sur_drive+" LSurV:"+lsur_drive+" dSurV:"+sur_delta+
+                        " CurV:"+cur_drive+" LCurV:"+lcur_drive+" dCurV:"+cur_delta
+                        +" Ri:"+reward_i);
+                
+                    
+                    
 
-
+                    oc.vision.setNextActR(false);
             }
+            
 
              int winner =   getStateFromSalMap();
 
@@ -458,7 +473,7 @@ public class RewardComputerCodelet extends Codelet
 
                     if(nrewards) reward_i += 1;
              }
-        }
+        
         List rewardsList = (List) rewardMO.getI();        
 
         if(rewardsList.size() == timeWindow){
@@ -466,16 +481,22 @@ public class RewardComputerCodelet extends Codelet
         } 
         
                 if(this.oc.vision.endEpochR()){
-             //System.out.println("MORREU");
-                    reward_i -= 10;
+             System.out.println("MORREU");
+                    reward_i -= 100;
+                    lsur_drive=0;
+                    lcur_drive=0;
+
             }
                 //Math.pow(Math.E,*0.05/350)
+                reward_i = Math.round(reward_i * 10) / 10.0f;
+
         //reward_i += 0.00006*oc.vision.getnAct()*oc.vision.getEpoch();
+        
         if(motivationType.equals("SURVIVAL") ) global_reward = oc.vision.getFValues(0) + reward_i;
         else if(motivationType.equals("CURIOSITY") ) global_reward = oc.vision.getFValues(6) + reward_i;
         else global_reward =  oc.vision.getFValues(6) + oc.vision.getFValues(0) +reward_i;
-        if(global_reward < -20) global_reward = -20;
-        if(reward_i < -20) reward_i = -20;
+        if(global_reward < -120) global_reward = -120;
+        if(reward_i < -120) reward_i = -120;
         rewardsList.add(global_reward);
         if(motivationType.equals("SURVIVAL") ){
             oc.vision.setFValues(0, (float) global_reward);
@@ -489,7 +510,17 @@ public class RewardComputerCodelet extends Codelet
             oc.vision.setFValues(5, reward_i);
 
         }
+        oc.vision.setFValues(2, sur_delta);
+        oc.vision.setFValues(4, cur_delta);
         
+        if(sdebug) System.out.println("~End~ REWARD -  QTables:"+num_tables+" Exp: "+ experiment_number +
+                    " - N_act: "+action_number+" Battery:"+battery_lvint+ " - Winner: "+winnerIndex+
+                    " - W_Fovea: "+winnerFovea+"\n Type:"+motivationType+" SurV:"+sur_drive+" dSurV:"+sur_delta+
+                        " CurV:"+cur_drive+" dCurV:"+cur_delta+" Ri:"+reward_i);
+        
+                        }
+                       
+        }
 
     }
 

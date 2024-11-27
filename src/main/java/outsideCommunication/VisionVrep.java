@@ -56,19 +56,19 @@ public class VisionVrep implements SensorI{
     private final int res = 256;
     private final int max_time_graph=100;
     private static final int MAX_ACTION_NUMBER = 500;
-	private boolean debug = true, aux_a=false;
+	private boolean debug = true, aux_a=false, next_act = true, next_actR = true;
     private int max_epochs;
     private ArrayList<Float> lastLinef;
     private ArrayList<Integer> lastLinei;
     private ArrayList<String> executedActions;
     private String mtype, lastAction;
-    private String runId="578bcdb3b5d5478bac51e575c5cfc54d";
+    private String runId="ee4d85d562d84ceea7780d35bf4e4cbd";
     public VisionVrep(remoteApi vrep, int clientid, IntW vision_handles, int max_epochs, int num_tables) {
         this.time_graph = 0;
         vision_data = Collections.synchronizedList(new ArrayList<>(res*res*3));
         this.vrep = vrep;
         this.stage =3;
-       this.num_epoch = 1;
+       this.num_epoch = 268;
         this.num_exp_c = num_epoch;
         this.num_exp_s =num_epoch;
         this.nact = 0;
@@ -92,6 +92,8 @@ public class VisionVrep implements SensorI{
         lastLinei.set(2, num_exp_c);
         lastLinei.set(3, num_exp_s);
         lastLinei.set(1, num_epoch);
+        next_act = true;
+        next_actR = true;
         
 // Step 1: Start a new experiment run
     if(this.num_epoch==1){
@@ -102,6 +104,23 @@ public class VisionVrep implements SensorI{
         }
     }}
     
+    @Override
+    public boolean getNextActR(){
+        return next_actR;
+    }
+     @Override
+    public void setNextActR(boolean next_ac){
+        this.next_actR=next_ac;
+    }
+    
+    @Override
+    public boolean getNextAct(){
+        return next_act;
+    }
+     @Override
+    public void setNextAct(boolean next_ac){
+        this.next_act=next_ac;
+    }
     
     @Override
     public String gettype(){
@@ -236,8 +255,11 @@ public class VisionVrep implements SensorI{
 
         
             System.out.println("Marta crashed on exp "+this.getEpoch()+" with z = "+position.getArray()[2]+
-                    " and battery"+lastLinei.get(5));
+                    " and battery "+lastLinei.get(5)+" Act:"+lastLinei.get(4));
                             
+            printToFile("rewards.txt",true);
+            printToFile("nrewards.txt",false);
+            
             vrep.simxPauseCommunication(clientID, true);
             vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot_wait);
             
@@ -248,8 +270,7 @@ public class VisionVrep implements SensorI{
 		} catch (Exception e) {
 			Thread.currentThread().interrupt();
 		}  */
-            printToFile("rewards.txt",true);
-            printToFile("nrewards.txt",false);
+            
             lastLinei.set(1, lastLinei.get(1)+1);
             lastLinei.set(2, lastLinei.get(2)+1);
             lastLinei.set(3, lastLinei.get(3)+1);
@@ -274,6 +295,8 @@ public class VisionVrep implements SensorI{
             lastLinei.set(6,0);
             lastLinei.set(7,0);
             executedActions.clear();
+            this.setNextAct(true);
+            this.setNextActR(true);
             aux_a = false;
             if (lastLinei.get(0) == 1 && lastLinei.get(1)  > this.getMaxEpochs()) {
                    MLflowLogger.endRun(runId);
@@ -288,7 +311,7 @@ public class VisionVrep implements SensorI{
             
             return true;
         }
-            printToFile("nrewards.txt",false);
+           
             //if(!aux_a) {
                 //lastLinei.set(4,lastLinei.get(6)+lastLinei.get(7));
                 //System.out.println("actions: "+lastLinei.get(6)+lastLinei.get(7));
@@ -305,8 +328,10 @@ public class VisionVrep implements SensorI{
                 
                 mtype = "s";
             }}
-
-            /*MLflowLogger.logMetric(runId, "Total_Actions", lastLinei.get(4), lastLinei.get(4));
+             printToFile("nrewards.txt",true);
+             this.setNextAct(true);
+            this.setNextActR(true);
+             /*MLflowLogger.logMetric(runId, "Total_Actions", lastLinei.get(4), lastLinei.get(4));
             MLflowLogger.logMetric(runId, "Battery", lastLinei.get(5), lastLinei.get(4));
             MLflowLogger.logMetric(runId, "ActionsC", lastLinei.get(6), lastLinei.get(4));
             MLflowLogger.logMetric(runId, "ActionsS", lastLinei.get(7), lastLinei.get(4));

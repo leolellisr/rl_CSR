@@ -120,7 +120,7 @@ public class LearnerCodelet extends Codelet
         ql.setE(0.95);
         
         if (mode.equals("learning") && this.stage == 3 && oc.vision.getIValues(1) == 1) {
-            System.out.println("init Learner");
+            if(debug) System.out.println("init Learner");
             // Initialize QTable to 0 with bulk insertion
            /* int totalStates;
             if (num_tables == 1) {

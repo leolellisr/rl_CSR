@@ -88,7 +88,7 @@ public class ActionExecCodelet extends Codelet
     private ArrayList<Float> lastLine, lastRed, lastGreen, lastBlue, lastDist;
     private List winnersList, colorReadings, redReadings, greenReadings, blueReadings, distReadings, battReadings;
     private List saliencyMap;
-    private int curiosity_lv, red_c, green_c, blue_c, cur_a=0, sur_a=0,num_tables;
+    private int aux_resetr=-1,aux_reset=-1, curiosity_lv, red_c, green_c, blue_c, cur_a=0, sur_a=0,num_tables;
     private  String nameMotivation;
     public ActionExecCodelet (OutsideCommunication outc, String mode, int tWindow, int sensDimn, int num_tables) {
 
@@ -346,12 +346,8 @@ public class ActionExecCodelet extends Codelet
                         Logger.getLogger(ActionExecCodelet.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     if(debug) System.out.println("GOT RED");
-                    try {
-                        Thread.sleep(2000);
-                    } catch (Exception e) {
-                        Thread.currentThread().interrupt();
-                    }
-                    oc.reset_positions();
+                    aux_resetr=4;
+                    
                  //}
                 }
 
@@ -366,16 +362,11 @@ public class ActionExecCodelet extends Codelet
                     } catch (InterruptedException ex) {
                         Logger.getLogger(ActionExecCodelet.class.getName()).log(Level.SEVERE, null, ex);
                     }
-
+                    oc.vision.setNextAct(true);
                     oc.battery.setCharge(true);
-                    if(debug) System.out.println("GOT GREEN");
-                    try {
-                        Thread.sleep(1000);
-                    } catch (Exception e) {
-                        Thread.currentThread().interrupt();
-                    }
-                    oc.battery.setCharge(false);
-                    oc.reset_positions();
+                    System.out.println("GOT GREEN");
+                    aux_reset = 2;
+                    
                //  }
 
              }
@@ -389,16 +380,12 @@ public class ActionExecCodelet extends Codelet
                     } catch (InterruptedException ex) {
                         Logger.getLogger(ActionExecCodelet.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                    oc.vision.setNextAct(true);
                     oc.battery.setCharge(true);
-                    if(debug) System.out.println("GOT BLUE");
+                    
+                    System.out.println("GOT BLUE");
 
-                    try {
-                        Thread.sleep(2000);
-                    } catch (Exception e) {
-                        Thread.currentThread().interrupt();
-                    }
-                    oc.battery.setCharge(false);
-                    oc.reset_positions();
+                    aux_reset = 4;
                    // }
              }
 
@@ -451,7 +438,24 @@ public class ActionExecCodelet extends Codelet
                 
             }*/
             
-
+            if(aux_reset!=-1){
+                if(aux_reset==0){
+                    oc.battery.setCharge(false);
+                    oc.vision.setNextAct(false);
+                    oc.reset_positions();
+                    aux_reset=-1;
+                }else{
+                    aux_reset-=1;
+                }
+            }
+            if(aux_resetr!=-1){
+                if(aux_resetr==0){
+                    oc.reset_positions();
+                    aux_resetr=-1;
+                }else{
+                    aux_resetr-=1;
+                }
+            }
             check_stop_experiment();
             //printToFile("object_count.txt");
     } 

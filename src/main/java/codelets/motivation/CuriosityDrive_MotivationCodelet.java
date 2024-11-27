@@ -146,11 +146,11 @@ private List<String> allStatesList;
         getActivation();
        
         
-        try {
+      /*  try {
         Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }
+        }*/
 
         if(actions.isEmpty()){
              this.activation = 0.9;

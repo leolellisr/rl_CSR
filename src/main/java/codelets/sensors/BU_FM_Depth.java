@@ -54,11 +54,11 @@ private boolean debug = false;
 
     @Override
     public void proc() {
-        try {
+        /*try {
             Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }
+        }*/
         MemoryObject depth_bufferMO = (MemoryObject) sensor_buffers.get(1);        //Gets Data
         
         List depthData_buffer;

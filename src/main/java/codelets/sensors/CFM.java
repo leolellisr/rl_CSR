@@ -56,12 +56,12 @@ OutsideCommunication oc;
         this.stage = sensor.getStage();
    
        
-        try {
+        /*try {
             Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }
-        
+        */
          ArrayList FMk_c = new ArrayList<>();
         for (int k = 0; k < num_feat_maps; k++) {
                 MemoryObject FMkMO;

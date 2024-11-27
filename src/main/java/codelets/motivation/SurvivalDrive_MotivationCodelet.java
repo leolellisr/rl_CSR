@@ -119,13 +119,16 @@ public class SurvivalDrive_MotivationCodelet extends MotivationalCodelet
     @Override
     public void proc() {
 
-        try {
+       /* try {
             Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
+        }*/
+        if(oc.vision.getNextAct()){ 
+            if((boolean)oc.battery.getCharge() && (int)oc.vision.getIValues(5)<100) oc.battery.setData((int)oc.vision.getIValues(5)+10);
+            else if((int)oc.vision.getIValues(5)>0) oc.battery.setData((int)oc.vision.getIValues(5)-10);            
+            if(!(boolean)oc.battery.getCharge() ) oc.vision.setNextAct(false);
         }
-        if((boolean)oc.battery.getCharge() && (int)oc.vision.getIValues(5)<100) oc.battery.setData((int)oc.vision.getIValues(5)+5);
-        else if((int)oc.vision.getIValues(5)>0) oc.battery.setData((int)oc.vision.getIValues(5)-5);
         oc.vision.setIValues(5, (int) oc.battery.getData());
         this.activation = getActivation();
         activation = (double) Math.round(activation*10)/10;

@@ -91,11 +91,11 @@ public class BU_FM_Color extends FeatMapCodelet {
 
     @Override
     public void proc() {
-        try {
+       /* try {
             Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }
+        }*/
         
         MemoryObject vision_bufferMO = (MemoryObject) sensor_buffers.get(0);        //Gets vision Data
         

@@ -20,6 +20,10 @@ import java.util.ArrayList;
  * @author L. L. Rossi (leolellisr)
  */
 public interface SensorI {
+    public boolean getNextActR();
+    public void setNextActR(boolean next_ac);
+    public void setNextAct(boolean next_ac);
+     public boolean getNextAct();
      public String gettype();
     public String getLastAction();
     public void setLastAction(String a);

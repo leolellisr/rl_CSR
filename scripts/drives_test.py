@@ -16,7 +16,7 @@ sfile2 = "../results/2QTables/profile/nrewards.txt"
 
 output_folder = "../results/"
 
-n_exps = 48
+n_exps = 37
 ## Remove strings 
 
 def remove_strings_from_file(file_name, strings_to_remove):
@@ -376,7 +376,7 @@ try:
     dv2=float(statistics.stdev(stress_a2))
 except:
     dv2=0.2
-max_ticks = 11
+max_ticks = 13
 step_ticks = 1
 
 plot_graphs_stress("Stress", stress_a1, results2c[0][:-1], stress_a2, max_ticks, step_ticks, dv1,dv2)    

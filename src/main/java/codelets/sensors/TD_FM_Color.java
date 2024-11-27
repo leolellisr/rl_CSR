@@ -88,11 +88,11 @@ public class TD_FM_Color extends FeatMapCodelet {
     @Override
     public void proc() {
         this.stage = vision.getStage();
-        try {
+       /* try {
             Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }
+        }*/
         
         MemoryObject vision_bufferMO = (MemoryObject) sensor_buffers.get(0);        //Gets Vision Data
         

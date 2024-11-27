@@ -98,11 +98,11 @@ public class TD_FM_Depth extends FeatMapCodelet {
     @Override
     public void proc() {
         
-        try {
+     /*   try {
             Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }
+        }*/
         
         this.stage = vision.getStage();
         

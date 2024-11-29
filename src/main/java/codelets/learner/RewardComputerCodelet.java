@@ -306,10 +306,10 @@ public class RewardComputerCodelet extends Codelet
                 if(motivationType.equals("CURIOSITY")||motivationType.equals("")){
                     
                     if(cur_delta!=0){
-                        if(cur_drive==0.0)  reward_i += 1*cur_f;
-                        if(cur_drive>0.0 &&  cur_drive<0.1)  reward_i += 1*cur_f*0.5;
+                        if(cur_drive==0.0)  reward_i += 1;
+                        if(cur_drive>0.0 &&  cur_drive<=0.2)  reward_i += 1*0.5;
                         if(cur_drive==1.0)  reward_i -= 1;
-                        if(cur_drive>0.9 &&  cur_drive<1.0)  reward_i -= 1*0.5;
+                        if(cur_drive>=0.8 &&  cur_drive<1.0)  reward_i -= 1*0.5;
                     }
                     // cur_f = cur_delta*cur_delta;
                    // if(cur_delta!=0)  reward_i += 1*cur_delta;
@@ -324,9 +324,9 @@ public class RewardComputerCodelet extends Codelet
                     
                     if(sur_delta!=0){
                         if(sur_drive==0.0)  reward_i += 1*sur_f;
-                        if(sur_drive>0.0 && sur_drive<0.1)  reward_i += 0.5*sur_f;
+                        if(sur_drive>0.0 && sur_drive<=0.2)  reward_i += 0.5*sur_f;
                         if(sur_drive==1.0)  reward_i -= 1*sur_f;
-                        if(sur_drive<1.0 && sur_drive>0.9)  reward_i -= 0.5*sur_f;
+                        if(sur_drive<1.0 && sur_drive>=0.8)  reward_i -= 0.5*sur_f;
                     }
                     //sur_f = sur_delta*sur_delta;
                    // if(sur_drive<lsur_drive)  reward_i += 1*sur_delta;
@@ -338,7 +338,7 @@ public class RewardComputerCodelet extends Codelet
                     
                 }
                 lsur_drive=sur_drive;
- System.out.println("~~ REWARD - QTables:"+num_tables+"  Type:"+motivationType+
+ if(sdebug) System.out.println("~~ REWARD - QTables:"+num_tables+"  Type:"+motivationType+
                         " SurV:"+sur_drive+" LSurV:"+lsur_drive+" dSurV:"+sur_delta+
                         " CurV:"+cur_drive+" LCurV:"+lcur_drive+" dCurV:"+cur_delta
                         +" Ri:"+reward_i);
@@ -481,11 +481,12 @@ public class RewardComputerCodelet extends Codelet
         } 
         
                 if(this.oc.vision.endEpochR()){
-             System.out.println("MORREU");
+            // System.out.println("MORREU");
                     reward_i -= 100;
                     lsur_drive=0;
                     lcur_drive=0;
-
+                     oc.vision.setFValues(2, sur_delta);
+        oc.vision.setFValues(4, cur_delta);
             }
                 //Math.pow(Math.E,*0.05/350)
                 reward_i = Math.round(reward_i * 10) / 10.0f;
@@ -510,8 +511,7 @@ public class RewardComputerCodelet extends Codelet
             oc.vision.setFValues(5, reward_i);
 
         }
-        oc.vision.setFValues(2, sur_delta);
-        oc.vision.setFValues(4, cur_delta);
+       
         
         if(sdebug) System.out.println("~End~ REWARD -  QTables:"+num_tables+" Exp: "+ experiment_number +
                     " - N_act: "+action_number+" Battery:"+battery_lvint+ " - Winner: "+winnerIndex+

@@ -364,7 +364,7 @@ public class ActionExecCodelet extends Codelet
                     }
                     oc.vision.setNextAct(true);
                     oc.battery.setCharge(true);
-                    System.out.println("GOT GREEN");
+                    //System.out.println("GOT GREEN");
                     aux_reset = 2;
                     
                //  }
@@ -383,7 +383,7 @@ public class ActionExecCodelet extends Codelet
                     oc.vision.setNextAct(true);
                     oc.battery.setCharge(true);
                     
-                    System.out.println("GOT BLUE");
+                   // System.out.println("GOT BLUE");
 
                     aux_reset = 4;
                    // }

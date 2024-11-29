@@ -101,7 +101,7 @@ public class LearnerCodelet extends Codelet
         double[] dcValues = DoubleStream.iterate(0.0, n -> n <= 1.0, n -> n + 0.2).toArray(); // 21 values from 0 to 1.0
         double[] dsValues = DoubleStream.iterate(0.0, n -> n <= 1.0, n -> n + 0.2).toArray(); // Same as Dc range
         int salMax = (int)Math.pow(2, 16); // Sal has 65536 values (0 to 65535)
-        int batteryMax =21;
+        int batteryMax =11;
         
        int numStates; 
         experiment_number = oc.vision.getEpoch();

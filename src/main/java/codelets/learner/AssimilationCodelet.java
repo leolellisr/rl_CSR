@@ -90,11 +90,11 @@ public class AssimilationCodelet extends Codelet
         }else if(stage == 3){
             nActions = 17;
         }
-	try {
+	/*try {
             Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        }
+        }*/
          if(motivationMO == null){
               if(debug) System.out.println("Rewardcomputer motivationMO is null");
             return;

@@ -131,7 +131,7 @@ public class SurvivalDrive_MotivationCodelet extends MotivationalCodelet
         }
         oc.vision.setIValues(5, (int) oc.battery.getData());
         this.activation = getActivation();
-        activation = (double) Math.round(activation*10)/10;
+        activation = (double) Math.ceil(activation / 0.2) * 0.2;
         if(debug) System.out.println("Battery activation: "+this.activation);
         oc.vision.setFValues(1, (float) this.activation);
         survival_motivation_idea = new Idea("SURVIVAL", this.activation);

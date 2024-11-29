@@ -294,11 +294,11 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
 			// Getting just the last entry (current sal map)
 			lastLine = (ArrayList<Float>) saliencyMap.get(saliencyMap.size() -1);
 
-        try {
+       /* try {
             Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
-        } 
+        } */
                         
         if (Collections.max(lastLine) == 0) aux_crash += 1;
         else aux_crash = 0; 

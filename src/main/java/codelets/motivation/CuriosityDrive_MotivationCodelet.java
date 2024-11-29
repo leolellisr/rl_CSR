@@ -202,7 +202,7 @@ private List<String> allStatesList;
                 if(!getExecutedAct.contains(action)) count_cur+=1;
             }
         activation = (double) count_cur/allActionsList.size();
-        activation = (double) Math.round(activation*10)/10;
+        activation = (double) Math.ceil(activation / 0.2) * 0.2;
         if(debug) System.out.println("curiosity a: "+activation+"count_cur: "+count_cur);
         }
         oc.vision.setFValues(3, (float) this.activation);

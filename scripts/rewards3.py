@@ -60,21 +60,7 @@ def get_data_drives(filer, filea, n_exps):
             i+=1
 
     if debug: print("len rew: "+str(len(rewards)))
-    for j in range(0,len(rewards)):
-        if len(rewards[j])==0: rewards[j] = 0
-        else: 
-            #if debug: print("j: "+str(j))
-            rewards[j] = np.mean(rewards[j])   
-
-        if len(dr_c[j])==0: dr_c[j] = 0
-        else: 
-            #if debug: print("j: "+str(j))
-            dr_c[j] = np.mean(dr_c[j])  
-
-        if len(dr_s[j])==0: dr_s[j] = 0
-        else: 
-            #if debug: print("j: "+str(j))
-            dr_s[j] = np.mean(dr_s[j])  
+     
             
 
 
@@ -102,7 +88,21 @@ def get_data_drives(filer, filea, n_exps):
         else: 
             #if debug: print("j: "+str(j))
             actions[j] = np.max(action)   
+    for j in range(0,len(rewards)):
+        if len(rewards[j])==0: rewards[j] = 0
+        else: 
+            #if debug: print("j: "+str(j))
+            rewards[j] = rewards[j][int(actions[j])]    
 
+        if len(dr_c[j])==0: dr_c[j] = 0
+        else: 
+            #if debug: print("j: "+str(j))
+            dr_c[j] = np.mean(dr_c[j])  
+
+        if len(dr_s[j])==0: dr_s[j] = 0
+        else: 
+            #if debug: print("j: "+str(j))
+            dr_s[j] = np.mean(dr_s[j]) 
     return [rewards, exps, actions, dr_c, dr_s] # len 5
 
 def get_data_2qt(filer, filea,n_exps, typed):
@@ -151,19 +151,6 @@ def get_data_2qt(filer, filea,n_exps, typed):
             i+=1
 
     if debug: print("len rew: "+str(len(rewards)))
-    for j in range(0,len(rewards)):
-        if len(rewards[j])==0: rewards[j] = 0
-        else: rewards[j] = np.mean(rewards[j])   
-
-        if len(dr_c[j])==0: dr_c[j] = 0
-        else: 
-            #if debug: print("j: "+str(j))
-            dr_c[j] = np.mean(dr_c[j])  
-
-        if len(dr_s[j])==0: dr_s[j] = 0
-        else: 
-            #if debug: print("j: "+str(j))
-            dr_s[j] = np.mean(dr_s[j])  
     
             
     if typed=="c": 
@@ -199,6 +186,21 @@ def get_data_2qt(filer, filea,n_exps, typed):
             actions[j] = np.max(action)
             #print("max act")    
             #print(np.max(action))
+
+    for j in range(0,len(rewards)):
+        if len(rewards[j])==0: rewards[j] = 0
+        else: rewards[j] = rewards[j][int(actions[j])-1]   
+
+        if len(dr_c[j])==0: dr_c[j] = 0
+        else: 
+            #if debug: print("j: "+str(j))
+            dr_c[j] = np.mean(dr_c[j])  
+
+        if len(dr_s[j])==0: dr_s[j] = 0
+        else: 
+            #if debug: print("j: "+str(j))
+            dr_s[j] = np.mean(dr_s[j])  
+            
     return [rewards, exps, actions, dr_c, dr_s] # len 5
 
 def remove_strings_from_file(file_name, strings_to_remove):
@@ -290,7 +292,7 @@ def plot_graphs_mean_dv(title, mean1, dv1, exp, expx, mean2c, dv2c, mean2s, dv2s
     min_r2s = min(mean2s)
     min_r2c = min(mean2c)
     min_r = int(min(min_r1, min_r2s, min_r2c))-1
-    Y_ticks = [i for i in range(min_r,max_ticks+4, step_ticks)]
+    Y_ticks = [i for i in range(min_r,max_ticks+10, step_ticks)]
     Y_ticks_act = [i for i in range(min_r,max_ticks, step_ticks)]
 
     plt.figure(figsize=(40,20))
@@ -464,10 +466,10 @@ print(plots2s)
 # X Axis for Means     
 #exp1 = [ep/2 for ep in exp1]
 cut2 = -9
-y_rewards = 4
-ticks_rewards = 1
+y_rewards =15
+ticks_rewards =5
 y_actions = 50
-ticks_actions = 2
+ticks_actions = 5
 
 exp1 = [i for i in range(0,mean_ticks+1)]
 exp1 = [int(em*len(results1[0])/mean_ticks) for em in exp1]
@@ -478,9 +480,14 @@ exp1[0] = 1
 # dv_g, mean_b, dv_b, exps_s
 
 plots1[0][0]=-2
+
+#plots1[0][14]=200
+#plots1[1][14]=380
+#plots1[1][20]=400
+#print(plots1[0])
 plots2s[0][0]=-2
 plots2c[0][0]=-2
-
+#print(plots1[1])
 
 plot_graphs_mean_dv("Rewards", plots1[0], plots1[1],  plots1[4], exp1, 
                     plots2c[0], plots2c[1], plots2s[0], plots2s[1], y_rewards, 
@@ -516,8 +523,8 @@ results2s[0] = results2s[3]
 #plots2s = get_mean_n_std(mean_ticks, results2s)
 
 
-y_rewards = 2
-ticks_rewards = 1
+y_rewards = 50
+ticks_rewards = 10
 
 
 #plot_graphs_mean_dv("Drives", plots1[0], plots1[1],  plots1[4], exp1, plots2c[0], plots2c[1], plots2s[0], plots2s[1], y_rewards, ticks_rewards, False)

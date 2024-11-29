@@ -62,13 +62,13 @@ public class VisionVrep implements SensorI{
     private ArrayList<Integer> lastLinei;
     private ArrayList<String> executedActions;
     private String mtype, lastAction;
-    private String runId="ee4d85d562d84ceea7780d35bf4e4cbd";
+    private String runId="866e53327c8c434c8d94a6e1a7691d2e";
     public VisionVrep(remoteApi vrep, int clientid, IntW vision_handles, int max_epochs, int num_tables) {
         this.time_graph = 0;
         vision_data = Collections.synchronizedList(new ArrayList<>(res*res*3));
         this.vrep = vrep;
         this.stage =3;
-       this.num_epoch = 268;
+       this.num_epoch = 1;
         this.num_exp_c = num_epoch;
         this.num_exp_s =num_epoch;
         this.nact = 0;
@@ -328,7 +328,7 @@ public class VisionVrep implements SensorI{
                 
                 mtype = "s";
             }}
-             printToFile("nrewards.txt",true);
+             printToFile("nrewards.txt",false);
              this.setNextAct(true);
             this.setNextActR(true);
              /*MLflowLogger.logMetric(runId, "Total_Actions", lastLinei.get(4), lastLinei.get(4));

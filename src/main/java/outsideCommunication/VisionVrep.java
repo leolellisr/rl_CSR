@@ -86,11 +86,9 @@ public class VisionVrep implements SensorI{
         
         for(int i=0;i<8;i++){
             lastLinef.add(0f);
-           
-        }
-        for(int i=0;i<11;i++){
             lastLinei.add(0);
         }
+
         lastLinei.set(2, num_exp_c);
         lastLinei.set(3, num_exp_s);
         lastLinei.set(1, num_epoch);
@@ -616,10 +614,9 @@ public class VisionVrep implements SensorI{
                         " G_Reward S:"+lastLinef.get(0)+" Ri S:"+lastLinef.get(5)+
                         " G_Reward C:"+lastLinef.get(6)+" Ri C:"+lastLinef.get(7)+
                         " LastAct: "+lastAction+
-                        " Act C:"+lastLinei.get(6)+" Act S:"+lastLinei.get(7)+" Type:"+mtype+
-                        " Ro:"+lastLinei.get(8)+" Go:"+lastLinei.get(9)+" Bo:"+lastLinei.get(10);
+                        " Act C:"+lastLinei.get(6)+" Act S:"+lastLinei.get(7)+" Type:"+mtype;
                 out.println(s);
-                
+                if(debugp) System.out.println(s);
                 s = " QTables:"+lastLinei.get(0)+
                         " Exp:"+lastLinei.get(1)+" exp_c:"+lastLinei.get(2)+" exp_s:"+lastLinei.get(3)+
                         " Nact:"+lastLinei.get(4)+ " Battery:"+lastLinei.get(5)+
@@ -628,9 +625,7 @@ public class VisionVrep implements SensorI{
                         "\n G_Reward S:"+lastLinef.get(0)+" Ri S:"+lastLinef.get(5)+
                         " G_Reward C:"+lastLinef.get(6)+" Ri C:"+lastLinef.get(7)+
                         " LastAct: "+lastAction+
-                        " Act C:"+lastLinei.get(6)+" Act S:"+lastLinei.get(7)+" Type:"+mtype+
-                        " Ro:"+lastLinei.get(8)+" Go:"+lastLinei.get(9)+" Bo:"+lastLinei.get(10);
-                if(debugp) System.out.println(s);
+                        " Act C:"+lastLinei.get(6)+" Act S:"+lastLinei.get(7)+" Type:"+mtype;
                 out.close();
             } catch (IOException e) {
                 e.printStackTrace();

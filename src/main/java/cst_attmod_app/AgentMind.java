@@ -319,7 +319,7 @@ private long seed;
 
         //Feature Maps bottom-up
         //Red FM
-        Codelet vision_color_fm_c = new BU_FM_Color(oc, sensbuff_names_vision.size(),
+        Codelet vision_color_fm_c = new BU_FM_Color(oc.vision, sensbuff_names_vision.size(),
                 sensbuff_names_vision,"VISION_COLOR_FM",Buffersize,Sensor_dimension,print_step);
         vision_color_fm_c.addInput(vision_bufferMO);
         vision_color_fm_c.addOutput(vision_color_fmMO);

@@ -71,9 +71,8 @@ private ArrayList<String> executedActions  = new ArrayList<>();
 private ArrayList<String> allActionsList;
 private Map<String, ArrayList<Integer>> proceduralMemory = new HashMap<String, ArrayList<Integer>>();
 private String output, motivation, stringOutput = "";
+private ArrayList<Float> lastLine;
 private String motivationName;
-private ArrayList<Float> lastLine, lastRed, lastGreen, lastBlue;
-private List redReadings, greenReadings, blueReadings;
 public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, String mode, String motivation, int num_tables) {
 
     super();
@@ -144,14 +143,6 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
             rewardList = (List) MO.getI();
             MO = (MemoryObject) this.getInput("QTABLE");
             qTableList = (List) MO.getI();
-            
-            MO = (MemoryObject) this.getInput("VISION_RED_FM");
-                redReadings = (List) MO.getI();
-                MO = (MemoryObject) this.getInput("VISION_GREEN_FM");
-                greenReadings = (List) MO.getI();
-                MO = (MemoryObject) this.getInput("VISION_BLUE_FM");
-                blueReadings = (List) MO.getI();
-                
         }
         MO = (MemoryObject) this.getOutput("STATES");
         allStatesList = (List) MO.getI();
@@ -383,22 +374,11 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
             
         } 
         if(num_tables==1){
-            stateIndex = (int) ((oc.vision.getIValues(10) * 2 * 2 * 11 * 6 * 6 * 65536) + // Bb
-                    (oc.vision.getIValues(9) * 2 * 11 * 6 * 6 * 65536) +                // Gb
-                    (oc.vision.getIValues(8) * 11 * 6 * 6 * 65536) +                    // Rb
-                    (oc.vision.getIValues(5) * 6 * 6 * 65536) +                         // Battery
-                    (oc.vision.getFValues(3) * 6 * 65536) +                             // Drive Curiosity
-                    (oc.vision.getFValues(1) * 65536) +                                 // Drive Survival
-                    stateVal);                                                          // Discretized sal map
+        stateIndex = (int) ((oc.vision.getIValues(5) * 6 * 6 * 65536) + (oc.vision.getFValues(3) * 6 * 65536) + (oc.vision.getFValues(1) * 65536) + stateVal);
             
         }
         else if(num_tables==2){
-            stateIndex = (int) ((oc.vision.getIValues(10) * 2 * 2 * 11 * 6 * 65536) +   // Bb
-                    (oc.vision.getIValues(9) * 2 * 11  * 6 * 65536) +                 // Gb
-                    (oc.vision.getIValues(8) * 11 * 6 * 65536) +                    // Rb
-                    oc.vision.getIValues(5) * 6 * 65536 +                         // Battery 
-                    mot_value * 65536) +                                            // Drive 
-                    stateVal;                                                        // Discretized sal map
+            stateIndex = (int) (oc.vision.getIValues(5) * 6 * 65536 + mot_value * 65536) + stateVal;
             
         }
         return stateIndex;

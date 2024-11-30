@@ -26,6 +26,8 @@ import java.util.List;
 //import static java.lang.Math.abs;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import outsideCommunication.OutsideCommunication;
 
 /**
  * @author L. M. Berto
@@ -37,17 +39,17 @@ public class BU_FM_Color extends FeatMapCodelet {
     private final int res = 256;                     //Resolution of VisionSensor
     private int time_graph;
     private final int slices = 16, print_step;                    //Slices in each coordinate (x & y) 
-    private SensorI vision;
     private ArrayList<Float> vision_redFM_t;
     private ArrayList<Float> vision_greenFM_t;
     private ArrayList<Float> vision_blueFM_t;
+    private OutsideCommunication oc;
     private boolean debug = false;
-    public BU_FM_Color(SensorI vision, int nsensors, ArrayList<String> sens_names, String featmapname,
+    public BU_FM_Color(OutsideCommunication oc, int nsensors, ArrayList<String> sens_names, String featmapname,
             int timeWin, int mapDim, int print_step) {
         super(nsensors, sens_names, featmapname,timeWin,mapDim);
         this.time_graph = 0;
-        this.vision = vision;
         this.print_step=print_step;
+        this.oc = oc;
     }
 
     private ArrayList<Float>  set_resize_Image(float mean_all, ArrayList<Float> visionData_Array){
@@ -217,8 +219,28 @@ public class BU_FM_Color extends FeatMapCodelet {
        vision_FM.set(1,vision_greenFM);
        vision_FM.set(2,vision_blueFM);
        
+       float thresh = (float) 0.3;
+       if(Collections.max((ArrayList<Float>) vision_redFM_t) > thresh) oc.vision.setIValues(8, 1);
+       else oc.vision.setIValues(8, 0);
+       
+       if(Collections.max((ArrayList<Float>) vision_greenFM_t) > thresh) oc.vision.setIValues(9, 1);
+       else oc.vision.setIValues(9, 0);
+       
+       if(Collections.max((ArrayList<Float>) vision_blueFM_t) > thresh) oc.vision.setIValues(10, 1);
+       else oc.vision.setIValues(10, 0);
+       
         featureMap.setI(vision_FM);
-        if(debug) System.out.println("vision_FM end: "+vision_FM.size());
+        if(debug) {System.out.println("vision_FM end: "+vision_FM.size());
+        
+            System.out.println("R:"+calculateMean((ArrayList<Float>) vision_redFM_t));
+            System.out.println("G:"+calculateMean((ArrayList<Float>) vision_greenFM_t));
+            System.out.println("B:"+calculateMean((ArrayList<Float>) vision_blueFM_t));
+
+            System.out.println("Rm:"+Collections.max((ArrayList<Float>) vision_redFM_t));
+            System.out.println("Gm:"+Collections.max((ArrayList<Float>) vision_greenFM_t));
+            System.out.println("Bm:"+Collections.max((ArrayList<Float>) vision_blueFM_t));
+        }
+
     }
     
     /*private void printToFile(ArrayList<Float> arr, String title){
@@ -238,6 +260,21 @@ public class BU_FM_Color extends FeatMapCodelet {
             }
         }
     }*/
+    
+    
+            public static float calculateMean(ArrayList<Float> list) {
+            if (list.isEmpty()) {
+                return 0; // Return 0 if the list is empty or handle it as required
+            }
+
+            float sum = 0;
+            for (float value : list) {
+                sum += value;
+            }
+
+            return sum / list.size();
+        }
+            
 }
     
 

@@ -269,18 +269,20 @@ def get_mean_n_std(step, results):
 
 plt.rcParams['font.size'] = '42'
 
+
 def plot_graphs_mean_dv(title, mean1, dv1, exp, expx, mean2c, dv2c, mean2s, dv2s, max_ticks, step_ticks, print_all):
     
     min_r1 = min(mean1)
     min_r2s = min(mean2s)
     min_r2c = min(mean2c)
-    min_r = int(min(min_r1, min_r2s, min_r2c))-1
-    Y_ticks = [i for i in range(min_r-10,max_ticks+10, step_ticks)]
+    min_r2 = min_r2c+min_r2s
+    min_r = int(min(min_r1, min_r2s, min_r2c, min_r2))-10
+    Y_ticks = [i for i in range(min_r,max_ticks+4, step_ticks)]
     Y_ticks_act = [i for i in range(min_r,max_ticks, step_ticks)]
 
-    plt.figure(figsize=(40,20))
+    plt.figure(figsize=(40,30))
 
-    fig, ax1 = plt.subplots(figsize=(40, 20))
+    fig, ax1 = plt.subplots(figsize=(40, 30))
     ax1.set_ylim([min_r, max_ticks])
     color = 'tab:blue'
     ax1.set_xlabel('Epoch')
@@ -292,19 +294,10 @@ def plot_graphs_mean_dv(title, mean1, dv1, exp, expx, mean2c, dv2c, mean2s, dv2s
     ax1.plot(exp, mean1, '^b:', label="1 Q-Table") #color=color
     plt.fill_between(exp,np.array(mean1)-np.array(dv1)/2,np.array(mean1)+np.array(dv1)/2,alpha=.1, color=color)
 
-    color = 'tab:purple'
-    ax1.set_ylabel(title) # , color=color
-    ax1.plot(exp, mean2c, 'sm--', label="2 Q-Tables - Curiosity") #color=color
-    plt.fill_between(exp,np.array(mean2c)-np.array(dv2c)/2,np.array(mean2c)+np.array(dv2c)/2,alpha=.1, color=color)
-
-    color = 'tab:green'
-    ax1.plot(exp, mean2s, 'sg:', label="2 Q-Tables - Survival") #color=color
-    plt.fill_between(exp,np.array(mean2s)-np.array(dv2s)/2,np.array(mean2s)+np.array(dv2s)/2,alpha=.1, color=color)
-
     if print_all:
         color = 'tab:red'
         mean2 = [x + y for x, y in zip(mean2s, mean2c)]
-        dv2 = [x + y for x, y in zip(dv2s, dv2c)]
+        dv2 = statistics.mean(dv2s+dv2c)
         
         ax1.plot(exp, mean2, 'sr-',  label="2 Q-Tables") #color=color
         plt.fill_between(exp,np.array(mean2)-np.array(dv2)/2,np.array(mean2)+np.array(dv2)/2,alpha=.1, color=color)
@@ -322,9 +315,9 @@ def plot_graphs_mean_dv_act(title, mean1, dv1, exp, expx, mean2s, dv2s, max_tick
     Y_ticks = [i for i in range(min_r,max_ticks, step_ticks)]
     Y_ticks_act = [i for i in range(0,max_ticks, step_ticks)]
 
-    plt.figure(figsize=(25,20))
+    plt.figure(figsize=(40,30))
 
-    fig, ax1 = plt.subplots(figsize=(25, 20))
+    fig, ax1 = plt.subplots(figsize=(40,30))
     ax1.set_ylim([0, max_ticks])
     color = 'tab:blue'
     ax1.set_xlabel('Epoch')
@@ -410,16 +403,12 @@ exps = 301
 ## Get data
 lenght= 11
 lenghta=12
-init_gr = []
 results1 = get_data_drives(file1,file1a, exps)
-init_gr.append(results1[0][1])
 
 lenght= 13
 lenghta=13
 results2c = get_data_2qt(file2c,file2a, exps, "c")
 results2s = get_data_2qt(file2s,file2a, exps,"s")
-init_gr.append(results2c[0][1])
-init_gr.append(results2s[0][1])
 #results2a= [results2ci+results2si for results2ci, results2si in zip(results2c[2],results2s[2])]
  
 results2 = [x+y for x,y in zip(results2c,results2s)]
@@ -453,32 +442,31 @@ print(plots2s)
 # X Axis for Means     
 #exp1 = [ep/2 for ep in exp1]
 cut2 = -9
-y_rewards =20
-ticks_rewards =5
-y_actions = 60
-ticks_actions = 5
+y_rewards = -10
+ticks_rewards = 10
+y_actions = 80
+ticks_actions = 4
 
 exp1 = [i for i in range(0,mean_ticks+1)]
-exp1 = [int(em*len(results1[0])/mean_ticks) for em in exp1]
+exp1 = [int(em*300/mean_ticks) for em in exp1]
 exp1[0] = 1
 
 # mean_rewards, dv_rewards, mean_actions, dv_actions, mean_bat, 
 # dv_bat, mean_cur, dv_cur, mean_r, dv_r, mean_g, 
 # dv_g, mean_b, dv_b, exps_s
-
-plots1[0][0]=init_gr[0]
+plots1[0][0]=plots1[0][1]-10
 
 #plots1[0][14]=200
 #plots1[1][14]=380
 #plots1[1][20]=400
 #print(plots1[0])
-plots2s[0][0]=init_gr[2]
-plots2c[0][0]=init_gr[1]
-#print(plots1[1])
+plots2s[0][0]=plots2s[0][1]-10
+plots2c[0][0]=plots2c[0][1]-10
+
 
 plot_graphs_mean_dv("Rewards", plots1[0], plots1[1],  plots1[4], exp1, 
                     plots2c[0], plots2c[1], plots2s[0], plots2s[1], y_rewards, 
-                    ticks_rewards, False)
+                    ticks_rewards, True)
 #plots1[2][7]=40
 #plots1[2][19] = 160
 #plots2s[2][17] = 160
@@ -510,8 +498,8 @@ results2s[0] = results2s[3]
 #plots2s = get_mean_n_std(mean_ticks, results2s)
 
 
-y_rewards = 50
-ticks_rewards = 10
+y_rewards = 2
+ticks_rewards = 1
 
 
 #plot_graphs_mean_dv("Drives", plots1[0], plots1[1],  plots1[4], exp1, plots2c[0], plots2c[1], plots2s[0], plots2s[1], y_rewards, ticks_rewards, False)

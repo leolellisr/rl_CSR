@@ -26,6 +26,7 @@ import java.util.List;
 //import static java.lang.Math.abs;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 
 /**
  * @author L. M. Berto
@@ -41,7 +42,7 @@ public class BU_FM_Color extends FeatMapCodelet {
     private ArrayList<Float> vision_redFM_t;
     private ArrayList<Float> vision_greenFM_t;
     private ArrayList<Float> vision_blueFM_t;
-    private boolean debug = false;
+    private boolean debug = true;
     public BU_FM_Color(SensorI vision, int nsensors, ArrayList<String> sens_names, String featmapname,
             int timeWin, int mapDim, int print_step) {
         super(nsensors, sens_names, featmapname,timeWin,mapDim);
@@ -217,6 +218,18 @@ public class BU_FM_Color extends FeatMapCodelet {
        vision_FM.set(1,vision_greenFM);
        vision_FM.set(2,vision_blueFM);
        
+       if(debug) {
+           System.out.println("vision_FM end: "+vision_FM.size());
+        
+            System.out.println("R:"+calculateMean((ArrayList<Float>) vision_redFM_t));
+            System.out.println("G:"+calculateMean((ArrayList<Float>) vision_greenFM_t));
+            System.out.println("B:"+calculateMean((ArrayList<Float>) vision_blueFM_t));
+            System.out.println("Rm:"+Collections.max((ArrayList<Float>) vision_redFM_t));
+            System.out.println("Gm:"+Collections.max((ArrayList<Float>) vision_greenFM_t));
+            System.out.println("Bm:"+Collections.max((ArrayList<Float>) vision_blueFM_t));
+        }
+
+       
         featureMap.setI(vision_FM);
         if(debug) System.out.println("vision_FM end: "+vision_FM.size());
     }
@@ -238,6 +251,18 @@ public class BU_FM_Color extends FeatMapCodelet {
             }
         }
     }*/
+    
+          public static float calculateMean(ArrayList<Float> list) {
+            if (list.isEmpty()) {
+                return 0; // Return 0 if the list is empty or handle it as required
+            }
+            float sum = 0;
+            for (float value : list) {
+                sum += value;
+            }
+            return sum / list.size();
+        }
+          
 }
     
 

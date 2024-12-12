@@ -56,7 +56,7 @@ public class VisionVrep implements SensorI{
     private final int res = 256;
     private final int max_time_graph=100;
     private static final int MAX_ACTION_NUMBER = 500;
-	private boolean debug = true, aux_a=false, next_act = true, next_actR = true;
+	private boolean mlf = false, debug = true, aux_a=false, next_act = true, next_actR = true;
     private int max_epochs;
     private ArrayList<Float> lastLinef;
     private ArrayList<Integer> lastLinei;
@@ -96,11 +96,15 @@ public class VisionVrep implements SensorI{
         next_actR = true;
         
 // Step 1: Start a new experiment run
+
     if(this.num_epoch==1){
-        runId = MLflowLogger.startRun(num_tables+"QTable"+num_epoch);
+        if(mlf){
+            runId = MLflowLogger.startRun(num_tables+"QTable"+num_epoch);
+        
         if (runId == null) {
             System.out.println("Failed to start an MLflow run. Exiting...");
             return;
+        }
         }
     }}
     
@@ -226,6 +230,7 @@ public class VisionVrep implements SensorI{
         if (this.getEpoch() > 1 && (position.getArray()[2] < 0.35 || position.getArray()[0] > 0.2  || m_act) || 
                 (lastLinei.get(4)>1 && (lastLinei.get(5)==0 || lastLinei.get(5)<0))) {
             
+            if(mlf){
              MLflowLogger.logMetric(runId, "Total_Actions", lastLinei.get(4), lastLinei.get(1));
             MLflowLogger.logMetric(runId, "Battery", lastLinei.get(5), lastLinei.get(1));
             MLflowLogger.logMetric(runId, "ActionsC", lastLinei.get(6), lastLinei.get(1));
@@ -253,7 +258,7 @@ public class VisionVrep implements SensorI{
         MLflowLogger.logMetric(runId, "free_memory", freeMemory / (1024 * 1024), lastLinei.get(1)); // Convert to MB
         MLflowLogger.logMetric(runId, "total_memory", totalMemory / (1024 * 1024), lastLinei.get(1)); // Convert to MB
 
-        
+            }
             System.out.println("Marta crashed on exp "+this.getEpoch()+" with z = "+position.getArray()[2]+
                     " and battery "+lastLinei.get(5)+" Act:"+lastLinei.get(4));
                             
@@ -299,11 +304,11 @@ public class VisionVrep implements SensorI{
             this.setNextActR(true);
             aux_a = false;
             if (lastLinei.get(0) == 1 && lastLinei.get(1)  > this.getMaxEpochs()) {
-                   MLflowLogger.endRun(runId);
+                   if(mlf) MLflowLogger.endRun(runId);
                 System.exit(0);
             } else if (lastLinei.get(0) == 2 && lastLinei.get(2) > this.getMaxEpochs() && lastLinei.get(3)  > this.getMaxEpochs()) {
 
-                MLflowLogger.endRun(runId);
+                if(mlf) MLflowLogger.endRun(runId);
                 System.exit(0);
             }
            

@@ -21,3 +21,42 @@ url = {https://github.com/leolellisr/rl_CSR}
 }
 ```
 <!--CITATION END-->
+
+## Authors
+  
+- (2024-) Leonardo de Lellis Rossi: PhD Candidate, FEEC-UNICAMP
+- (Advisor, 2024-) Ricardo Gudwin: Professor, FEEC-UNICAMP
+- (Advisor, 2024-) Esther Luna Colombini: Professor, IC-UNICAMP
+  
+## Acknowledgements
+
+- LR is funded by MCTI project DOU 01245.003479/2024 -10. 
+- RG is funded by CEPID/BRAINN (FAPESP 2013/07559-3) grant.
+- EC is partially funded by CNPq PQ-2 grant (315468/2021-1)
+
+This project was supported by the brazilian Ministry of Science, Technology and Innovations, with resources from Law № 8,248, of October 23, 1991, within the scope of PPI-SOFTEX, coordinated by Softex and published Arquitetura Cognitiva (Phase 3), DOU 01245.003479/2024 -10.
+
+
+## License
+
+MIT License
+
+Copyright (c) 2023 Leonardo de Lellis Rossi
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

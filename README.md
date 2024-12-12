@@ -25,8 +25,8 @@ url = {https://github.com/leolellisr/rl_CSR}
 ## Authors
   
 - (2024-) Leonardo de Lellis Rossi: PhD Candidate, FEEC-UNICAMP
-- (Advisor, 2024-) Ricardo Gudwin: Professor, FEEC-UNICAMP
-- (Advisor, 2024-) Esther Luna Colombini: Professor, IC-UNICAMP
+- (Supervisor, 2024-) Ricardo Gudwin: Professor, FEEC-UNICAMP
+- (Co-Supervisor, 2024-) Esther Luna Colombini: Professor, IC-UNICAMP
   
 ## Acknowledgements
 

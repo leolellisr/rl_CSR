@@ -20,6 +20,7 @@ citation_str = ("<!--CITATION START-->\n"+
                 "```\n"+
                 "<!--CITATION END-->")
 
+print(citation_str)
 with open("README.md", "r") as file: 
     readme_text = file.read()
 

@@ -26,6 +26,10 @@ import java.util.Map;
 import outsideCommunication.OutsideCommunication;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.deeplearning4j.rl4j.learning.sync.qlearning.discrete.QLearningDiscreteConstructive.QLStepReturn;
+import org.deeplearning4j.rl4j.observation.Observation;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 /**
  * @author L. L. Rossi (leolellisr)
  * Obs: This class represents the implementations present in the proposed scheme for: 
@@ -46,8 +50,8 @@ private MemoryObject motorActionMO, reward_stringMO, action_stringMO;
 private MemoryObject neckMotorMO;
 private MemoryObject headMotorMO;
 private List<String> actionsList;
-private List<Integer> allStatesList;
-private List<QLearningSQL> qTableList, qTableSList, qTableCList;
+private List<Observation> allStatesList;
+private List<QLStepReturn> qTableList, qTableSList, qTableCList;
 private List<Double>  rewardList, rewardSList, rewardCList;
 private OutsideCommunication oc;
 private final int timeWindow;
@@ -178,7 +182,7 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }   */  
-        QLearningSQL ql = null;
+        QLStepReturn<Observation> ql = null;
         
         if(motivationMO == null){
             if(sdebug) System.out.println("DECISION -----  motivationMO is null");
@@ -225,10 +229,10 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
         
         if(debug) System.out.println("  post first qtable"); 
         
-        int state = -1;
+        Observation state = null;
         if(!saliencyMap.isEmpty() ) state = getStateFromSalMap();
         if(debug) System.out.println("  Decision state:"+state); 
-        String actionToTake = ql.getAction(state);
+        int actionToTake = ql.getLastAction();
         
                 // Select best action to take
 
@@ -237,7 +241,7 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
                     actionsList.remove(0);
         } 
                 
-        actionsList.add(actionToTake);
+        actionsList.add(String.valueOf(actionToTake));
         
         if(allStatesList.size() == timeWindow){
                     allStatesList.remove(0);
@@ -245,8 +249,8 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
         if(debug)  System.out.println("  Decision actionToTake:"+actionToTake);      
         allStatesList.add(state);
         action_number += 1;
-        oc.vision.addAction(actionToTake);
-        oc.vision.setLastAction(actionToTake);
+        oc.vision.addAction(String.valueOf(actionToTake));
+        oc.vision.setLastAction(String.valueOf(actionToTake));
         //oc.vision.setIValues(4, (int) oc.vision.getIValues(4)+1);
        // printToFile(actionToTake,"actions.txt", action_number);
 /*        boolean surB;
@@ -286,7 +290,7 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
 	// Normalize and transform a salience map into one state
 		// Normalized values between 0 and 1 can be mapped into 0, 1, 2, 3 or 4
 		// Them this values are computed into one respective state
-    public int getStateFromSalMap() {
+    public Observation getStateFromSalMap() {
         ArrayList<Float> mean_lastLine = new ArrayList<>();
         for(int i=0; i<16;i++) mean_lastLine.add(0f);
         
@@ -367,21 +371,39 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
             motivationName = "SURVIVAL";
         }
         double mot_value;
-        int stateIndex = -1;
-        if(motivationName.equals("SURVIVAL"))  mot_value = (double) oc.vision.getFValues(1);
+         float[] stateArray = null;
+         float[] lastLineArray = new float[lastLine.size()];
+         for (int i = 0; i < lastLine.size(); i++) {
+            lastLineArray[i] = lastLine.get(i);
+        }
+         
+        if(motivationName.equals("SURVIVAL")){
+            mot_value = (double) oc.vision.getFValues(1);
+        }
         else{
-            mot_value = (double) oc.vision.getFValues(3);
-            
+            mot_value = (double) oc.vision.getFValues(3); 
         } 
         if(num_tables==1){
-        stateIndex = (int) ((oc.vision.getIValues(5) * 6 * 6 * 65536) + (oc.vision.getFValues(3) * 6 * 65536) + (oc.vision.getFValues(1) * 65536) + stateVal);
+        stateArray = padOrTrimArray(concatenateArrays(
+                new float[]{oc.vision.getIValues(5)},
+                new float[]{oc.vision.getFValues(3)},
+                new float[]{oc.vision.getFValues(1)},
+                lastLineArray),272);
             
         }
         else if(num_tables==2){
-            stateIndex = (int) (oc.vision.getIValues(5) * 6 * 65536 + mot_value * 65536) + stateVal;
+            
+            stateArray = padOrTrimArray(concatenateArrays(
+                new float[]{oc.vision.getIValues(5)},
+                new float[]{(float) mot_value},
+                lastLineArray),272);
+            
             
         }
-        return stateIndex;
+        INDArray observationData = Nd4j.create(new float[][]{stateArray});
+        if(debug) System.out.println("  \n return ObservationData");
+            
+        return new Observation(observationData);
     }
 		
 	
@@ -432,4 +454,33 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
     }
 
 */
+    
+    private static float[] concatenateArrays(float[]... arrays) {
+        int totalLength = 0;
+        for (float[] array : arrays) {
+            totalLength += array.length;
+        }
+
+        float[] result = new float[totalLength];
+        int currentIndex = 0;
+
+        for (float[] array : arrays) {
+            System.arraycopy(array, 0, result, currentIndex, array.length);
+            currentIndex += array.length;
+        }
+
+        return result;
+    }
+    
+        private float[] padOrTrimArray(float[] array, int targetSize) {
+        float[] newArray = new float[targetSize];
+        for (int i = 0; i < targetSize; i++) {
+            newArray[i] = (i < array.length) ? array[i] : 0.0f; // Preenche com zeros se necessário
+        }
+        return newArray;
+    }
+
+	
+
+    
 }

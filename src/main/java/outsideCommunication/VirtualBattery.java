@@ -53,7 +53,7 @@ private Random random;
         this.random = random;
         if("learning".equals(mode)) {
             int bt = random.nextInt(71) + 30;
-            this.battery_data = Math.round(bt/ 10.0f) * 10;
+            this.battery_data = Math.round(bt/ 5.0f) * 5;
         }
         else this.battery_data = 100;
         this.charging = false;
@@ -87,7 +87,7 @@ private Random random;
     }
 
     public void setData(int data) {
-        this.battery_data = Math.round(data/ 10.0f) * 10;
+        this.battery_data = Math.round(data/ 5.0f) * 5;
        
         
         

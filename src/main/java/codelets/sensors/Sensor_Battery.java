@@ -52,7 +52,7 @@ public class Sensor_Battery extends Codelet {
             Thread.currentThread().interrupt();
         }       */
         int battery_p=(int)battery.getData();
-        int rounded = Math.round( battery_p / 10.0f) * 10;
+        int rounded = Math.round( battery_p / 5.0f) * 5;
         battery_read.setI(rounded);
         if(debug) System.out.println("proc battery:"+(int)battery.getData());
 

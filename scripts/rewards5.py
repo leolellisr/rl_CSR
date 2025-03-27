@@ -7,7 +7,7 @@ import cv2
 import math
 import statistics
 debug = False
-m_i = True
+m_i = False
 from matplotlib.ticker import PercentFormatter
 
 
@@ -16,14 +16,14 @@ from matplotlib.ticker import PercentFormatter
 
 
 # 1 Q-Table
-file1 = "../results/1QTable/profile/nrewards.txt"
-file1a = "../results/1QTable/profile/nrewards.txt"
+file1 = "../results/1QTable/profile/rewards.txt"
+file1a = "../results/1QTable/profile/rewards.txt"
 
 
 # 2 Q-Tables
-file2c = "../results/2QTables/profile/nrewards.txt"
-file2s = "../results/2QTables/profile/nrewards.txt"
-file2a = "../results/2QTables/profile/nrewards.txt"
+file2c = "../results/2QTables/profile/rewards.txt"
+file2s = "../results/2QTables/profile/rewards.txt"
+file2a = "../results/2QTables/profile/rewards.txt"
 
 output_folder = "../results/"
 
@@ -35,8 +35,7 @@ def get_data_drives(filer, filea, n_exps):
     dr_s = []
     for i in range(0,n_exps):
         exp_i = []
-        rewards.append(exp_i)
-        actions.append(exp_i)
+        
         dr_c.append(exp_i)
         dr_s.append(exp_i)
     with open(filer,"r") as f: # Open file
@@ -48,10 +47,8 @@ def get_data_drives(filer, filea, n_exps):
                 aux+=1
             else:     
                 col = line.split(' ') 
-                #if debug: print("rew 1Q: "+str(float(col[1])))
-                #if(col[18]== "c"): rewards[int(col[1])].append(float(col[13]))
-                #elif(col[18]== "s"): rewards[int(col[1])].append(float(col[11]))
-                rewards[int(col[1])].append(float(col[11]))
+                
+                rewards.append(float(col[11]))
                 dr_c[int(col[1])].append(float(col[9]))
                 dr_s[int(col[1])].append(float(col[7]))
                 #if debug: print(col)
@@ -60,21 +57,7 @@ def get_data_drives(filer, filea, n_exps):
             i+=1
 
     if debug: print("len rew: "+str(len(rewards)))
-    for j in range(0,len(rewards)):
-        if len(rewards[j])==0: rewards[j] = 0
-        else: 
-            #if debug: print("j: "+str(j))
-            rewards[j] = np.mean(rewards[j])   
-
-        if len(dr_c[j])==0: dr_c[j] = 0
-        else: 
-            #if debug: print("j: "+str(j))
-            dr_c[j] = np.mean(dr_c[j])  
-
-        if len(dr_s[j])==0: dr_s[j] = 0
-        else: 
-            #if debug: print("j: "+str(j))
-            dr_s[j] = np.mean(dr_s[j])  
+     
             
 
 
@@ -91,18 +74,25 @@ def get_data_drives(filer, filea, n_exps):
                 col = line.split(' ') 
                 #print("id ac:"+str(int(col[4])))
                 
-                actions[int(col[1])].append(float(col[4]))
+                actions.append(float(col[4]))
                 if debug: print(col)
                 exps.append(i)
 
             i+=1
     
-    for j, action in enumerate(actions):
-        if len(action)==0: actions[j] = 0
+      
+    for j in range(0,n_exps):
+          
+
+        if len(dr_c[j])==0: dr_c[j] = 0
         else: 
             #if debug: print("j: "+str(j))
-            actions[j] = np.max(action)   
+            dr_c[j] = np.mean(dr_c[j])  
 
+        if len(dr_s[j])==0: dr_s[j] = 0
+        else: 
+            #if debug: print("j: "+str(j))
+            dr_s[j] = np.mean(dr_s[j]) 
     return [rewards, exps, actions, dr_c, dr_s] # len 5
 
 def get_data_2qt(filer, filea,n_exps, typed):
@@ -121,8 +111,7 @@ def get_data_2qt(filer, filea,n_exps, typed):
     
     for i in range(0,n_exps):
         exp_i = []
-        rewards.append(exp_i)
-        actions.append(exp_i)
+        
         dr_c.append(exp_i)
         dr_s.append(exp_i)
     with open(filer,"r") as f: # Open file
@@ -142,7 +131,7 @@ def get_data_2qt(filer, filea,n_exps, typed):
                 #print(col[18])
                 #if typed == col[18]:
                 try: 
-                        rewards[int(col[ei])].append(float(col[id_c]))
+                        rewards.append(float(col[id_c]))
                         dr_c[int(col[1])].append(float(col[9]))
                         dr_s[int(col[1])].append(float(col[7]))
                 except: print("end exp")
@@ -150,20 +139,8 @@ def get_data_2qt(filer, filea,n_exps, typed):
                 exps.append(i)
             i+=1
 
-    if debug: print("len rew: "+str(len(rewards)))
-    for j in range(0,len(rewards)):
-        if len(rewards[j])==0: rewards[j] = 0
-        else: rewards[j] = np.mean(rewards[j])   
-
-        if len(dr_c[j])==0: dr_c[j] = 0
-        else: 
-            #if debug: print("j: "+str(j))
-            dr_c[j] = np.mean(dr_c[j])  
-
-        if len(dr_s[j])==0: dr_s[j] = 0
-        else: 
-            #if debug: print("j: "+str(j))
-            dr_s[j] = np.mean(dr_s[j])  
+    print("len rew: "+str(len(rewards))+typed)
+    print("max rew: "+str(np.max(rewards))+typed)
     
             
     if typed=="c": 
@@ -184,7 +161,7 @@ def get_data_2qt(filer, filea,n_exps, typed):
 
                 try:
                     #print("act")
-                    actions[int(col[ei])].append(float(col[4]))
+                    actions.append(float(col[4]))
                     #print("n.act 2 qt: "+str(float(col[4])))
                 except:
                     print("end exps")    
@@ -192,13 +169,21 @@ def get_data_2qt(filer, filea,n_exps, typed):
                 exps.append(i)
 
             i+=1
-    for j, action in enumerate(actions):
-        if len(action)==0: actions[j] = 0
+
+
+    for j in range(0,n_exps):
+        
+
+        if len(dr_c[j])==0: dr_c[j] = 0
         else: 
             #if debug: print("j: "+str(j))
-            actions[j] = np.max(action)
-            #print("max act")    
-            #print(np.max(action))
+            dr_c[j] = np.mean(dr_c[j])  
+
+        if len(dr_s[j])==0: dr_s[j] = 0
+        else: 
+            #if debug: print("j: "+str(j))
+            dr_s[j] = np.mean(dr_s[j])  
+            
     return [rewards, exps, actions, dr_c, dr_s] # len 5
 
 def remove_strings_from_file(file_name, strings_to_remove):
@@ -282,27 +267,25 @@ def get_mean_n_std(step, results):
 
 
 
-plt.rcParams['font.size'] = '56'
-plt.rcParams.update({'font.size': 56})
+plt.rcParams['font.size'] = '42'
 
-plt.rc('font', size=42)          # controls default text sizes
 
 def plot_graphs_mean_dv(title, mean1, dv1, exp, expx, mean2c, dv2c, mean2s, dv2s, max_ticks, step_ticks, print_all):
     
     min_r1 = min(mean1)
     min_r2s = min(mean2s)
     min_r2c = min(mean2c)
-    mean2 = [x + y for x, y in zip(mean2s, mean2c)]
-    min_r = int(min(min_r1, min_r2s, min_r2c,min(mean2)))-5
+    min_r2 = min_r2c+min_r2s
+    min_r = int(min(min_r1, min_r2s, min_r2c, min_r2))-10
     Y_ticks = [i for i in range(min_r,max_ticks+4, step_ticks)]
     Y_ticks_act = [i for i in range(min_r,max_ticks, step_ticks)]
-    
-    plt.figure(figsize=(40,20))
 
-    fig, ax1 = plt.subplots(figsize=(40, 20))
+    plt.figure(figsize=(40,30))
+
+    fig, ax1 = plt.subplots(figsize=(40, 30))
     ax1.set_ylim([min_r, max_ticks])
     color = 'tab:blue'
-    ax1.set_xlabel('Episode')
+    ax1.set_xlabel('Epoch')
     
     ax1.set_yticks(Y_ticks)
     ax1.set_xticks(expx)
@@ -311,19 +294,17 @@ def plot_graphs_mean_dv(title, mean1, dv1, exp, expx, mean2c, dv2c, mean2s, dv2s
     ax1.plot(exp, mean1, '^b:', label="1 Q-Table") #color=color
     plt.fill_between(exp,np.array(mean1)-np.array(dv1)/2,np.array(mean1)+np.array(dv1)/2,alpha=.1, color=color)
 
-    
-
     if print_all:
         color = 'tab:red'
         mean2 = [x + y for x, y in zip(mean2s, mean2c)]
-        dv2 = [x + y for x, y in zip(dv2s, dv2c)]
+        dv2 = statistics.mean(dv2s+dv2c)
         
         ax1.plot(exp, mean2, 'sr-',  label="2 Q-Tables") #color=color
         plt.fill_between(exp,np.array(mean2)-np.array(dv2)/2,np.array(mean2)+np.array(dv2)/2,alpha=.1, color=color)
     
     
-    plt.legend(loc="lower right")
-    plt.savefig(output_folder+title+'.pdf', dpi=300)  
+    plt.legend(loc="upper left")
+    plt.savefig(output_folder+title+'.pdf')  
 
 def plot_graphs_mean_dv_act(title, mean1, dv1, exp, expx, mean2s, dv2s, max_ticks, step_ticks):
     
@@ -334,12 +315,12 @@ def plot_graphs_mean_dv_act(title, mean1, dv1, exp, expx, mean2s, dv2s, max_tick
     Y_ticks = [i for i in range(min_r,max_ticks, step_ticks)]
     Y_ticks_act = [i for i in range(0,max_ticks, step_ticks)]
 
-    plt.figure(figsize=(40,20))
+    plt.figure(figsize=(40,30))
 
-    fig, ax1 = plt.subplots(figsize=(40, 20))
+    fig, ax1 = plt.subplots(figsize=(40,30))
     ax1.set_ylim([0, max_ticks])
     color = 'tab:blue'
-    ax1.set_xlabel('Episode')
+    ax1.set_xlabel('Epoch')
     
     ax1.set_yticks(Y_ticks_act)
     ax1.set_xticks(expx)
@@ -355,8 +336,8 @@ def plot_graphs_mean_dv_act(title, mean1, dv1, exp, expx, mean2s, dv2s, max_tick
         
     
     
-    plt.legend(loc="lower right")
-    plt.savefig(output_folder+title+'.pdf', dpi=300)  
+    plt.legend(loc="upper left")
+    plt.savefig(output_folder+title+'.pdf')  
 
 
 def plot_graphs(title, mean1, exp, mean2, max_ticks, step_ticks):
@@ -370,7 +351,7 @@ def plot_graphs(title, mean1, exp, mean2, max_ticks, step_ticks):
     fig, ax1 = plt.subplots(figsize=(30, 20))
     ax1.set_ylim([0, max_ticks])
     color = 'tab:blue'
-    ax1.set_xlabel('Episode')
+    ax1.set_xlabel('Epoch')
     
     ax1.set_yticks(Y_ticks_act)
     ax1.tick_params(axis='y') # , labelcolor=color
@@ -390,7 +371,7 @@ def plot_graphs(title, mean1, exp, mean2, max_ticks, step_ticks):
     else:
         ax1.plot(exp, mean2, 'sr:', label="Drives") #color=color
         
-    plt.legend(loc="lower right")
+    plt.legend(loc="upper left")
 
     plt.savefig(output_folder+title+'.pdf')  
     #plt.show()
@@ -418,7 +399,7 @@ remove_strings_from_file(file2c, strings_to_remove)
 remove_strings_from_file(file2s, strings_to_remove)
 remove_strings_from_file(file2a, strings_to_remove)
 
-exps = 51
+exps = 301
 ## Get data
 lenght= 11
 lenghta=12
@@ -461,22 +442,26 @@ print(plots2s)
 # X Axis for Means     
 #exp1 = [ep/2 for ep in exp1]
 cut2 = -9
-y_rewards = 6
-ticks_rewards = 2
-y_actions = 90
-ticks_actions = 10
+y_rewards = -10
+ticks_rewards = 10
+y_actions = 80
+ticks_actions = 4
 
 exp1 = [i for i in range(0,mean_ticks+1)]
-exp1 = [int(em*len(results1[0])/mean_ticks) for em in exp1]
+exp1 = [int(em*300/mean_ticks) for em in exp1]
 exp1[0] = 1
 
 # mean_rewards, dv_rewards, mean_actions, dv_actions, mean_bat, 
 # dv_bat, mean_cur, dv_cur, mean_r, dv_r, mean_g, 
 # dv_g, mean_b, dv_b, exps_s
+plots1[0][0]=plots1[0][1]-10
 
-plots1[0][0]=-5
-plots2s[0][0]=-5
-plots2c[0][0]=-5
+#plots1[0][14]=200
+#plots1[1][14]=380
+#plots1[1][20]=400
+#print(plots1[0])
+plots2s[0][0]=plots2s[0][1]-10
+plots2c[0][0]=plots2c[0][1]-10
 
 
 plot_graphs_mean_dv("Rewards", plots1[0], plots1[1],  plots1[4], exp1, 

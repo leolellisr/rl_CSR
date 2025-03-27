@@ -36,6 +36,7 @@ import java.util.List;
 import outsideCommunication.OutsideCommunication;
 import codelets.learner.RewardComputerCodelet;
 import codelets.learner.LearnerCodelet;
+import codelets.learner.LearnerCodeletNet;
 import codelets.learner.QLearningL;
 import codelets.sensors.CFM;
 /*import codelets.sensors.Sensor_ColorRed;
@@ -421,7 +422,7 @@ private long seed;
             insertCodelet(sur_reward_cod);
 
             //LEARNER CODELET
-            Codelet sur_learner_cod = new LearnerCodelet(oc.vrep, oc.clientID, oc, Buffersize, mode,
+            Codelet sur_learner_cod = new LearnerCodeletNet(oc.vrep, oc.clientID, oc, Buffersize, mode,
                     motivation, "SURVIVAL", "QTABLES", num_tables,this.seed );
             sur_learner_cod.addInput(salMapMO);
             sur_learner_cod.addInput(sur_rewardsMO);
@@ -434,7 +435,7 @@ private long seed;
             sur_learner_cod.addOutput(qtableSMO);
             insertCodelet(sur_learner_cod);
 
-            Codelet cur_learner_cod = new LearnerCodelet(oc.vrep, oc.clientID, oc, Buffersize, mode, 
+            Codelet cur_learner_cod = new LearnerCodeletNet(oc.vrep, oc.clientID, oc, Buffersize, mode, 
                     motivation, "CURIOSITY", "QTABLEC", num_tables,this.seed );
             cur_learner_cod.addInput(salMapMO);
             cur_learner_cod.addInput(cur_rewardsMO);
@@ -461,7 +462,7 @@ private long seed;
             insertCodelet(reward_cod);
             
             
-            Codelet learner_cod = new LearnerCodelet(oc.vrep, oc.clientID, oc, Buffersize, mode, motivation,
+            Codelet learner_cod = new LearnerCodeletNet(oc.vrep, oc.clientID, oc, Buffersize, mode, motivation,
                     "", "QTABLE", num_tables,this.seed );
             learner_cod.addInput(salMapMO);
             learner_cod.addInput(rewardsMO);

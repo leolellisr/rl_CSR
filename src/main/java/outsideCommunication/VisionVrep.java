@@ -56,7 +56,7 @@ public class VisionVrep implements SensorI{
     private final int res = 256;
     private final int max_time_graph=100;
     private static final int MAX_ACTION_NUMBER = 500;
-	private boolean mlf = false, debug = true, aux_a=false, next_act = true, next_actR = true;
+	private boolean mlf = false, debug = false, aux_a=false, next_act = true, next_actR = true;
     private int max_epochs;
     private ArrayList<Float> lastLinef;
     private ArrayList<Integer> lastLinei;
@@ -263,13 +263,14 @@ public class VisionVrep implements SensorI{
                     " and battery "+lastLinei.get(5)+" Act:"+lastLinei.get(4));
                             
             printToFile("rewards.txt",true);
-            printToFile("nrewards.txt",false);
+            printToFile("nrewards.txt",true);
             
-            vrep.simxPauseCommunication(clientID, true);
+            /*vrep.simxPauseCommunication(clientID, true);
             vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot_wait);
             
             vrep.simxPauseCommunication(clientID, false);
             vrep.simxStartSimulation(clientID, remoteApi.simx_opmode_oneshot_wait);
+            */
             /*try {
 			Thread.sleep(20);
 		} catch (Exception e) {
@@ -296,7 +297,7 @@ public class VisionVrep implements SensorI{
             lastLinef.set(7,(float) 0);
             
             lastLinei.set(4,0);
-            //lastLinei.set(5,100);
+            lastLinei.set(5,100);
             lastLinei.set(6,0);
             lastLinei.set(7,0);
             executedActions.clear();
@@ -333,7 +334,7 @@ public class VisionVrep implements SensorI{
                 
                 mtype = "s";
             }}
-             printToFile("nrewards.txt",false);
+             printToFile("nrewards.txt",true);
              this.setNextAct(true);
             this.setNextActR(true);
              /*MLflowLogger.logMetric(runId, "Total_Actions", lastLinei.get(4), lastLinei.get(4));
@@ -640,24 +641,5 @@ public class VisionVrep implements SensorI{
       
     }
 
-    @Override
-    public float[] getPosition(String s) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public float[] getColor(int i) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public void setCrash(boolean cr) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public boolean getCrash() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
     
 }

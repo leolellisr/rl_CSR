@@ -80,7 +80,6 @@ public class RewardComputerCodelet extends Codelet
     private boolean crashed = false, nrewards = false;
     private boolean debug = false, sdebug = false, m_i = true;
     private int num_tables, aux_crash = 0, battery_lvint;
-    private ArrayList<String> allActionsList;
     private ArrayList<Float> lastLine, lastRed, lastGreen, lastBlue, lastDist;
     private String motivationType, motivation, stringOutput = "", nameOutput;
     private float  reward_i = 0, lsur_drive=1, lcur_drive=1, sur_drive=1, cur_drive=1, r_imp=0, g_imp=0, b_imp=0, sur_delta, cur_delta;
@@ -103,9 +102,7 @@ public class RewardComputerCodelet extends Codelet
     // am5: fovea 0; am6: fovea 1; am7: fovea 2; am8: fovea 3; am9: fovea 4; 
     // am10: neck tofocus; am11: head tofocus; am12: neck awayfocus; am13: head awayfocus
     // aa0: focus td color; aa1: focus td depth; aa2: focus td region.
-    allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", 
-            "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0",  "aa1", "aa2", "am14", "am15", 
-            "am16")); //"aa1", "aa2",
+
     this.oc = outc;   
     MAX_ACTION_NUMBER = oc.vision.getMaxActions();
     MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxEpochs();
@@ -246,7 +243,7 @@ public class RewardComputerCodelet extends Codelet
             motivationName = "SURVIVAL";
         }
         if(actionsList.isEmpty()){
-            System.out.println("actionsList.isEmpty()");
+            System.out.println("Rewards actionsList.isEmpty()");
             return;
         } 
         
@@ -306,10 +303,10 @@ public class RewardComputerCodelet extends Codelet
                 if(motivationType.equals("CURIOSITY")||motivationType.equals("")){
                     
                     if(cur_delta!=0){
-                        if(cur_drive==0.0)  reward_i += 1;
-                        if(cur_drive>0.0 &&  cur_drive<=0.2)  reward_i += 1*0.5;
+                        if(cur_drive==0.0)  reward_i += 10;
+                        //if(cur_drive>0.0 &&  cur_drive<=0.2)  reward_i += 10*0.5;
                         if(cur_drive==1.0)  reward_i -= 1;
-                        if(cur_drive>=0.8 &&  cur_drive<1.0)  reward_i -= 1*0.5;
+                        //if(cur_drive>=0.8 &&  cur_drive<1.0)  reward_i -= 10*0.5;
                     }
                     // cur_f = cur_delta*cur_delta;
                    // if(cur_delta!=0)  reward_i += 1*cur_delta;
@@ -324,9 +321,9 @@ public class RewardComputerCodelet extends Codelet
                     
                     if(sur_delta!=0){
                         if(sur_drive==0.0)  reward_i += 1*sur_f;
-                        if(sur_drive>0.0 && sur_drive<=0.2)  reward_i += 0.5*sur_f;
+                       // if(sur_drive>0.0 && sur_drive<=0.2)  reward_i += 0.5*sur_f;
                         if(sur_drive==1.0)  reward_i -= 1*sur_f;
-                        if(sur_drive<1.0 && sur_drive>=0.8)  reward_i -= 0.5*sur_f;
+                       // if(sur_drive<1.0 && sur_drive>=0.8)  reward_i -= 0.5*sur_f;
                     }
                     //sur_f = sur_delta*sur_delta;
                    // if(sur_drive<lsur_drive)  reward_i += 1*sur_delta;

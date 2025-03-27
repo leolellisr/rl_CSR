@@ -35,7 +35,9 @@ public interface SensorI {
     public float getIValues(int i);
     public void setIValues(int i, int f);     
     public void setEpoch(int exp);
+    public void setEpoch(int exp, String s);
     public int getEpoch();
+    public int getEpoch(String s);
     public Object getData();
     public void resetData();
     public int getMaxActions();
@@ -46,9 +48,4 @@ public int getAux();
 public int getnAct();
 public void setnAct(int a);
     public void setStage(int stage);
-    public float[] getPosition(String s);
-    public float[] getColor(int i);
-    public void setCrash(boolean cr);
-    public boolean getCrash();
-    public int getEpoch(String s);
 }

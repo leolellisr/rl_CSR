@@ -7,7 +7,7 @@ plugins {
         id 'java-library'
 }
 
-mainClassName = 'cst_attmod_app.CST_RL'
+mainClassName = 'cst_attmod_app.CST_CSR_RL'
 
 repositories {
     flatDir {

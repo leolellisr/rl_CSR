@@ -204,19 +204,21 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
             
         if(this.num_tables == 2 && motivationName.equals("SURVIVAL")){
             if(qTableSList.isEmpty()){
+                if(debug) System.out.println("  Decision qTableSList empty"); 
                 return;
             }
             ql = qTableSList.get(qTableSList.size()-1);
 
         }else if(this.num_tables == 2){
             if(qTableCList.isEmpty()){
+                if(debug) System.out.println("  Decision qTableCList empty"); 
                 return;
             }
             ql = qTableCList.get(qTableCList.size()-1);
 
         }else if(this.num_tables == 1){
             if(qTableList.isEmpty()){
-                if(debug) System.out.println("  qtable empty"); 
+                if(debug) System.out.println(" Decision qtable empty"); 
                 return;
             }
             ql = qTableList.get(qTableList.size()-1);
@@ -224,6 +226,7 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
         
        
         if(ql==null){
+            if(debug) System.out.println(" Decision ql null"); 
             return;
         }
         
@@ -231,7 +234,7 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
         
         Observation state = null;
         if(!saliencyMap.isEmpty() ) state = getStateFromSalMap();
-        if(debug) System.out.println("  Decision state:"+state); 
+        if(debug) System.out.println("  Decision state:"+state.getData()); 
         int actionToTake = ql.getLastAction();
         
                 // Select best action to take
@@ -249,7 +252,7 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
         if(debug)  System.out.println("  Decision actionToTake:"+actionToTake);      
         allStatesList.add(state);
         action_number += 1;
-        oc.vision.addAction(String.valueOf(actionToTake));
+        oc.vision.addAction(allActionsList.get(actionToTake));
         oc.vision.setLastAction(String.valueOf(actionToTake));
         //oc.vision.setIValues(4, (int) oc.vision.getIValues(4)+1);
        // printToFile(actionToTake,"actions.txt", action_number);
@@ -396,6 +399,7 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
             stateArray = padOrTrimArray(concatenateArrays(
                 new float[]{oc.vision.getIValues(5)},
                 new float[]{(float) mot_value},
+                new float[]{0},
                 lastLineArray),272);
             
             

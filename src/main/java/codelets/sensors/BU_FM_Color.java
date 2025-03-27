@@ -42,7 +42,7 @@ public class BU_FM_Color extends FeatMapCodelet {
     private ArrayList<Float> vision_redFM_t;
     private ArrayList<Float> vision_greenFM_t;
     private ArrayList<Float> vision_blueFM_t;
-    private boolean debug = true;
+    private boolean debug = false;
     public BU_FM_Color(SensorI vision, int nsensors, ArrayList<String> sens_names, String featmapname,
             int timeWin, int mapDim, int print_step) {
         super(nsensors, sens_names, featmapname,timeWin,mapDim);

@@ -16,7 +16,7 @@ sfile2 = "../results/2QTables/profile/nrewards.txt"
 
 output_folder = "../results/"
 
-n_exps = 43
+n_exps = 100
 ## Remove strings 
 
 def remove_strings_from_file(file_name, strings_to_remove):
@@ -186,9 +186,9 @@ def plot_graphs(title, mean1, exp, mean2, max_ticks, step_ticks):
     Y_ticks = [i/10 for i in range(-max_ticks,max_ticks, step_ticks)]
     Y_ticks_act = [i/10 for i in range(-3,max_ticks+2, step_ticks)]
     exp = [expi+1 for expi in exp]
-    plt.figure(figsize=(100,40))
+    plt.figure(figsize=(150,40))
 
-    fig, ax1 = plt.subplots(figsize=(100, 40))
+    fig, ax1 = plt.subplots(figsize=(150, 40))
     ax1.set_ylim([0, max_ticks/10])
     color = 'tab:blue'
     ax1.set_xlabel('Action')
@@ -197,7 +197,7 @@ def plot_graphs(title, mean1, exp, mean2, max_ticks, step_ticks):
     ax1.tick_params(axis='y') # , labelcolor=color
     ax1.set_ylabel(title)  # we already handled the x-label with ax1
         
-    if(len(exp)<90): 
+    if(len(exp)<150): 
         ax1.set_xticks(exp)
         #print(len(exp))
         #print(len(mean1))
@@ -211,7 +211,7 @@ def plot_graphs(title, mean1, exp, mean2, max_ticks, step_ticks):
 
     #ax2.set_yticks(Y_ticks)
     ax1.set_ylabel(title) # , color=color
-    if(len(exp)<90): ax1.plot(exp, mean2, 'sr-', label="Survival") #color=color
+    if(len(exp)<150): ax1.plot(exp, mean2, 'sr-', label="Survival") #color=color
     else:
         ax1.plot(exp, mean2, 'sr:', label="Survival") #color=color
     dv2 = float(statistics.stdev(mean2))
@@ -228,9 +228,9 @@ def plot_graphs_stress(title, mean1, exp, mean2, max_ticks, step_ticks,dv1,dv2):
     Y_ticks = [i/10 for i in range(-max_ticks,max_ticks, step_ticks)]
     Y_ticks_act = [i/10 for i in range(-3,max_ticks, step_ticks)]
     exp = [expi+1 for expi in exp]
-    plt.figure(figsize=(100,40))
+    plt.figure(figsize=(150,40))
 
-    fig, ax1 = plt.subplots(figsize=(100, 40))
+    fig, ax1 = plt.subplots(figsize=(150, 40))
     ax1.set_ylim([-0.3, max_ticks/10])
     color = 'tab:blue'
     ax1.set_xlabel('Action')
@@ -239,7 +239,7 @@ def plot_graphs_stress(title, mean1, exp, mean2, max_ticks, step_ticks,dv1,dv2):
     ax1.tick_params(axis='y') # , labelcolor=color
     ax1.set_ylabel(title)  # we already handled the x-label with ax1
         
-    if(len(exp)<90): 
+    if(len(exp)<150): 
         ax1.set_xticks(exp)
         print(len(exp))
         print(len(mean1))
@@ -252,7 +252,7 @@ def plot_graphs_stress(title, mean1, exp, mean2, max_ticks, step_ticks,dv1,dv2):
 
     #ax2.set_yticks(Y_ticks)
     ax1.set_ylabel(title) # , color=color
-    if(len(exp)<90): ax1.plot(exp, mean2, 'sr-', label="2QTables") #color=color
+    if(len(exp)<150): ax1.plot(exp, mean2, 'sr-', label="2QTables") #color=color
     else:
         ax1.plot(exp, mean2, 'sr:', label="2QTables") #color=color
 

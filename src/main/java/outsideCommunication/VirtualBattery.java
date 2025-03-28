@@ -82,8 +82,8 @@ private Random random;
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }}*/
-      if(debug) System.out.println("proc battery:"+(int)Math.round(battery_data/ 10.0f) * 10);
-        return  Math.round(battery_data/ 10.0f) * 10;
+      if(debug) System.out.println("proc battery:"+(int)Math.round(battery_data/ 5.0f) * 5);
+        return  Math.round(battery_data/ 5.0f) * 5;
     }
 
     public void setData(int data) {

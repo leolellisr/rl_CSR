@@ -463,7 +463,7 @@ print(plots2s)
 cut2 = -9
 y_rewards = 10
 ticks_rewards = 2
-y_actions = 80
+y_actions = 150
 ticks_actions = 10
 
 exp1 = [i for i in range(0,mean_ticks+1)]

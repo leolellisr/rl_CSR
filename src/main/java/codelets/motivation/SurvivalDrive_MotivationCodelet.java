@@ -125,8 +125,8 @@ public class SurvivalDrive_MotivationCodelet extends MotivationalCodelet
             Thread.currentThread().interrupt();
         }*/
         if(oc.vision.getNextAct()){ 
-            if((boolean)oc.battery.getCharge() && (int)oc.vision.getIValues(5)<100) oc.battery.setData((int)oc.vision.getIValues(5)+10);
-            else if((int)oc.vision.getIValues(5)>0) oc.battery.setData((int)oc.vision.getIValues(5)-10);            
+            if((boolean)oc.battery.getCharge() && (int)oc.vision.getIValues(5)<100) oc.battery.setData((int)oc.vision.getIValues(5)+5);
+            else if((int)oc.vision.getIValues(5)>0) oc.battery.setData((int)oc.vision.getIValues(5)-5);            
             if(!(boolean)oc.battery.getCharge() ) oc.vision.setNextAct(false);
         }
         oc.vision.setIValues(5, (int) oc.battery.getData());

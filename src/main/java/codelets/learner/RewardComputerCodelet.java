@@ -478,23 +478,27 @@ public class RewardComputerCodelet extends Codelet
         } 
         
                 if(this.oc.vision.endEpochR()){
-            // System.out.println("MORREU");
-                    reward_i -= 100;
-                    lsur_drive=0;
-                    lcur_drive=0;
-                     oc.vision.setFValues(2, sur_delta);
-        oc.vision.setFValues(4, cur_delta);
-            }
+                    
+                           reward_i = reward_i- 100;
+                           lsur_drive=0;
+                           lcur_drive=0;
+                           oc.vision.setFValues(2, sur_delta);
+                           oc.vision.setFValues(4, cur_delta);
+                           System.out.println("Reward - MORREU "+reward_i);
+                   }else{
+                                               //System.out.println("Reward - NÃO MORREU");
+
+                }
                 //Math.pow(Math.E,*0.05/350)
-                reward_i = Math.round(reward_i * 10) / 10.0f;
+                reward_i = Math.round(reward_i * 10 / 10.0f);
 
         //reward_i += 0.00006*oc.vision.getnAct()*oc.vision.getEpoch();
         
         if(motivationType.equals("SURVIVAL") ) global_reward = oc.vision.getFValues(0) + reward_i;
         else if(motivationType.equals("CURIOSITY") ) global_reward = oc.vision.getFValues(6) + reward_i;
         else global_reward =  oc.vision.getFValues(6) + oc.vision.getFValues(0) +reward_i;
-        if(global_reward < -120) global_reward = -120;
-        if(reward_i < -120) reward_i = -120;
+        /*if(global_reward < -120) global_reward = -120;
+        if(reward_i < -120) reward_i = -120;*/
         rewardsList.add(global_reward);
         if(motivationType.equals("SURVIVAL") ){
             oc.vision.setFValues(0, (float) global_reward);
@@ -510,11 +514,13 @@ public class RewardComputerCodelet extends Codelet
         }
        
         
-        if(sdebug) System.out.println("~End~ REWARD -  QTables:"+num_tables+" Exp: "+ experiment_number +
+        if(sdebug)     System.out.println("~End~ REWARD -  QTables:"+num_tables+" Exp: "+ experiment_number +
                     " - N_act: "+action_number+" Battery:"+battery_lvint+ " - Winner: "+winnerIndex+
                     " - W_Fovea: "+winnerFovea+"\n Type:"+motivationType+" SurV:"+sur_drive+" dSurV:"+sur_delta+
                         " CurV:"+cur_drive+" dCurV:"+cur_delta+" Ri:"+reward_i);
         
+                        }else{
+                            //System.out.println("no move act");
                         }
                        
         }
@@ -531,7 +537,7 @@ public class RewardComputerCodelet extends Codelet
 
         // Getting just the last entry (current sal map)
         lastLine = (ArrayList<Float>) saliencyMap.get(saliencyMap.size() -1);
-
+        if(lastLine.isEmpty()) return -1;
         /*if (Collections.max(lastLine) == 0) aux_crash += 1;
         else aux_crash = 0; 
 

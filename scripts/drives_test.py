@@ -16,7 +16,7 @@ sfile2 = "../results/2QTables/profile/nrewards.txt"
 
 output_folder = "../results/"
 
-n_exps = 47
+n_exps = 60
 ## Remove strings 
 
 def remove_strings_from_file(file_name, strings_to_remove):

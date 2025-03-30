@@ -64,7 +64,7 @@ def get_data_drives(filer, filea, n_exps):
         if len(rewards[j])==0: rewards[j] = 0
         else: 
             #if debug: print("j: "+str(j))
-            rewards[j] = np.mean(rewards[j])   
+            rewards[j] = np.min(rewards[j])   
 
         if len(dr_c[j])==0: dr_c[j] = 0
         else: 
@@ -153,7 +153,7 @@ def get_data_2qt(filer, filea,n_exps, typed):
     if debug: print("len rew: "+str(len(rewards)))
     for j in range(0,len(rewards)):
         if len(rewards[j])==0: rewards[j] = 0
-        else: rewards[j] = np.mean(rewards[j])   
+        else: rewards[j] = np.min(rewards[j])   
 
         if len(dr_c[j])==0: dr_c[j] = 0
         else: 
@@ -293,7 +293,7 @@ def plot_graphs_mean_dv(title, mean1, dv1, exp, expx, mean2c, dv2c, mean2s, dv2s
     min_r2s = min(mean2s)
     min_r2c = min(mean2c)
     mean2 = [x + y for x, y in zip(mean2s, mean2c)]
-    min_r = int(min(min_r1, min_r2s, min_r2c,min(mean2)))-5
+    min_r = int(min(min_r1, min_r2s, min_r2c,min(mean2)))-50
     Y_ticks = [i for i in range(min_r,max_ticks+4, step_ticks)]
     Y_ticks_act = [i for i in range(min_r,max_ticks, step_ticks)]
     
@@ -462,8 +462,8 @@ print(plots2s)
 #exp1 = [ep/2 for ep in exp1]
 cut2 = -9
 y_rewards = 6
-ticks_rewards = 2
-y_actions = 90
+ticks_rewards = 10
+y_actions = 70
 ticks_actions = 10
 
 exp1 = [i for i in range(0,mean_ticks+1)]
@@ -474,9 +474,9 @@ exp1[0] = 1
 # dv_bat, mean_cur, dv_cur, mean_r, dv_r, mean_g, 
 # dv_g, mean_b, dv_b, exps_s
 
-plots1[0][0]=-5
-plots2s[0][0]=-5
-plots2c[0][0]=-5
+plots1[0][0]=-120
+plots2s[0][0]=-60
+plots2c[0][0]=-60
 
 
 plot_graphs_mean_dv("Rewards", plots1[0], plots1[1],  plots1[4], exp1, 

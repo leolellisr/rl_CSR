@@ -24,7 +24,7 @@ sfile2d = "../results/plot/dqn/2nd/Test/2QTables/profile/nrewards.txt"
 
 output_folder = "../results/"
 
-n_exps = 80
+n_exps = 100
 n_expsd = 100
 ## Remove strings 
 

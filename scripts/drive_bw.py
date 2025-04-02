@@ -9,23 +9,23 @@ import pingouin as pg
 import seaborn as sns
 
 debug = False
-cfile1 = "../results/plot/1st/qtb/Test/1QTable/profile/nrewards.txt"
-sfile1 = "../results/plot/1st/qtb/Test/1QTable/profile/nrewards.txt"
+cfile1 = "../results/plot/qtb/2nd/Test/1QTable/profile/nrewards.txt"
+sfile1 = "../results/plot/qtb/2nd/Test/1QTable/profile/nrewards.txt"
 
-cfile2 = "../results/plot/1st/qtb/Test/2QTables/profile/nrewards.txt"
-sfile2 = "../results/plot/1st/qtb/Test/2QTables/profile/nrewards.txt"
+cfile2 = "../results/plot/qtb/2nd/Test/2QTables/profile/nrewards.txt"
+sfile2 = "../results/plot/qtb/2nd/Test/2QTables/profile/nrewards.txt"
 
-cfile1d = "../results/plot/1st/dqn/Test/1QTable/profile/nrewards.txt"
-sfile1d = "../results/plot/1st/dqn/Test/1QTable/profile/nrewards.txt"
+cfile1d = "../results/plot/dqn/2nd/Test/1QTable/profile/nrewards.txt"
+sfile1d = "../results/plot/dqn/2nd/Test/1QTable/profile/nrewards.txt"
 
-cfile2d = "../results/plot/1st/dqn/Test/2QTables/profile/nrewards.txt"
-sfile2d = "../results/plot/1st/dqn/Test/2QTables/profile/nrewards.txt"
+cfile2d = "../results/plot/dqn/2nd/Test/2QTables/profile/nrewards.txt"
+sfile2d = "../results/plot/dqn/2nd/Test/2QTables/profile/nrewards.txt"
 
 
 output_folder = "../results/"
 
 n_exps = 80
-n_expsd = 60
+n_expsd = 100
 ## Remove strings 
 
 def remove_strings_from_file(file_name, strings_to_remove):

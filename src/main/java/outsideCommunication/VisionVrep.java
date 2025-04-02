@@ -228,7 +228,7 @@ public class VisionVrep implements SensorI{
 //	printToFile(position.getArray()[2], "positions.txt");
         //if(debug) System.out.println("Marta on exp "+this.getEpoch()+" with z = "+position.getArray()[2]);        
         if (this.getEpoch() > 1 && (position.getArray()[2] < 0.35 || position.getArray()[0] > 0.2  || m_act) || 
-                (lastLinei.get(4)>1 && (lastLinei.get(5)==0 || lastLinei.get(5)==0))) {
+                (lastLinei.get(4)>1 && lastLinei.get(5)==0)) {
             
             if(mlf){
              MLflowLogger.logMetric(runId, "Total_Actions", lastLinei.get(4), lastLinei.get(1));
@@ -366,11 +366,13 @@ public class VisionVrep implements SensorI{
         else m_act = lastLinei.get(6)>this.getMaxActions() && lastLinei.get(7)>this.getMaxActions();
 //	printToFile(position.getArray()[2], "positions.txt");
         boolean ret = this.getEpoch() > 1 && (position.getArray()[2] < 0.35 || position.getArray()[0] > 0.2  || m_act) || 
-                (lastLinei.get(4)>1 && (lastLinei.get(5)==0 || lastLinei.get(5)==0));
-        if(ret) System.out.println("end Epoch R");
+                (lastLinei.get(4)>1 && lastLinef.get(1)==1);
+         //System.out.println("end Epoch R"+ret+" "+this.getEpoch()+" "+position.getArray()[2]+" "+position.getArray()[0]+" "+m_act+" "+lastLinei.get(4)+" "+lastLinef.get(1));
         return ret;
     }
     
+    
+
     @Override
     public int getMaxActions() {
             

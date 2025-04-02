@@ -68,8 +68,8 @@ public class LearnerCodeletNet extends Codelet
     private List<Double>  rewardsList;
     private OutsideCommunication oc;
     private final int timeWindow;
-    
-    
+    private DataManager manager;
+    private EnvConstructive<Box, Integer, DiscreteSpace> mdp;
     private double global_reward;
     private int action_number, num_tables;
     private int experiment_number,exp_s, exp_c;;
@@ -81,7 +81,7 @@ public class LearnerCodeletNet extends Codelet
     private final int clientID;
     private String output, motivation, nameMotivation, motivationType, lastAction = "am0";
     private  boolean end_all;
-    
+    int best_reward = 1;
     
     private final int numSalValues = 65536;  // Sal has 2^16 values
 
@@ -155,8 +155,8 @@ public class LearnerCodeletNet extends Codelet
         int maxStep = 500;
                 
                 
-                EnvConstructive<Box, Integer, DiscreteSpace> mdp = new EnvConstructive(maxStep, allActionsList.size());
-                DataManager manager = new DataManager(true);
+                mdp = new EnvConstructive(maxStep, allActionsList.size());
+               manager = new DataManager(true);
                 
                 
                 
@@ -256,7 +256,16 @@ if(debug) System.out.println("init learner");
     @Override
     public void proc() {
         if(debug) System.out.println("Learner proc");
-        
+        int rewardaa = -1000;
+       /* if(oc.vision.getIValues(4)==1){
+            try{
+        dql = new QLearningDiscreteDenseRBF(mdp, DQNPolicy.load(currentDir+path_model).getNeuralNet(), MARTA_QL,
+                    manager);}
+        catch (Exception e) {
+                            System.out.println("ERROR "+e+" LOADING PREVIOUS MODEL");
+                            System.exit(1);
+			}
+        }*/
         if(oc.vision.getIValues(5)>0){
             if(debug) System.out.println("Learner battery ok");
         QLStepReturn<Observation> obsStep = null;
@@ -286,7 +295,7 @@ if(debug) System.out.println("init learner");
                 float reward = num_tables == 1 ? oc.vision.getFValues(0) 
                                                : (motivationType.equals("c") ? oc.vision.getFValues(6) 
                                                                                   : oc.vision.getFValues(0));
-            if(debug) System.out.println("Learner try reward:"+reward);
+            //System.out.println("Learner try reward:"+reward);
                  dql.setReward(reward);
                 }
                obsStep = dql.trainSp(lastState);
@@ -306,20 +315,29 @@ if(debug) System.out.println("init learner");
             if (mode.equals("learning") && oc.vision.endEpochR()) {
                 dql.postEpoch();
                         dql.incrementEpoch();
-                        System.out.println("end epoch before save model");
+                        //System.out.println("end epoch "+ oc.vision.getIValues(4));
                         DQNPolicy<Box> pol = dql.getPolicy();
-                        try {
-                            pol.save(currentDir+path_model);
-                            if (experiment_number > MAX_EXPERIMENTS_NUMBER) {
+                        //System.out.println("end epoch brsdt"+best_reward);
+                        if(oc.vision.getIValues(4)  > best_reward){
+                            best_reward = (int) oc.vision.getIValues(4);
+                            try {
+                                pol.save(currentDir+path_model);
+                                System.out.println("end epoch after save model: "+oc.vision.getEpoch()+" actions: "+best_reward);
+                            }catch (Exception e) {
+                                System.out.println("ERROR "+e+" SAVING MODEL");
+                                System.exit(1);
+                            }
+                        }
+                        
+                        
+                        if (experiment_number > MAX_EXPERIMENTS_NUMBER) {
 
                                 System.exit(0);
                             }
-                        }
-                        catch (Exception e) {
-                            System.out.println("ERROR "+e+" SAVING MODEL");
-                            System.exit(1);
-			}
-                        System.out.println("end epoch after save model");
+                        
+                        //System.out.println("end epoch after save model");
+            }else{
+               // System.out.println("post step false");
             }
             
             if(debug) System.out.println("post step");

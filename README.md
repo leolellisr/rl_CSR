@@ -122,7 +122,7 @@ url = {https://github.com/leolellisr/rl_CSR}
 - (2025-) Leonardo de Lellis Rossi: PhD Candidate, FEEC-UNICAMP
 - (Supervisor, 2025-) Ricardo Gudwin: Professor, FEEC-UNICAMP
 - (Co-Supervisor, 2025-) Esther Luna Colombini: Professor, IC-UNICAMP
-  - (Collaborator, 2025-)  Letícia Berto: PhD Candidate, IC-UNICAMP
+- (Collaborator, 2025-)  Letícia Berto: PhD Candidate, IC-UNICAMP
 - (Collaborator, 2025-)  Paula P. Costa: Professor, FEEC-UNICAMP
 - (Collaborator, 2025-)  Alexandre Simões: Professor, ICTS-Unesp
   

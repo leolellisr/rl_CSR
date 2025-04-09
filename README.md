@@ -50,7 +50,7 @@ The component “Learning” is composed of different elements depending on the 
 </p>
 
 <p align="center">
-  <img src="imgs/pdf2png/Marta/Marta-1.png" width="600"/>
+  <img src="imgs/pdf2png/MotivationalSystem/MotivationalSystem-1.png" width="600"/>
 <br/>
   <em>Fig: Illustration of the two ways of the implementation of the component “Learning”. It changes how the motivational system influences learning and the inputs used for each learner: 
   

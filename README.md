@@ -122,15 +122,19 @@ url = {https://github.com/leolellisr/rl_CSR}
 - (2025-) Leonardo de Lellis Rossi: PhD Candidate, FEEC-UNICAMP
 - (Supervisor, 2025-) Ricardo Gudwin: Professor, FEEC-UNICAMP
 - (Co-Supervisor, 2025-) Esther Luna Colombini: Professor, IC-UNICAMP
+  - (Collaborator, 2025-)  Letícia Berto: PhD Candidate, IC-UNICAMP
+- (Collaborator, 2025-)  Paula P. Costa: Professor, FEEC-UNICAMP
+- (Collaborator, 2025-)  Alexandre Simões: Professor, ICTS-Unesp
   
 ## Acknowledgements
 
 - LR is funded by MCTI project DOU 01245.003479/2024 -10. 
 - RG is funded by CEPID/BRAINN (FAPESP 2013/07559-3) grant.
 - EC is partially funded by CNPq PQ-2 grant (315468/2021-1)
+- LB is funded by the Sao Paulo Research Foundation (FAPESP), Brasil, Process Number #2021/07050-0
+-  AS is partially funded by CNPq PQ-2 grant (312323/2022-0)
 
-This project was supported by the brazilian Ministry of Science, Technology and Innovations, with resources from Law № 8,248, of October 23, 1991, within the scope of PPI-SOFTEX, coordinated by Softex and published Arquitetura Cognitiva (Phase 3), DOU 01245.003479/2024 -10.
-
+ This study was financed, in part, by the São Paulo Research Foundation (FAPESP), Brasil, Process Number 2020/09850-0. This project was supported by the brazilian Ministry of Science, Technology and Innovations, with resources from Law nº 8.248, of October 23, 1991, within the scope of PPI-SOFTEX, coordinated by Softex and published Arquitetura Cognitiva (Phase 3), DOU 01245.003479/2024 -10.
 
 ## License
 

@@ -107,8 +107,13 @@ Two experimental setups were explored:
 
 <!--Don't remove the following tags, it's used for placing the generated citation from the CFF file-->
 <!--CITATION START-->
-```
-
+```bibtext
+@software{Rossi-LL-RL-CSR,
+author = {de Lellis Rossi, Leonardo and Luna Colombini, Esther  and Ribeiro Gudwin, Ricardo and Paro Costa, Paula and Mara Berto, Letícia and Simões, Alexandre},
+doi = {10.5281/zenodo.14424260},
+title = {rl_CSR},
+url = {https://github.com/leolellisr/rl_CSR}
+}
 ```
 <!--CITATION END-->
 

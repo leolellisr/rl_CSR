@@ -81,7 +81,7 @@ public class LearnerCodeletNet extends Codelet
     private final int clientID;
     private String output, motivation, nameMotivation, motivationType, lastAction = "am0";
     private  boolean end_all;
-    int best_reward = 1;
+    int best_reward = 161;
     
     private final int numSalValues = 65536;  // Sal has 2^16 values
 

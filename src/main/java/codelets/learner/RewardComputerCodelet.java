@@ -282,7 +282,7 @@ public class RewardComputerCodelet extends Codelet
                
                     cur_drive = oc.vision.getFValues(3);
                     cur_delta = lcur_drive-cur_drive;
-                    cur_delta = Math.round(cur_delta * 10) / 10.0f;
+                    cur_delta = Math.round(cur_delta * 5) / 5.0f;
                     oc.vision.setFValues(4,cur_delta);
                        
                     if(cur_drive<0) cur_drive = (float) 0.0;
@@ -293,7 +293,7 @@ public class RewardComputerCodelet extends Codelet
 
                     sur_drive = oc.vision.getFValues(1);
                     sur_delta = lsur_drive-sur_drive;
-                    sur_delta = Math.round(sur_delta * 10) / 10.0f;
+                    sur_delta = Math.round(sur_delta * 5) / 5.0f;
                     oc.vision.setFValues(2,sur_delta);
                     float sur_f = 10;
 
@@ -490,7 +490,7 @@ public class RewardComputerCodelet extends Codelet
 
                 }
                 //Math.pow(Math.E,*0.05/350)
-                reward_i = Math.round(reward_i * 10 / 10.0f);
+                reward_i = Math.round(reward_i * 5 / 5.0f);
 
         //reward_i += 0.00006*oc.vision.getnAct()*oc.vision.getEpoch();
         

@@ -23,6 +23,24 @@ authors:
     email: gudwin@unicamp.br
     affiliation: Unicamp
     orcid: 'https://orcid.org/0000-0002-9666-3954'
+  - given-names: Paula
+    name-particle: Paro
+    family-names: Costa
+    email: paulad@unicamp.br
+    affiliation: >-
+      School of Electrical and Computer Engineering,
+      University of Campinas
+  - given-names: Letícia
+    name-particle: Mara
+    family-names: Berto
+    email: leticia.berto@ic.unicamp.br
+    affiliation: 'Institute of Computing, University of Campinas'
+  - given-names: Alexandre
+    family-names: Simões
+    affiliation: >-
+      Department of Control and Automation Engineering, São
+      Paulo State University
+    email: alexandre.simoes@unesp.br
 identifiers:
   - type: doi
     value: 10.5281/zenodo.14424260
@@ -40,3 +58,5 @@ keywords:
   - Cognitive Architecture
   - Autonomous Humanoid Robot
 license: MIT
+commit: main
+version: v1.0.0

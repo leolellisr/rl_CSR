@@ -125,6 +125,7 @@ url = {https://github.com/leolellisr/rl_CSR}
 - (Collaborator, 2025-)  Letícia Berto: PhD Candidate, IC-UNICAMP
 - (Collaborator, 2025-)  Paula P. Costa: Professor, FEEC-UNICAMP
 - (Collaborator, 2025-)  Alexandre Simões: Professor, ICTS-Unesp
+- (Collaborator, 2025-)  Eduardo Camargo: Researcher, H.IAAC-Unicamp
   
 ## Acknowledgements
 

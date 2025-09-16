@@ -479,7 +479,7 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
         private float[] padOrTrimArray(float[] array, int targetSize) {
         float[] newArray = new float[targetSize];
         for (int i = 0; i < targetSize; i++) {
-            newArray[i] = (i < array.length) ? array[i] : 0.0f; // Preenche com zeros se necessário
+            newArray[i] = (i < array.length) ? array[i] : 0.0f; 
         }
         return newArray;
     }

@@ -9,7 +9,6 @@ import br.unicamp.cst.core.entities.Memory;
 import br.unicamp.cst.core.entities.MemoryContainer;
 import br.unicamp.cst.core.entities.MemoryObject;
 import br.unicamp.cst.representation.idea.Idea;
-import codelets.motivation.DriverArray;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -32,12 +31,12 @@ import outsideCommunication.OutsideCommunication;
  */
 public class AcommodationCodelet extends Codelet 
 {
-    private List states, srewards, crewards, rewards, actions, proceduralList;
+    private List states,  actions, proceduralList;
     private MemoryContainer proceduralMemoryMO;
     private OutsideCommunication oc;
     private int stage, nActions, num_tables;
     private List<String> allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "am14", "am15", "am16")); //"aa1", "aa2", 
-    private ArrayList<Object> motivationMO;
+    private Idea motivationMO;
     private String motivation;
     private boolean debug = false;
     public AcommodationCodelet(OutsideCommunication outc, String motivation, int num_tables){
@@ -53,20 +52,11 @@ public class AcommodationCodelet extends Codelet
 		MemoryObject MO;
                 MO = (MemoryObject) this.getInput("STATES");
                 states = (List) MO.getI();
-                if(num_tables == 2){
-                    MO = (MemoryObject) this.getInput("CUR_REWARDS");
-                    crewards = (List) MO.getI();
-                    MO = (MemoryObject) this.getInput("SUR_REWARDS");
-                    srewards = (List) MO.getI();
-                } else if(num_tables == 1){
-                    MO = (MemoryObject) this.getInput("REWARDS");
-                    rewards = (List) MO.getI();
-                }
                 MO = (MemoryObject) this.getInput("ACTIONS");
                 actions = (List) MO.getI();
                 if(this.motivation.equals("drives")){
-                    DriverArray MC = (DriverArray) this.getInput("MOTIVATION");
-                    motivationMO = (ArrayList<Object>) MC.getI();
+                    MemoryContainer MC = (MemoryContainer) this.getInput("MOTIVATION");
+                    motivationMO = (Idea) MC.getI();
                 }
                 proceduralMemoryMO = (MemoryContainer) this.getOutput("PROCEDURAL");
                 //proceduralList = (List) proceduralMemoryMO.getI();
@@ -84,7 +74,7 @@ public class AcommodationCodelet extends Codelet
 	
             if(stage == 1 || stage == 2){
                 nActions = 10;
-            }else if(stage == 3){
+            }else if(stage > 2){
                 nActions = 17;
             }
             
@@ -104,37 +94,9 @@ public class AcommodationCodelet extends Codelet
                 int action_n = allActionsList.indexOf(action);
                 if(action_n>-1){
                 double reward = 0;
-                Idea curI = (Idea) motivationMO.get(0);
-                Idea surI = (Idea) motivationMO.get(1);
-                String nameMotivation;
-                boolean curB;
-try{
-                curB = (double) Collections.max((List) curI.getValue()) > (double) surI.getValue();
-                }
-        catch(Exception e){
-        curB = false;
-        }
-
-                if(curB){
-                    nameMotivation = "CURIOSITY";
-                }
-                else{
-                    nameMotivation = "SURVIVAL";
-                }
-
-                if(this.num_tables == 2){
-                    if(nameMotivation.equals("CURIOSITY") && !crewards.isEmpty()) reward = (double) crewards.get(crewards.size() - 1);
-                    else if(nameMotivation.equals("SURVIVAL") && !srewards.isEmpty()) reward = (double) srewards.get(srewards.size() - 1);
-                } else if(this.num_tables == 1 && !rewards.isEmpty()){
-                    reward = (double) rewards.get(rewards.size() - 1); 
-                }
-                double activation;
-                ArrayList<Double> activation_a;
-                if(nameMotivation.equals("CURIOSITY")) {
-                    activation_a = (ArrayList<Double>) curI.getValue();
-                    activation  = calculateMean(activation_a);
-                }
-                else activation  = (double) surI.getValue();
+                
+                
+                double activation  = (double) motivationMO.getValue();
                 boolean verify_memory = verify_if_memory_exists(state.toString());
                     if(verify_memory){
                         ArrayList<Integer> info = null;

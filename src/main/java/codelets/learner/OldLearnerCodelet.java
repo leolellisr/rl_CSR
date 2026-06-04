@@ -497,7 +497,6 @@ public class OldLearnerCodelet extends Codelet
                                 }
                                 curiosity_lv += 1;
                                 green_c += 1;
-                                oc.battery.setCharge(true);
                                 if(debug) System.out.println("GOT GREEN");
                                 global_reward += 1;
                                 try {
@@ -505,7 +504,6 @@ public class OldLearnerCodelet extends Codelet
                                 } catch (Exception e) {
                                     Thread.currentThread().interrupt();
                                 }
-                                oc.battery.setCharge(false);
                                 oc.reset_positions();
                             }
                             else {
@@ -520,7 +518,6 @@ public class OldLearnerCodelet extends Codelet
                                 } catch (InterruptedException ex) {
                                     Logger.getLogger(OldLearnerCodelet.class.getName()).log(Level.SEVERE, null, ex);
                                 }
-                                oc.battery.setCharge(true);
                                 if(debug) System.out.println("GOT BLUE");
                                 global_reward += 1;
                                 blue_c += 1;
@@ -529,7 +526,6 @@ public class OldLearnerCodelet extends Codelet
                                 } catch (Exception e) {
                                     Thread.currentThread().interrupt();
                                 }
-                                oc.battery.setCharge(false);
                                 oc.reset_positions();
                             }
                             else {
@@ -645,7 +641,6 @@ if(stringOutput!=null && action_stringMO != null)                action_stringMO
                         action_number = 0;
                         global_reward = 0;
                         curiosity_lv = 0;
-                        oc.reset_battery();
                         executedActions.clear();
                         red_c = 0;
                         green_c = 0;
@@ -687,7 +682,6 @@ if(stringOutput!=null && action_stringMO != null)                action_stringMO
                         }
                       if(stringOutput!=null && reward_stringMO != null)    reward_stringMO.setI(stringOutput);
                         oc.vision.setEpoch(experiment_number);
-                        oc.reset_battery();
 			curiosity_lv = 0;
                         action_number = 0;
                         global_reward = 0;

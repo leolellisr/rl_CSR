@@ -23,7 +23,7 @@ import java.io.IOException;
  * 
  * @author L. L. Rossi (leolellisr)
  */
-public class CST_CSR_RL {
+public class CST_incremental_babybot {
 
     /**
      * @param args the command line arguments
@@ -32,17 +32,22 @@ public class CST_CSR_RL {
     	// removing previous .txt files expect QTable
     	File folder = new File(".");
     	for (File f : folder.listFiles()) {
-    		if(f.getName().endsWith(".txt") && !(f.getName().endsWith("QTable.txt")) && !(f.getName().endsWith("QTable_CURIOSITY.txt")) && !(f.getName().endsWith("QTable_SURVIVAL.txt"))) {
+    		if(f.getName().endsWith(".txt") && !(f.getName().endsWith("QTable.txt"))) {
     			f.delete();
     		}
     	}
-        String mode = "exploring";
+        boolean motivationEval = true;
+        String mode = "learning";
         int n_tables = 1;
+        String runId=""; 
+        int num_pioneer = 2;
+        int stage = 5, exp =1, res = 256, max_time_graph=100, MAX_ACTION_NUMBER = 500;
         long seed = 1234;
-        OutsideCommunication oc = new OutsideCommunication(300,mode,n_tables,seed);
+        OutsideCommunication oc = new OutsideCommunication(300,mode,n_tables,seed, stage, 
+                exp, "", res, max_time_graph, MAX_ACTION_NUMBER, num_pioneer);
         oc.start(); 
         //  (OutsideCommunication oc, String mode, String motivation, int num_tables, int print_step)
-        AgentMind am = new AgentMind(oc, mode, "drives",n_tables, 10,seed); // OC, mode, Num. QTables,  PrintStep
+        AgentMind am = new AgentMind(oc, mode, "drives",n_tables, 5,seed, num_pioneer, motivationEval); // OC, mode, Num_QTables,  PrintStep, seed, num_pioneer, 
 
     }
     

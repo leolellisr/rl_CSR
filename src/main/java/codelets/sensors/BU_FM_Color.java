@@ -27,6 +27,7 @@ import java.util.List;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import outsideCommunication.OutsideCommunication;
 
 /**
  * @author L. M. Berto
@@ -43,12 +44,15 @@ public class BU_FM_Color extends FeatMapCodelet {
     private ArrayList<Float> vision_greenFM_t;
     private ArrayList<Float> vision_blueFM_t;
     private boolean debug = false;
+    private int aux=0;
+    private OutsideCommunication oc;
     public BU_FM_Color(SensorI vision, int nsensors, ArrayList<String> sens_names, String featmapname,
-            int timeWin, int mapDim, int print_step) {
+            int timeWin, int mapDim, int print_step, OutsideCommunication outc) {
         super(nsensors, sens_names, featmapname,timeWin,mapDim);
         this.time_graph = 0;
         this.vision = vision;
         this.print_step=print_step;
+        this.oc = outc;
     }
 
     private ArrayList<Float>  set_resize_Image(float mean_all, ArrayList<Float> visionData_Array){
@@ -208,7 +212,9 @@ public class BU_FM_Color extends FeatMapCodelet {
            
             vision_blueFM_t.set(j, vision_mean_blue.get(j));
         }
-     //   printToFile(vision_blueFM_t, "vision_blue_FM.txt");
+        printToFile(vision_blueFM_t, "vision_blue_FM.txt");
+       printToFile(vision_greenFM_t, "vision_green_FM.txt");
+       printToFile(vision_redFM_t, "vision_red_FM.txt");
        
        vision_redFM.set(t, vision_redFM_t);
        vision_greenFM.set(t, vision_greenFM_t);
@@ -232,25 +238,37 @@ public class BU_FM_Color extends FeatMapCodelet {
        
         featureMap.setI(vision_FM);
         if(debug) System.out.println("vision_FM end: "+vision_FM.size());
+        if(aux > 20){
+            System.out.println("  \n no red or blue");
+            oc.vision.setCrash(true);
+            aux = 0;
+            
+          oc.vision.setIValues(5, 1);
+            }else{
+             oc.vision.setIValues(5, 0);
+        }
+        if(Collections.max(vision_redFM_t)<0.00001 && Collections.max(vision_blueFM_t)<0.00001) aux +=1;
     }
     
-    /*private void printToFile(ArrayList<Float> arr, String title){
-        if(this.vision.getExp() == 1 || this.vision.getExp()%print_step == 0){
-             //if(time_graph%2 == 0 ){
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
-            LocalDateTime now = LocalDateTime.now(); 
-            try(FileWriter fw = new FileWriter("profile/"+title, true);
+     private void printToFile(Object object,String filename    ){
+        if(this.vision.getEpoch() %print_step == 0){
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
+        LocalDateTime now = LocalDateTime.now();
+        
+            try(FileWriter fw = new FileWriter("profile/"+filename,true);
                 BufferedWriter bw = new BufferedWriter(fw);
                 PrintWriter out = new PrintWriter(bw))
             {
-                out.println(dtf.format(now)+"_"+this.vision.getExp()+"_"+time_graph+" "+ arr);
+                out.println(dtf.format(now)+"_"+(int) this.vision.getIValues(1)+"_"+(int)this.vision.getIValues(4) +"_"+time_graph+" "+ object);
+                //if(time_graph == max_time_graph-1) System.out.println(filename+": "+time_graph);          
                 time_graph++;
                 out.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        
         }
-    }*/
+    }
     
           public static float calculateMean(ArrayList<Float> list) {
             if (list.isEmpty()) {

@@ -7,7 +7,7 @@ plugins {
         id 'java-library'
 }
 
-mainClassName = 'cst_attmod_app.CST_CSR_RL'
+mainClassName = 'cst_attmod_app.CST_incremental_babybot'
 
 repositories {
     flatDir {
@@ -32,7 +32,7 @@ dependencies {
 // testImplementation: defines dependencies that are necessary to compile and run the test source set code.
  
 
-
+implementation files('libs/lib-1.0.0.jar')
 // CST
 //api group: 'com.github.CST-Group', name: 'cst', version:versionCST
 implementation 'com.github.CST-Group:cst:1.4.2'

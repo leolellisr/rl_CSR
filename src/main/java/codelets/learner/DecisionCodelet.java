@@ -18,7 +18,6 @@ import br.unicamp.cst.core.entities.MemoryContainer;
 import br.unicamp.cst.core.entities.MemoryObject;
 import br.unicamp.cst.learning.QLearning;
 import br.unicamp.cst.representation.idea.Idea;
-import codelets.motivation.DriverArray;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -45,14 +44,14 @@ private static int MAX_ACTION_NUMBER;
 
 private static int MAX_EXPERIMENTS_NUMBER;
 private QLearningSQL ql;
-private ArrayList<Object> motivationMO;
+private Idea motivationMO;
 private MemoryObject motorActionMO, reward_stringMO, action_stringMO;
 private MemoryObject neckMotorMO;
 private MemoryObject headMotorMO;
 private List<String> actionsList;
 private List<Observation> allStatesList;
-private List<QLStepReturn> qTableList, qTableSList, qTableCList;
-private List<Double>  rewardList, rewardSList, rewardCList;
+private List<QLStepReturn> qList;
+private List<Double>  rewardList;
 private OutsideCommunication oc;
 private final int timeWindow;
 private final int sensorDimension;
@@ -61,7 +60,7 @@ private float vel = 2f,angle_step;
 
 private int curiosity_lv, red_c, green_c, blue_c;
 private int action_index;
-private int experiment_number, exp_s, exp_c;
+private int experiment_number;
 private int stage, action_number=0;
 int fovea; 
 private String mode;
@@ -70,25 +69,27 @@ private String mode;
 private float yawPos = 0f, headPos = 0f;   
 private boolean crashed = false;
 private boolean debug = false, sdebug = false;
-private int num_tables, aux_crash = 0;
+private int num_tables, aux_crash = 0,  aux_mt = 0, num_pioneer;
 private ArrayList<String> executedActions  = new ArrayList<>();
 private ArrayList<String> allActionsList;
 private Map<String, ArrayList<Integer>> proceduralMemory = new HashMap<String, ArrayList<Integer>>();
 private String output, motivation, stringOutput = "";
 private ArrayList<Float> lastLine;
 private String motivationName;
-public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, String mode, String motivation, int num_tables) {
+public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, String mode, String motivation, int num_tables, int num_pioneer) {
 
     super();
     time_graph = 0;
 
     this.num_tables = num_tables;
+    this.num_pioneer= num_pioneer;
     this.motivation = motivation;
     // allActions: am0: focus; am1: neck left; am2: neck right; am3: head up; am4: head down; 
     // am5: fovea 0; am6: fovea 1; am7: fovea 2; am8: fovea 3; am9: fovea 4; 
     // am10: neck tofocus; am11: head tofocus; am12: neck awayfocus; am13: head awayfocus
     // aa0: focus td color; aa1: focus td depth; aa2: focus td region.
-    allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12", "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16")); //"aa1", "aa2", 
+    allActionsList  = new ArrayList<>(Arrays.asList("am0", "am1", "am2", "am3", "am4", "am5", "am6", "am7", "am8", "am9", "am10", "am11", "am12",
+            "am13", "aa0", "aa1", "aa2", "am14", "am15", "am16")); //"aa1", "aa2", 
     // States are 0 1 2 ... 5^256-1
     //ArrayList<String> allStatesList = new ArrayList<>(Arrays.asList(IntStream.rangeClosed(0, (int)Math.pow(2, 16)-1).mapToObj(String::valueOf).toArray(String[]::new)));
 
@@ -105,8 +106,7 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
     this.mode = mode;
     MAX_ACTION_NUMBER = oc.vision.getMaxActions();
     MAX_EXPERIMENTS_NUMBER = oc.vision.getMaxEpochs();
-    exp_s = oc.vision.getEpoch();
-        exp_c = oc.vision.getEpoch();
+    
               /*try {
                 Thread.sleep(200);
             } catch (Exception e) {
@@ -126,29 +126,15 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
         MO = (MemoryObject) this.getInput("SALIENCY_MAP");
         saliencyMap = (List) MO.getI();
         if(this.motivation.equals("drives")){
-             DriverArray MC = (DriverArray) this.getInput("MOTIVATION");
-            motivationMO = (ArrayList<Object>) MC.getI();
+             MemoryContainer MC = (MemoryContainer) this.getInput("MOTIVATION");
+            motivationMO = (Idea) MC.getI();
         }               
 
-        if(num_tables==2){
-
-            MO = (MemoryObject) this.getInput("SUR_REWARDS");
-            rewardSList = (List) MO.getI();
-            MO = (MemoryObject) this.getInput("QTABLES");
-            qTableSList = (List) MO.getI();
-
-            MO = (MemoryObject) this.getInput("CUR_REWARDS");
-            rewardCList = (List) MO.getI();
-            MO = (MemoryObject) this.getInput("QTABLEC");
-            qTableCList = (List) MO.getI();
-        }
-        else if(num_tables == 1){
-            MO = (MemoryObject) this.getInput("REWARDS");
+    MO = (MemoryObject) this.getInput("REWARDS");
             rewardList = (List) MO.getI();
-            MO = (MemoryObject) this.getInput("QTABLE");
-            qTableList = (List) MO.getI();
-        }
-        MO = (MemoryObject) this.getOutput("STATES");
+            MO = (MemoryObject) this.getInput("DQN");
+            qList = (List) MO.getI();
+    MO = (MemoryObject) this.getOutput("STATES");
         allStatesList = (List) MO.getI();
 
         MO = (MemoryObject) this.getOutput("ACTIONS");
@@ -176,67 +162,46 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
     // Main Codelet function, to be implemented in each subclass.
     @Override
     public void proc() {
-                //System.out.println("yawPos: "+yawPos+" headPos: "+headPos);
+        if(debug) System.out.println("  Decision proc"); 
+                System.out.println(" Decision proc yawPos: "+yawPos+" headPos: "+headPos);
 	/*try {
             Thread.sleep(50);
         } catch (Exception e) {
             Thread.currentThread().interrupt();
         }   */  
+        
+        if(experiment_number!=oc.vision.getIValues(1)){
+            aux_crash = 0;
+            aux_mt = 0;
+        }
         QLStepReturn<Observation> ql = null;
         
         if(motivationMO == null){
-            if(sdebug) System.out.println("DECISION -----  motivationMO is null");
+            if(debug) System.out.println("DECISION -----  motivationMO is null");
                 return;
             }
         
         
-       if(debug) System.out.println("  Decision proc"); 
-       boolean curB =  oc.vision.getFValues(3) > oc.vision.getFValues(1);
-        
-        String motivationName;
-        motivationName = "";
-        if(curB){
-            motivationName = "CURIOSITY";
-        }
-        else{
-            motivationName = "SURVIVAL";
-        }
-            
-        if(this.num_tables == 2 && motivationName.equals("SURVIVAL")){
-            if(qTableSList.isEmpty()){
-                if(debug) System.out.println("  Decision qTableSList empty"); 
-                return;
-            }
-            ql = qTableSList.get(qTableSList.size()-1);
-
-        }else if(this.num_tables == 2){
-            if(qTableCList.isEmpty()){
-                if(debug) System.out.println("  Decision qTableCList empty"); 
-                return;
-            }
-            ql = qTableCList.get(qTableCList.size()-1);
-
-        }else if(this.num_tables == 1){
-            if(qTableList.isEmpty()){
+       
+       if(qList.isEmpty()){
                 if(debug) System.out.println(" Decision qtable empty"); 
                 return;
-            }
-            ql = qTableList.get(qTableList.size()-1);
-        }
+       }
+        ql = qList.get(qList.size()-1);
+        
         
        
         if(ql==null){
-            if(debug) System.out.println(" Decision ql null"); 
+            if(debug) System.out.println(" Decision ql==null"); 
             return;
         }
         
-        if(debug) System.out.println("  post first qtable"); 
+        if(debug) System.out.println("Decision ql not null"); 
         
         Observation state = null;
         if(!saliencyMap.isEmpty() ) state = getStateFromSalMap();
         if(debug) System.out.println("  Decision state:"+state.getData()); 
         int actionToTake = ql.getLastAction();
-        
                 // Select best action to take
 
         
@@ -252,213 +217,109 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
         if(debug)  System.out.println("  Decision actionToTake:"+actionToTake);      
         allStatesList.add(state);
         action_number += 1;
-        oc.vision.addAction(allActionsList.get(actionToTake));
+        oc.vision.addAction(String.valueOf(actionToTake));
         oc.vision.setLastAction(String.valueOf(actionToTake));
-        //oc.vision.setIValues(4, (int) oc.vision.getIValues(4)+1);
-       // printToFile(actionToTake,"actions.txt", action_number);
-/*        boolean surB;
-        try{
-        surB = ((double) surI.getValue() > (double) Collections.max((List) curI.getValue())  && exp_s<MAX_EXPERIMENTS_NUMBER) || exp_c>MAX_EXPERIMENTS_NUMBER;
-        }
-        catch(Exception e){
-        surB = true;
-        }
-        boolean exp_b = false;
-        if(num_tables == 1) exp_b = this.experiment_number != this.oc.vision.getEpoch();
-        else if(!surB) exp_b = this.exp_c != this.oc.vision.getEpoch("C");
-        else exp_b = this.exp_s != this.oc.vision.getEpoch("S");
-        
-        if(exp_b){
-            System.out.println("DECISION ----- Exp: "+ experiment_number + 
-                    " ----- N act: "+action_number+" ----- Act: "+actionToTake+
-                    " ----- Type: "+motivationName);
-	
-            if(num_tables == 1) this.experiment_number = this.oc.vision.getEpoch();
-            else if(!surB) this.exp_c = this.oc.vision.getEpoch("C");
-            else this.exp_s = this.oc.vision.getEpoch("S");
-            action_number=0;
-            try {
-            Thread.sleep(20);
-        } catch (Exception e) {
-            Thread.currentThread().interrupt();
-        }
-  */          
-        //}
+        System.out.println("  \n end decision");
     }
 	
 	
 
 	
-        // Discretization
-	// Normalize and transform a salience map into one state
-		// Normalized values between 0 and 1 can be mapped into 0, 1, 2, 3 or 4
-		// Them this values are computed into one respective state
+
     public Observation getStateFromSalMap() {
-        ArrayList<Float> mean_lastLine = new ArrayList<>();
-        for(int i=0; i<16;i++) mean_lastLine.add(0f);
-        
-
-			// Getting just the last entry (current sal map)
-			lastLine = (ArrayList<Float>) saliencyMap.get(saliencyMap.size() -1);
-
-       /* try {
-            Thread.sleep(50);
-        } catch (Exception e) {
-            Thread.currentThread().interrupt();
-        } */
-                        
-        if (Collections.max(lastLine) == 0) aux_crash += 1;
-        else aux_crash = 0; 
-
-        if(action_number > 5 && aux_crash> 5 ){
-            crashed = true;
-        }
-
-        if (Collections.max(lastLine) > 0){
-            ArrayList<Float> MeanValue = new ArrayList<>();
-            for(int n = 0;n<4;n++){
-            int ni = (int) (n*4);
-            int no = (int) (4+n*4);
-            for(int m = 0;m<4;m++){    
-                int mi = (int) (m*4);
-                int mo = (int) (4+m*4);
-                for (int y = ni; y < no; y++) {
-
-                    for (int x = mi; x < mo; x++) {
-                        int i = (y*16+x);
-
-                        float Fvalue_r = (float) lastLine.get(i);                         
-                        MeanValue.add(Fvalue_r);
-
-                    }
-                }
-                float correct_mean_r = Collections.max(MeanValue);
-
-                mean_lastLine.set(n*4+m, correct_mean_r);
-                MeanValue.clear();
-
-                }
-            }
-
-        }
-        // For normalizing readings between 0 and 1 before transforming to state 
-        Float max = Collections.max(mean_lastLine);
-        Float min = Collections.min(mean_lastLine);		
-        Integer discreteVal = 0;
-        Integer stateVal = 0;
-        for (int i=0; i < 16; i++) {
-            // Normalizing value
-            Float normVal; 
-            if(max>0) normVal = (mean_lastLine.get(i)-min)/(max-min);
-            else normVal = 0f;
-            // Getting discrete value
-            if (normVal <= 0.5) {
-                    discreteVal = 0;
-            }
-            else if (normVal > 0.5) {
-                    discreteVal = 1;
-            }
-
-            // Getting state from discrete value
-            stateVal += (int) Math.pow(2, i)*discreteVal;
-        }
-        
-        boolean surB = oc.vision.getFValues(1) > oc.vision.getFValues(3);
-        
+        lastLine = (ArrayList<Float>) saliencyMap.get(saliencyMap.size() -1);
        
-        //System.out.println("Rewardcomputer SurB:"+surB);
-        if(!surB){
-            motivationName = "CURIOSITY";
-        }
-        else{
-            motivationName = "SURVIVAL";
-        }
-        double mot_value;
-         float[] stateArray = null;
-         float[] lastLineArray = new float[lastLine.size()];
-         for (int i = 0; i < lastLine.size(); i++) {
+        // Drive Curiosidade
+        float driveValueFloat = (float) oc.vision.getFValues(3);
+        
+        if(debug) System.out.println("  \nDecision driveValueFloat:"+driveValueFloat);      
+        // Fovea  pos
+        float foveaPositionFloat = (float) oc.vision.getIValues(2);
+        float[] lastLineArray = new float[lastLine.size()];
+        
+        if(debug) System.out.println("  \nDecision foveaPositionFloat:"+foveaPositionFloat);
+        
+        if(debug) System.out.println("  \nDecision (\"Pioneer1\"):"+oc.vision.getPosition("Pioneer1").length);
+        if(debug && num_pioneer>1) System.out.println("  \nDecision (\"Pioneer2\"):"+oc.vision.getPosition("Pioneer2").length);
+        if(debug) System.out.println("  \nDecision (\"HeadPitch\"):"+oc.vision.getPosition("HeadPitch").length);
+        if(debug) System.out.println("  \nDecision (\"NeckYaw\"):"+oc.vision.getPosition("NeckYaw").length);
+        if(debug) System.out.println("  \nDecision (\"Color 0\"):"+oc.vision.getColor(0).length);
+        if(debug&& num_pioneer>1) System.out.println("  \nDecision (\"Color 1\"):"+oc.vision.getColor(0).length);
+        if(debug) System.out.println("  \nDecision lastLineArray:"+lastLineArray.length);
+        
+        // Converter ArrayList<Float> para float[]
+        
+        for (int i = 0; i < lastLine.size(); i++) {
             lastLineArray[i] = lastLine.get(i);
         }
-         
-        if(motivationName.equals("SURVIVAL")){
-            mot_value = (double) oc.vision.getFValues(1);
+
+        
+        if(Math.abs(oc.HeadPitch_m.getSpeed()) < 0.001 && Math.abs(oc.NeckYaw_m.getSpeed()) < 0.001){
+            System.out.println("  \n Motor stopped");
+            aux_mt += 1;
+        } else{
+             aux_mt = 0;
         }
-        else{
-            mot_value = (double) oc.vision.getFValues(3); 
-        } 
-        if(num_tables==1){
+        oc.vision.setFValues(6, Collections.max(lastLine));
+        if(Collections.max(lastLine)<0.00001){
+         System.out.println("  \n No salMap");
+            aux_crash += 1;
+        } else{
+             aux_crash = 0;
+        }
+        
+        if(aux_mt>20) {
+                System.out.println("  \nSync failed 20");
+                oc.vision.setCrash(true);
+                aux_mt = 0;
+                oc.vision.setIValues(5, 1);
+            }else{
+             oc.vision.setIValues(5, 0);
+        }
+        
+        if(aux_crash > 10){
+            System.out.println("  \n no salicence 10");
+            oc.vision.setCrash(true);
+            aux_crash = 0;
+            
+          oc.vision.setIValues(5, 1);
+            }else{
+             oc.vision.setIValues(5, 0);
+        }
+        float[] stateArray;
+        if(num_pioneer>1){
+        // Concatenate all elements in a single array
         stateArray = padOrTrimArray(concatenateArrays(
-                new float[]{oc.vision.getIValues(5)},
-                new float[]{oc.vision.getFValues(3)},
-                new float[]{oc.vision.getFValues(1)},
-                lastLineArray),272);
-            
-        }
-        else if(num_tables==2){
-            
+            new float[]{driveValueFloat}, 
+            oc.vision.getPosition("Pioneer1"), 
+            oc.vision.getPosition("Pioneer2"), 
+            oc.vision.getColor(0), 
+            oc.vision.getColor(1),
+            new float[]{oc.HeadPitch_m.getSpeed()},
+            new float[]{oc.NeckYaw_m.getSpeed()},
+            new float[]{foveaPositionFloat}, 
+            lastLineArray
+        ),272);
+        }else{
             stateArray = padOrTrimArray(concatenateArrays(
-                new float[]{oc.vision.getIValues(5)},
-                new float[]{(float) mot_value},
-                new float[]{0},
-                lastLineArray),272);
-            
-            
+            new float[]{driveValueFloat}, 
+            oc.vision.getPosition("Pioneer1"), 
+            new float[]{0, 0, 0},
+            oc.vision.getColor(0), 
+            new float[]{0, 0, 0},
+            new float[]{oc.HeadPitch_m.getSpeed()},
+            new float[]{oc.NeckYaw_m.getSpeed()},
+            new float[]{foveaPositionFloat}, 
+            lastLineArray
+        ),272);
         }
+        // Criar um INDArray a partir do array de floats
         INDArray observationData = Nd4j.create(new float[][]{stateArray});
-        if(debug) System.out.println("  \n return ObservationData");
-            
+        System.out.println("  \n return ObservationData");
+        // Criar e retornar a Observation
         return new Observation(observationData);
     }
-		
-	
-    public static float calculateMean(ArrayList<Float> list) {
-        if (list.isEmpty()) {
-            return 0; // Return 0 if the list is empty or handle it as required
-        }
 
-        float sum = 0;
-        for (float value : list) {
-            sum += value;
-        }
-
-        return sum / list.size();
-    }
-/*
-    private void printToFile(Object object,String filename, int action_num){
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");  
-        LocalDateTime now = LocalDateTime.now();
-        boolean exp_b = false;
-        Idea curI = (Idea) motivationMO.get(0);
-        Idea surI = (Idea) motivationMO.get(1);
-        boolean surB;
-        try{
-        surB = ((double) surI.getValue() > (double) Collections.max((List) curI.getValue())  && exp_s<MAX_ACTION_NUMBER) || exp_c>MAX_ACTION_NUMBER;
-        }
-        catch(Exception e){
-        surB = true;
-        }
-        if(num_tables == 1) exp_b = this.experiment_number < MAX_EXPERIMENTS_NUMBER;
-        else if(!surB) exp_b = this.exp_c < MAX_EXPERIMENTS_NUMBER;
-        else exp_b = this.exp_s < MAX_EXPERIMENTS_NUMBER;
-        
-        if ( exp_b) {
-            try(FileWriter fw = new FileWriter("profile/"+filename,true);
-                BufferedWriter bw = new BufferedWriter(fw);
-                PrintWriter out = new PrintWriter(bw))
-            {
-                out.println(dtf.format(now)+" "+ object+" Exp:"+experiment_number+" ExpC:"+this.exp_c +" ExpS:"+this.exp_s +
-                        " Nact:"+action_num+" Type:"+motivationName);
-
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-    }
-
-*/
-    
     private static float[] concatenateArrays(float[]... arrays) {
         int totalLength = 0;
         for (float[] array : arrays) {
@@ -479,12 +340,23 @@ public DecisionCodelet (OutsideCommunication outc, int tWindow, int sensDim, Str
         private float[] padOrTrimArray(float[] array, int targetSize) {
         float[] newArray = new float[targetSize];
         for (int i = 0; i < targetSize; i++) {
-            newArray[i] = (i < array.length) ? array[i] : 0.0f; 
+            newArray[i] = (i < array.length) ? array[i] : 0.0f; // Fill with zeros if needed
         }
         return newArray;
     }
 
 	
+    public static float calculateMean(ArrayList<Float> list) {
+        if (list.isEmpty()) {
+            return 0; // Return 0 if the list is empty or handle it as required
+        }
 
-    
+        float sum = 0;
+        for (float value : list) {
+            sum += value;
+        }
+
+        return sum / list.size();
+    }
+
 }
